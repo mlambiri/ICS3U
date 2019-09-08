@@ -4,15 +4,10 @@
 #include <stdio.h>
 int main() {
 
-//Variables declared
-    int age;
-    int height;
-    float weight;
-
-//Variables initialized
-    age = 0;
-    height = 0;
-    weight = 0;
+//Variables declared and initialized
+    int age = 0;
+    int height = 0;
+    float weight = 0;
 
 //Questionnaire and recording results
     printf("Please answer the following questions.");
@@ -31,6 +26,6 @@ int main() {
     printf("              %-6d", height);
     printf("         %-3.1f", weight);
     //Fun add-ons
-    printf("\n\nThanks for using this program. Your data has been recorded");
+    printf("\n\nThanks for using this program. Your data has been recorded\n\n");
 }
 
