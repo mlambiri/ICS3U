@@ -1,9 +1,8 @@
-/*
- * @author   mlambiri
- * @date     Sep 8, 2019
- * Height,weight and age program.
- * Author: Michael C Lambiri
- */
+/**************************************************************
+ * Name: Michael C Lambiri       ICS3U       Fall 2019        *
+ *                                                            *
+ * Age, Weight, Height Program                                *
+ **************************************************************/
 
 
 #include <stdio.h>
@@ -18,8 +17,10 @@ int main() {
 
 	//Questionnaire and recording results
 	printf("Please answer the following questions.");
+
 	printf("\n\nHow old are you? (yrs) ");
 	scanf("%d", &age);
+
 	printf("\nHow tall are you? (cm) ");
 	scanf("%d", &height);
 
