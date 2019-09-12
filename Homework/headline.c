@@ -8,45 +8,70 @@
 
 #include<stdio.h>
 #include<string.h>
+
 int main () {
 
-	//Initializing variables and assigning values
-	char buffer[21];
-	char funnyJoke[21];
-	char bigLebowski[11];
-	char rickMorty[11];
-	char okKo[12];
+	// Variable declaration
+	// I am using 4 character arrays
+	char justAnArray[21];
+	char favoriteSong[31];
+	char favoriteMovie[31];
+	char favoriteCharacter[31];
 
-	int surfinBird = 0;
-	float test01 = 0;
-	float test02 = 0;
+	// The program is also using 2 int and 2 float variables
+	int numberOfCharacters= 0;
+	int yearOfRelease = 0;
+
+	float characterWeight = 0;
+	float characterHeight = 0;
 
 	//Questions and recording results
-	printf("What is your favourite song? ");
-	fgets(funnyJoke, 20, stdin);
-	//fflush(stdin);
-	printf("\nWhat is the lowest grade you've ever seen? ");
-	fgets(buffer, 20, stdin);
-	sscanf(buffer, "%d", &surfinBird);
-	//fflush(stdin);
-	printf("\nName your arch-nemesis! ");
-	fgets(bigLebowski, 10, stdin);
+	printf("What is your favorite song? ");
+	fgets(favoriteSong, 30, stdin);
 
-	printf("\nWhat colour of bird reminds you the most of the song surfing bird? ");
-	fgets(buffer, 20, stdin);
-	sscanf(buffer, "%f", &test01);
+	// I need to remove the end of line character from the character array
+	favoriteSong[strlen(favoriteSong)-1] = 0;
 
-	printf("\nHow would you describe your math teacher in one word? ");
-	fgets(okKo, 11, stdin);
+	printf("\nWhat movie does the song '%s' make you think of? ", favoriteSong);
+	fgets(favoriteMovie, 30, stdin);
+	favoriteMovie[strlen(favoriteMovie)-1] = 0;
 
-	//Ensuring that it all gets printed on the same line
-	funnyJoke[strlen(funnyJoke) - 1] = '\0';
-	bigLebowski[strlen(bigLebowski) - 1] = '\0';
-	rickMorty[strlen(rickMorty) - 1] = '\0';
-	okKo[strlen(okKo) - 1] = '\0';
+	// I have tried to use scanf after fgets
+	// That does not work
+	// I have googled the problem and
+	// I found a solution on stackoverflow
+	// If I put the response in a char array
+	// I can then use sscanf to get the data
+
+	printf("\nWhen was '%s' released in theaters? ", favoriteMovie);
+	fgets(justAnArray, 20, stdin);
+	sscanf(justAnArray, "%d", &yearOfRelease);
+
+	printf("\nHow many main characters does the movie '%s' have? ", favoriteMovie);
+	fgets(justAnArray, 20, stdin);
+	sscanf(justAnArray, "%d", &numberOfCharacters);
+
+
+	printf("\nWhat is your favorite character in the movie '%s'? ", favoriteMovie);
+	fgets(favoriteCharacter, 30, stdin);
+	favoriteCharacter[strlen(favoriteCharacter) -1] = 0;
+
+
+	printf("\nHow much, in kg, do you think '%s' weighs? ", favoriteCharacter);
+	fgets(justAnArray, 20, stdin);
+	sscanf(justAnArray, "%f", &characterWeight);
+
+	printf("\nHow tall, in meters, do you think '%s' is? ", favoriteCharacter);
+	fgets(justAnArray, 20, stdin);
+	sscanf(justAnArray, "%f", &characterHeight);
+
 
 	//Printing the funny headlines
-	printf("A %s %s sang %s %d times, in the most %s way imaginable.\n", rickMorty, bigLebowski, funnyJoke, surfinBird, okKo);
+	printf("================= Today's Headlines ==========================\n");
+	printf("Hollywood studio asks %s to gain %2.1f Kg to play in 'The Astronaut Does Not Fit in The Rocket' sequel!\n", favoriteCharacter, characterWeight);
+	printf("%s announces '%s 2': 'Electric Bugaloo' will finally be released after %d years of anticipation\n", favoriteCharacter, favoriteSong, yearOfRelease);
+	printf("Optical illusions test. %f of people fail!\n", characterHeight);
+	printf("%s reveals hidden truth about %d types of birds.\n" , favoriteMovie, numberOfCharacters);
 
 	return 0;
 }
