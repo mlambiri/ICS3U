@@ -22,6 +22,7 @@ int main() {
 
     if(numBer == 0 && veryAble == 0) {
         printf("The result can be anything you want ... Say 42? \n");
+        return 33;
     }
     if(veryAble == 0) {
         printf("Cannot divide by Zero. Please pick another number\n");
