@@ -1,8 +1,10 @@
-/***************************************************************************
- *  Name:                 Course             Date                          *
- *                                                                         *
- *   Program to calculate cost and calories of a subway order              *
- ***************************************************************************/
+/*******************************************************************************
+ *  Name: Michael Lambiri             Course ICS3U          Date Sept 23 2019  *
+ *                                                                             *
+ *  Instructor Ms. Lindsay Cullum                                              *
+ *                                                                             *
+ *   Program to calculate cost and calories of a subway order                  *
+ ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -124,7 +126,7 @@ int main() {
         }
     }
 
-    if (bDrink && bCookies || bChips) {
+    if (bDrink && (bCookies || bChips)) {
         fCost -= 1.00;
     }
 
