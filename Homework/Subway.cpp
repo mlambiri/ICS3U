@@ -27,24 +27,37 @@ int main() {
 
     // Input Section
     printf("Welcome to the Sandwich Shop\n");
-    printf("Would you like a veggie or roast chicken Sub? (v/c) ");
-    scanf("%s", order);
-    if (tolower(order[0]) == 'v') {
-        bVeggie = true;
-        strcpy(strSandwich, "veggie");
-    }
-    else {
-        bVeggie = false;
-        strcpy(strSandwich, "roast chicken");
-    }
-    printf("Would you like chips? (y/n) ");
-    scanf("%s", order);
-    if (tolower(order[0]) == 'y') {
-        bChips = true;
-        strcpy(strSnack, "and chips");
-    }
-    else {
-        bChips = false;
+    while(true){
+        printf("Would you like a veggie or roast chicken Sub? (v/c) ");
+        scanf("%s", order);
+        if (tolower(order[0]) == 'v') {
+            bVeggie = true;
+            strcpy(strSandwich, "veggie");
+            break;
+        }
+        else if(tolower(order[0]) == 'c') {
+            bVeggie = false;
+            strcpy(strSandwich, "roast chicken");
+            break;
+        } else{
+            printf("Invalid choice. Please pick again.\n");
+        }
+    } //end-while
+    while(true) {
+        printf("Would you like chips? (y/n) ");
+        scanf("%s", order);
+        if (tolower(order[0]) == 'y') {
+            bChips = true;
+            strcpy(strSnack, "and chips");
+            break;
+        }
+        else if (tolower(order[0]) == 'n') {
+            bChips = false;
+            break;
+        }
+        else {
+            printf("Please use a valid response\n");
+        }
     }
     printf("Would you like cookies? (y/n) ");
     scanf("%s", order);
