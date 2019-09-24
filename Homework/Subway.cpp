@@ -27,6 +27,12 @@ int main() {
 
     // Input Section
     printf("Welcome to the Sandwich Shop\n");
+
+    /*
+     * The original program did not have a response to other characters apart from v.
+     * I made it so that it could tell you to respond with another character if the one
+     * you used is not one of the two (v or c).
+     */
     while(true){
         printf("Would you like a veggie or roast chicken Sub? (v/c) ");
         scanf("%s", order);
@@ -43,6 +49,11 @@ int main() {
             printf("Invalid choice. Please pick again.\n");
         }
     } //end-while
+
+    /*
+     * Similar purpose as the first while loop. Prevents you from entering random
+     * characters that the program would read strangely.
+     */
     while(true) {
         printf("Would you like chips? (y/n) ");
         scanf("%s", order);
@@ -58,33 +69,50 @@ int main() {
         else {
             printf("Please use a valid response\n");
         }
-    }
-    printf("Would you like cookies? (y/n) ");
-    scanf("%s", order);
-    if (tolower(order[0]) == 'y') {
-        bCookies = true;
-        strcpy(strSnack, "and cookies");
-    }
-    else {
-        bCookies = false;
-    }
-    printf("Would you like a drink? (y/n) ");
-    scanf("%s", order);
-    if (tolower(order[0]) == 'y') {
-        bDrink =  true;
-        printf("Would you like a bottle or a fountain drink? (b/f) ");
+    } //end-while
+    while(true){
+        printf("Would you like cookies? (y/n) ");
         scanf("%s", order);
-        if (tolower(order[0]) == 'b') {
-            bBottle = true;
-            strcpy(strDrink, "and bottle drink");
+        if (tolower(order[0]) == 'y') {
+            bCookies = true;
+            strcpy(strSnack, "and cookies");
+            break;
+        }
+        else if (tolower(order[0])== 'n') {
+            bCookies = false;
+            break;
         }
         else {
-            bBottle = false;
-            strcpy(strDrink, "and fountain drink");
+            printf("Please use a valid response\n");
         }
-    }
-    else
-        bDrink = false;
+
+    } //end-while
+    while(true){
+        printf("Would you like a drink? (y/n) ");
+        scanf("%s", order);
+        if (tolower(order[0]) == 'y') {
+            bDrink =  true;
+            printf("Would you like a bottle or a fountain drink? (b/f) ");
+            scanf("%s", order);
+            if (tolower(order[0]) == 'b') {
+                bBottle = true;
+                strcpy(strDrink, "and bottle drink");
+            }
+            else {
+                bBottle = false;
+                strcpy(strDrink, "and fountain drink");
+            }
+            break;
+        }
+        else if(tolower(order[0]) == 'n'){
+            bDrink = false;
+            break;
+        }
+        else {
+            printf("Please use a valid response\n");
+        }
+    } //end-while
+
 
     // Process Section
 
@@ -112,7 +140,13 @@ int main() {
     ENTER YOUR CODE HERE
      **************************************************************/
 
+    if (bTooManySnacks){
+        printf("Order Error: You can't order both cookies and chips, please  try again\n");
+        return 22;
+    }
+
     // Output
+    //Calculating calories and cost for the menu
     if (bVeggie) {
         fCost += 5.50;
         iCalories += 460;
@@ -151,17 +185,22 @@ int main() {
         }
     }
 
+    //Preventing you from having an unhealthy meal.
     if (bChips && bCookies) {
         (bTooManySnacks = true);
     }
-    if (bTooManySnacks){
-        printf("You can't order both cookies and chips, get out of the line\n");
-    }
-    else {
-        printf("\n\nYour order of %s sandwich %s %s is\n ",
-                strSandwich, strSnack, strDrink);
-        printf("\t$%.2f and %d calories\n\n",
-                fCost, iCalories);
-    }
+
+
+    printf("\n\nYour order of %s sandwich %s %s is\n ",
+            strSandwich, strSnack, strDrink);
+    printf("\t$%.2f and contains %d calories\n",
+            fCost, iCalories);
+    /*
+     * The average teenager/adult's diet requires 2000 calories.
+     * In order to display percents, the number is 100 times bigger than the decimal. So I made it divide by 20.
+     */
+    printf("This meal represents %2.2f%% of your daily recommended calories\n\n",
+            iCalories/20.0);
+
     return 0;
 }
