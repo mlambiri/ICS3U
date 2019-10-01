@@ -134,8 +134,53 @@ int main () {
                      * @date     Oct 1, 2019
                      *  Computer picks at random 1 to 3 sticks
                      */
-                    stickTaker = rand()%3+1;
+                    // stickTaker = rand()%3+1;
 
+                    /*
+                     * @author   mlambiri
+                     * @date     Oct 1, 2019
+                     *  To improve the algorithm the computer can check
+                     *  how many sticks there are left
+                     *  If there are 2 left then pick 1
+                     *  If there are 3 left then pick 2
+                     *  If there are 4 left then pick 3
+                     *  If there are 5 left then pick 1
+                     *  If there are 6 left computer loses
+                     *  If there are 7 left pick 1
+                     *  If there are 8 left pick pick 2
+                     *  If there are 9 left pick 3
+                     *  If there are 10 left pick 1
+                     *
+                     *  else pick at random between 1 to 3
+                     */
+                    switch (stickNumber) {
+                    case 2:
+                        stickTaker = 1;
+                        break;
+                    case 3:
+                        stickTaker = 2;
+                        break;
+                    case 4:
+                        stickTaker = 3;
+                        break;
+                    case 5:
+                        stickTaker = 1;
+                        break;
+                    case 7:
+                        stickTaker = 1;
+                        break;
+                    case 8:
+                        stickTaker = 2;
+                        break;
+                    case 9:
+                        stickTaker = 3;
+                        break;
+                    case 10:
+                        stickTaker = 1;
+                        break;
+                    default:
+                        stickTaker = rand()%3+1;
+                    }
 
                     if(stickNumber <= stickTaker) {
                         /*
