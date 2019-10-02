@@ -17,6 +17,7 @@ int main () {
     int stickNumber;
     int stickTaker;
     char startGame;
+    char answer[80];
     int  minSticks = 10;
     bool pickOrder = false;
     bool playerOneTurn = false;
@@ -42,7 +43,10 @@ int main () {
     printf("3) Dumb Computer against Human\n");
     printf("4) Dumb Computer against Smart Computer\n");
     printf(">");
+
     scanf("%d", &gameType);
+
+
     switch(gameType) {
     case 1:
         playerOneHuman = true;
@@ -72,7 +76,16 @@ int main () {
 
     while (true) {
         printf("Enter y to start or n to quit. > ");
-        scanf("%c", &startGame);
+
+        /*
+         * @author   mlambiri
+         * @date     Oct 2, 2019
+         *   According to https://stackoverflow.com/questions/5240789/scanf-leaves-the-new-line-char-in-the-buffer
+         *   I need to leave a space in front of %c because %c does not remove the newline
+         *   character
+         */
+
+        scanf(" %c", &startGame);
         if (startGame == 'y') {
 
             pickOrder = false;
@@ -133,7 +146,7 @@ int main () {
                                 correctPick = true;
                             }
                             else {
-                                printf("Invalid number PLayer One! Try again!\n");
+                                printf("Invalid number Player One! Try again!\n");
                             }
                         }
 
@@ -202,7 +215,16 @@ int main () {
                          *  If there are 8 left pick pick 2
                          *  If there are 9 left pick 3
                          *  If there are 10 left pick 1
-                         *
+                         *  If there are 11 left pick 2
+                         *  If there are 12 left pick 3
+                         *  If there are 13 left pick 1
+                         *  If there are 14 left pick 2
+                         *  If there are 15 left pick 3
+                         *  If there are 16 left pick 1
+                         *  If there are 17 left pick 2
+                         *  If there are 18 left pick 3
+                         *  If there are 19 left pick 1
+                         *  If there are 20 left pick 2
                          *  else pick at random between 1 to 3
                          */
                         switch (stickNumber) {
@@ -229,6 +251,36 @@ int main () {
                             break;
                         case 10:
                             stickTaker = 1;
+                            break;
+                        case 11:
+                            stickTaker = 2;
+                            break;
+                        case 12:
+                            stickTaker = 3;
+                            break;
+                        case 13:
+                            stickTaker = 1;
+                            break;
+                        case 14:
+                            stickTaker = 2;
+                            break;
+                        case 15:
+                            stickTaker = 3;
+                            break;
+                        case 16:
+                            stickTaker = 1;
+                            break;
+                        case 17:
+                            stickTaker = 2;
+                            break;
+                        case 18:
+                            stickTaker = 3;
+                            break;
+                        case 19:
+                            stickTaker = 1;
+                            break;
+                        case 20:
+                            stickTaker = 2;
                             break;
                         default:
                             stickTaker = rand()%3+1;
