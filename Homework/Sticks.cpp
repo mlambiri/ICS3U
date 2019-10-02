@@ -185,7 +185,7 @@ int main () {
                      *  Once the computer has taken a turn it is the human's turn
                      */
                     playerOneTurn = true;
-                    if(playerOneHuman == true) {
+                    if(playerTwoHuman == true) {
                         correctPick = false;
                         while(correctPick == false) {
                             printf("[Player Two] Pick some sticks (1-3)! >");
