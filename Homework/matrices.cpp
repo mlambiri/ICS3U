@@ -62,29 +62,116 @@ int main() {
         printf("\n");
     }
 
-    //step2
+    // The user has to pick the operation
+    int opType = 0;
+    while(true) {
+        printf("Welcome to matrix algebra. What would you like to do?\n");
+        printf("1) A + B\n");
+        printf("2) A * B\n");
+        printf("3) A - B\n");
+        printf("4) B - A\n");   
+        printf("5) Trans(A)\n");
+        printf("6) Trans(B)\n");
+        printf("7) Exit\n");
+        printf(">");
+        
+        scanf("%d", &opType);
 
-    if((aRows != bRows) || (aColumns != bColumns)) {
-        printf("Cannot add, Matrices of different sizes\n");
-        return 22;
-    } else {
-        cRows = aRows;
-        cColumns = aColumns;
-    }
-    
-    for(int i = 0; i <cRows; i++){
-        for(int j = 0; j <cColumns; j++) {
-            matrixC[i][j] = matrixA[i][j] + matrixB[i][j];
+        switch(opType) {
+        case 1:
+            //step2
+
+            if((aRows != bRows) || (aColumns != bColumns)) {
+                printf("Cannot add, Matrices of different sizes\n");
+                return 22;
+            } else {
+                cRows = aRows;
+                cColumns = aColumns;
+            }
+            
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    matrixC[i][j] = matrixA[i][j] + matrixB[i][j];
+                }
+            }
+
+
+            printf("Matrix C Values:\n");
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    printf("%f  ", matrixC[i][j]);
+                }
+                printf("\n");
+            }
+
+            break;
+        case 2:
+
+            break;
+        case 3:
+            if((aRows != bRows) || (aColumns != bColumns)) {
+                printf("Cannot add, Matrices of different sizes\n");
+                return 22;
+            } else {
+                cRows = aRows;
+                cColumns = aColumns;
+            }
+            
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    matrixC[i][j] = matrixA[i][j] - matrixB[i][j];
+                }
+            }
+
+
+            printf("Matrix C Values:\n");
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    printf("%f  ", matrixC[i][j]);
+                }
+                printf("\n");
+            }
+
+
+            break;
+        case 4:
+            if((aRows != bRows) || (aColumns != bColumns)) {
+                printf("Cannot add, Matrices of different sizes\n");
+                return 22;
+            } else {
+                cRows = aRows;
+                cColumns = aColumns;
+            }
+            
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    matrixC[i][j] = matrixB[i][j] - matrixA[i][j];
+                }
+            }
+
+
+            printf("Matrix C Values:\n");
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    printf("%f  ", matrixC[i][j]);
+                }
+                printf("\n");
+            }
+
+
+            break;
+        case 5:
+
+            break;
+        case 6:
+
+            break;
+        case 7:
+            printf("Goodbye!\n");
+            return 22;
+        default:    
+            printf("Invalid Entry! Try Again!!\n");
         }
-    }
-
-
-    printf("Matrix C Values:\n");
-    for(int i = 0; i <cRows; i++){
-        for(int j = 0; j <cColumns; j++) {
-            printf("%f  ", matrixC[i][j]);
-        }
-        printf("\n");
     }
 
     
