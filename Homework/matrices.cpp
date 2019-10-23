@@ -70,15 +70,15 @@ int main() {
         printf("2) A * B\n");
         printf("3) A - B\n");
         printf("4) B - A\n");   
-        printf("5) Trans(A)\n");
-        printf("6) Trans(B)\n");
+        printf("5) A/B\n");
+        printf("6) B/A\n");
         printf("7) Exit\n");
         printf(">");
         
         scanf("%d", &opType);
 
         switch(opType) {
-        case 1:
+        case 1: //add
             //step2
 
             if((aRows != bRows) || (aColumns != bColumns)) {
@@ -105,12 +105,37 @@ int main() {
             }
 
             break;
-        case 2:
+        case 2: //multiply
+            if(aColumns != bRows) {    
+                printf("Cannot multiply Matrices\n");
+                return 22;
+            } else {
+                cRows = aRows;
+                cColumns = bColumns;
+            }
+            
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    matrixC[i][j] = 0;
+                    for(int k = 0; k <aColumns; k++) {
+                        matrixC[i][j] += matrixA[i][k] * matrixB[k][j];
+                    }
+                }
+            }
+
+
+            printf("Matrix C Values:\n");
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    printf("%f  ", matrixC[i][j]);
+                }
+                printf("\n");
+            }
 
             break;
-        case 3:
+        case 3: //substract
             if((aRows != bRows) || (aColumns != bColumns)) {
-                printf("Cannot add, Matrices of different sizes\n");
+                printf("Cannot subtract Matrices of different sizes\n");
                 return 22;
             } else {
                 cRows = aRows;
@@ -136,7 +161,7 @@ int main() {
             break;
         case 4:
             if((aRows != bRows) || (aColumns != bColumns)) {
-                printf("Cannot add, Matrices of different sizes\n");
+                printf("Cannot subtract Matrices of different sizes\n");
                 return 22;
             } else {
                 cRows = aRows;
