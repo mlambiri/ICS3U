@@ -11,8 +11,6 @@
 *  Big thanks to Khan Academy for the help                                    *
 ******************************************************************************/
 
-/* Text Files are named matrixIn.txt and matrixOut.txt */
-
 #include <stdio.h>
 #define MAXSIZE 5
 
@@ -40,12 +38,12 @@ int main() {
 
     //If the user specifies negative row size, or row size is greater than 5, program will return
     if(aRows <= 0 || aRows > MAXSIZE) {
-        printf("Invalid no rows matrix A\n");
+        printf("Invalid number of rows matrix A\n");
         return 22;
     }
     //Same idea, but for columns of Matrix A
     if(aColumns <= 0 || aColumns > MAXSIZE) {
-        printf("Invalid no columns Matrix A\n");
+        printf("Invalid number of columns Matrix A\n");
         return 22;
     }
 
@@ -61,12 +59,12 @@ int main() {
 
     //If the user specifies negative row size, or row size is greater than 5, program will return
     if(bRows <= 0 || bRows > MAXSIZE) {
-        printf("Invalid no rows matrix B\n");
+        printf("Invalid number of rows matrix B\n");
         return 22;
     }
     //Again, same thing but Matrix B's columns
     if(bColumns <= 0 || bColumns > MAXSIZE) {
-        printf("Invalid no columns Matrix B\n");
+        printf("Invalid number of columns Matrix B\n");
         return 22;
     }
 
@@ -97,7 +95,7 @@ int main() {
     // The user has to pick the operation
     int opType = 0;
 
-     //Opening file to read in output values
+     //Opening file to write output values
     fclose(file);
     FILE *file2 = fopen("matrixOut.txt","w");
     int numberOfUses = 0;
@@ -107,10 +105,14 @@ int main() {
         printf("Welcome to matrix algebra. What would you like to do?\n");
         printf("1) A + B\n");
         printf("2) A * B\n");
-        printf("3) A - B\n");
-        printf("4) B - A\n");
-        printf("5) Transpose(A)\n");
-        printf("6) Transpose(B)\n");
+        printf("3) A * B\n");
+        printf("4) A - B\n");
+        printf("5) B - A\n");
+        printf("6) Transpose(A)\n");
+        printf("7) Transpose(B)\n");
+        printf("8) print(A)\n");
+        printf("9) print(B)\n");
+        printf("10) print(C)\n");
         printf("20) Exit\n");
         printf(">");
 
@@ -135,7 +137,30 @@ int main() {
                     matrixC[i][j] = matrixA[i][j] + matrixB[i][j];
                 }
             }
-
+            //Showing the Values stored in Matrix A
+            printf("Matrix A Values:\n");
+            for(int i = 0; i <aRows; i++){
+                for(int j = 0; j <aColumns; j++) {
+                    printf("%f  ", matrixA[i][j]);
+                    fprintf(file2, "%f  ", matrixA[i][j]);
+                }
+                printf("\n");
+                fprintf(file2, "\n");
+            }
+            printf("\n+\n\n");
+            fprintf(file2, "\n+\n\n");
+            //Showing the Values stored in Matrix B
+            printf("Matrix B Values:\n");
+            for(int i = 0; i <bRows; i++){
+                for(int j = 0; j <bColumns; j++) {
+                    printf("%f  ", matrixB[i][j]);
+                    fprintf(file2, "%f  ", matrixB[i][j]);
+                }
+                printf("\n");
+                fprintf(file2, "\n");
+            }
+            printf("\n=\n\n");
+            fprintf(file2, "\n=\n\n");
             //Printing Output Values
             printf("Matrix C Values:\n");
             fprintf(file2, "\nOutput %d\n", numberOfUses);
@@ -153,7 +178,7 @@ int main() {
 
             break;
 
-        case 2: //Multiplication
+        case 2: //Multiplication AxB
             if(aColumns != bRows) {
                 printf("Cannot multiply Matrices\n");
                 return 22;
@@ -171,6 +196,80 @@ int main() {
                     }
                 }
             }
+            //Showing the Values stored in Matrix A
+            printf("Matrix A Values:\n");
+            for(int i = 0; i <aRows; i++){
+                for(int j = 0; j <aColumns; j++) {
+                    printf("%f  ", matrixA[i][j]);
+                }
+                printf("\n");
+            }
+            printf("\nx\n\n");
+            //Showing the Values stored in Matrix B
+            printf("Matrix B Values:\n");
+            for(int i = 0; i <bRows; i++){
+                for(int j = 0; j <bColumns; j++) {
+                    printf("%f  ", matrixB[i][j]);
+                }
+                printf("\n");
+            }
+            printf("\n=\n\n");
+
+            //Printing Output Values
+            printf("Matrix C Values:\n");
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    printf("%f  ", matrixC[i][j]);
+
+                    //Saving Output Values to text file
+                    fprintf(file2, "%f ", matrixC[i][j]);
+
+                }
+                printf("\n");
+                fprintf(file2, "\n");
+            }
+            break;
+
+        case 3: //Multiplication BxA
+            if(aColumns != bRows) {
+                printf("Cannot multiply Matrices\n");
+                return 22;
+            } else {
+                cRows = aRows;
+                cColumns = bColumns;
+            }
+
+            numberOfUses++;
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    matrixC[i][j] = 0;
+                    for(int k = 0; k <aColumns; k++) {
+                        matrixC[i][j] += matrixB[i][k] * matrixA[k][j];
+                    }
+                }
+            }
+            //Showing the Values stored in Matrix B
+            printf("Matrix B Values:\n");
+            for(int i = 0; i <bRows; i++){
+                for(int j = 0; j <bColumns; j++) {
+                    printf("%f  ", matrixB[i][j]);
+                }
+                printf("\n");
+            }
+
+            printf("\nx\n\n");
+
+            //Showing the Values stored in Matrix A
+            printf("Matrix A Values:\n");
+            for(int i = 0; i <aRows; i++){
+                for(int j = 0; j <aColumns; j++) {
+                    printf("%f  ", matrixA[i][j]);
+                }
+                printf("\n");
+            }
+    
+            printf("\n=\n\n");
 
             //Printing Output Values
             printf("Matrix C Values:\n");
@@ -188,7 +287,7 @@ int main() {
             }
 
             break;
-        case 3: //A - B substraction
+        case 4: //A - B substraction
             if((aRows != bRows) || (aColumns != bColumns)) {
                 printf("Cannot subtract Matrices of different sizes\n");
                 return 22;
@@ -203,6 +302,25 @@ int main() {
                     matrixC[i][j] = matrixA[i][j] - matrixB[i][j];
                 }
             }
+            //Showing the Values stored in Matrix A
+            printf("Matrix A Values:\n");
+            for(int i = 0; i <aRows; i++){
+                for(int j = 0; j <aColumns; j++) {
+                    printf("%f  ", matrixA[i][j]);
+                }
+                printf("\n");
+            }
+            printf("\n-\n\n");
+
+            //Showing the Values stored in Matrix B
+            printf("Matrix B Values:\n");
+            for(int i = 0; i <bRows; i++){
+                for(int j = 0; j <bColumns; j++) {
+                    printf("%f  ", matrixB[i][j]);
+                }
+                printf("\n");
+            }
+            printf("\n=\n\n");
 
             //Printing Output Values
             printf("Matrix C Values:\n");
@@ -220,7 +338,7 @@ int main() {
             }
 
             break;
-        case 4: //B - A substraction
+        case 5: //B - A substraction
             if((aRows != bRows) || (aColumns != bColumns)) {
                 printf("Cannot subtract Matrices of different sizes\n");
                 return 22;
@@ -236,6 +354,27 @@ int main() {
                 }
             }
 
+            //Showing the Values stored in Matrix B
+            printf("Matrix B Values:\n");
+            for(int i = 0; i <bRows; i++){
+                for(int j = 0; j <bColumns; j++) {
+                    printf("%f  ", matrixB[i][j]);
+                }
+                printf("\n");
+            }
+
+            printf("\n-\n\n");
+
+            //Showing the Values stored in Matrix A
+            printf("Matrix A Values:\n");
+            for(int i = 0; i <aRows; i++){
+                for(int j = 0; j <aColumns; j++) {
+                    printf("%f  ", matrixA[i][j]);
+                }
+                printf("\n");
+            }
+    
+            printf("\n=\n\n");
 
             printf("Matrix C Values:\n");
             fprintf(file2, "\nOutput %d\n", numberOfUses);
@@ -253,7 +392,7 @@ int main() {
 
             break;
 
-        case 5: //transpose(A)
+        case 6: //transpose(A)
             cRows = aColumns;
             cColumns = aRows;
 
@@ -263,6 +402,16 @@ int main() {
                     matrixC[i][j] = matrixA[j][i];
                 }
             }
+            //Showing the Values stored in Matrix A
+            printf("Matrix A Values:\n");
+            for(int i = 0; i <aRows; i++){
+                for(int j = 0; j <aColumns; j++) {
+                    printf("%f  ", matrixA[i][j]);
+                }
+                printf("\n");
+            }
+
+            printf("\nTranspose\n\n");
 
             //Printing Output Values
             printf("Matrix C Values:\n");
@@ -280,7 +429,7 @@ int main() {
 
             break;
 
-        case 6: //transpose(B)
+        case 7: //transpose(B)
             cRows = bColumns;
             cColumns = bRows;
 
@@ -290,6 +439,17 @@ int main() {
                     matrixC[i][j] = matrixB[j][i];
                 }
             }
+
+            //Showing the Values stored in Matrix B
+            printf("Matrix B Values:\n");
+            for(int i = 0; i <bRows; i++){
+                for(int j = 0; j <bColumns; j++) {
+                    printf("%f  ", matrixB[i][j]);
+                }
+                printf("\n");
+            }
+
+            printf("\nTranspose\n\n");
 
             //Printing output values
             printf("Matrix C Values:\n");
@@ -306,7 +466,38 @@ int main() {
             }
 
             break;
+    case 8:
+        //Showing the Values stored in Matrix A
+        printf("Matrix A Values:\n");
+        for(int i = 0; i <aRows; i++){
+            for(int j = 0; j <aColumns; j++) {
+                printf("%f  ", matrixA[i][j]);
+            }
+            printf("\n");
+        }
+        break;
 
+    case 9:
+        //Showing the Values stored in Matrix B
+        printf("Matrix B Values:\n");
+        for(int i = 0; i <bRows; i++){
+            for(int j = 0; j <bColumns; j++) {
+                printf("%f  ", matrixB[i][j]);
+            }
+            printf("\n");
+        }
+        break;
+        
+    case 10:
+        //Showing the Values stored in Matrix C
+        printf("Matrix C Values:\n");
+        for(int i = 0; i <cRows; i++){
+            for(int j = 0; j <cColumns; j++) {
+                printf("%f  ", matrixC[i][j]);
+            }
+            printf("\n");
+        }
+    break;
         case 20: //If they decide to exit
             printf("Goodbye!\n");
             fclose(file2);
