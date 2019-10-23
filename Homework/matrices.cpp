@@ -11,6 +11,8 @@
 *  Big thanks to Khan Academy for the help                                    *
 ******************************************************************************/
 
+/* Text Files are named matrixIn.txt and matrixOut.txt */
+
 #include <stdio.h>
 #define MAXSIZE 5
 
@@ -136,16 +138,17 @@ int main() {
 
             //Printing Output Values
             printf("Matrix C Values:\n");
-            fprintf(file2, "Output %d", numberOfUses);
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
                     printf("%f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f", matrixC[i][j]);
+                    fprintf(file2, "%f ", matrixC[i][j]);
 
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
 
             break;
@@ -171,16 +174,17 @@ int main() {
 
             //Printing Output Values
             printf("Matrix C Values:\n");
-            fprintf(file2, "Output %d", numberOfUses);
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
                     printf("%f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f", matrixC[i][j]);
+                    fprintf(file2, "%f ", matrixC[i][j]);
 
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
 
             break;
@@ -202,16 +206,17 @@ int main() {
 
             //Printing Output Values
             printf("Matrix C Values:\n");
-            fprintf(file2, "Output %d", numberOfUses);
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
                     printf("%f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f", matrixC[i][j]);
+                    fprintf(file2, "%f ", matrixC[i][j]);
 
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
 
             break;
@@ -233,16 +238,17 @@ int main() {
 
 
             printf("Matrix C Values:\n");
-            fprintf(file2, "Output %d", numberOfUses);
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
                     printf("%f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f", matrixC[i][j]);
+                    fprintf(file2, "%f ", matrixC[i][j]);
 
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
 
             break;
@@ -260,15 +266,16 @@ int main() {
 
             //Printing Output Values
             printf("Matrix C Values:\n");
-            fprintf(file2, "Output %d", numberOfUses);
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
                     printf("%f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f", matrixC[i][j]);
+                    fprintf(file2, "%f ", matrixC[i][j]);
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
 
             break;
@@ -286,13 +293,13 @@ int main() {
 
             //Printing output values
             printf("Matrix C Values:\n");
-            fprintf(file2, "Output %d", numberOfUses);
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
                     printf("%f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f", matrixC[i][j]);
+                    fprintf(file2, "%f ", matrixC[i][j]);
                 }
                 printf("\n");
                 fprintf(file2, "\n");
