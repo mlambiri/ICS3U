@@ -70,9 +70,9 @@ int main() {
         printf("2) A * B\n");
         printf("3) A - B\n");
         printf("4) B - A\n");   
-        printf("5) A/B\n");
-        printf("6) B/A\n");
-        printf("7) Exit\n");
+        printf("5) Transpose(A)\n");
+        printf("6) Transpose(B)\n");
+        printf("20) Exit\n");
         printf(">");
         
         scanf("%d", &opType);
@@ -159,7 +159,7 @@ int main() {
 
 
             break;
-        case 4:
+        case 4: //substract
             if((aRows != bRows) || (aColumns != bColumns)) {
                 printf("Cannot subtract Matrices of different sizes\n");
                 return 22;
@@ -185,13 +185,47 @@ int main() {
 
 
             break;
-        case 5:
+    
+        case 5: //transpose(A)
+            cRows = aColumns;
+            cColumns = aRows;
+            
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    matrixC[i][j] = matrixA[j][i];
+                }
+            }
 
-            break;
-        case 6:
 
+            printf("Matrix C Values:\n");
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    printf("%f  ", matrixC[i][j]);
+                }
+                printf("\n");
+            }
             break;
-        case 7:
+        case 6: //transpose(B)
+            cRows = bColumns;
+            cColumns = bRows;
+            
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    matrixC[i][j] = matrixB[j][i];
+                }
+            }
+
+
+            printf("Matrix C Values:\n");
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    printf("%f  ", matrixC[i][j]);
+                }
+                printf("\n");
+            }
+
+            break;    
+        case 20:
             printf("Goodbye!\n");
             return 22;
         default:    
