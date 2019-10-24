@@ -82,7 +82,7 @@ int main() {
     printf("Matrix A Values:\n");
     for(int i = 0; i <aRows; i++){
         for(int j = 0; j <aColumns; j++) {
-            printf("%f  ", matrixA[i][j]);
+            printf("%3.2f  ", matrixA[i][j]);
         }
         printf("\n");
     }
@@ -90,7 +90,7 @@ int main() {
     printf("Matrix B Values:\n");
     for(int i = 0; i <bRows; i++){
         for(int j = 0; j <bColumns; j++) {
-            printf("%f  ", matrixB[i][j]);
+            printf("%3.2f  ", matrixB[i][j]);
         }
         printf("\n");
     }
@@ -140,39 +140,45 @@ int main() {
                     matrixC[i][j] = matrixA[i][j] + matrixB[i][j];
                 }
             }
+
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
+
             //Showing the Values stored in Matrix A
             printf("Matrix A Values:\n");
             for(int i = 0; i <aRows; i++){
                 for(int j = 0; j <aColumns; j++) {
-                    printf("%f  ", matrixA[i][j]);
-                    fprintf(file2, "%f  ", matrixA[i][j]);
+                    printf("%3.2f  ", matrixA[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixA[i][j]);
                 }
                 printf("\n");
                 fprintf(file2, "\n");
             }
+            
             printf("\n+\n\n");
             fprintf(file2, "\n+\n\n");
+
             //Showing the Values stored in Matrix B
             printf("Matrix B Values:\n");
             for(int i = 0; i <bRows; i++){
                 for(int j = 0; j <bColumns; j++) {
-                    printf("%f  ", matrixB[i][j]);
-                    fprintf(file2, "%f  ", matrixB[i][j]);
+                    printf("%3.2f  ", matrixB[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixB[i][j]);
                 }
                 printf("\n");
                 fprintf(file2, "\n");
             }
+
             printf("\n=\n\n");
             fprintf(file2, "\n=\n\n");
+
             //Printing Output Values
             printf("Matrix C Values:\n");
-            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
-                    printf("%f  ", matrixC[i][j]);
+                    printf("%3.2f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f ", matrixC[i][j]);
+                    fprintf(file2, "%3.2f ", matrixC[i][j]);
 
                 }
                 printf("\n");
@@ -199,34 +205,44 @@ int main() {
                     }
                 }
             }
+
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
+
             //Showing the Values stored in Matrix A
             printf("Matrix A Values:\n");
             for(int i = 0; i <aRows; i++){
                 for(int j = 0; j <aColumns; j++) {
-                    printf("%f  ", matrixA[i][j]);
+                    printf("%3.2f  ", matrixA[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixA[i][j]);
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
+
             printf("\nx\n\n");
+            fprintf(file2, "\nx\n\n");
+
             //Showing the Values stored in Matrix B
             printf("Matrix B Values:\n");
             for(int i = 0; i <bRows; i++){
                 for(int j = 0; j <bColumns; j++) {
-                    printf("%f  ", matrixB[i][j]);
+                    printf("%3.2f  ", matrixB[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixB[i][j]);
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
             printf("\n=\n\n");
+            fprintf(file2, "\n=\n\n");
 
             //Printing Output Values
             printf("Matrix C Values:\n");
-            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
-                    printf("%f  ", matrixC[i][j]);
+                    printf("%3.2f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f ", matrixC[i][j]);
+                    fprintf(file2, "%3.2f ", matrixC[i][j]);
 
                 }
                 printf("\n");
@@ -252,37 +268,45 @@ int main() {
                     }
                 }
             }
+
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
+
             //Showing the Values stored in Matrix B
             printf("Matrix B Values:\n");
             for(int i = 0; i <bRows; i++){
                 for(int j = 0; j <bColumns; j++) {
-                    printf("%f  ", matrixB[i][j]);
+                    printf("%3.2f  ", matrixB[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixB[i][j]);
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
 
             printf("\nx\n\n");
+            fprintf(file2, "\nx\n\n");
 
             //Showing the Values stored in Matrix A
             printf("Matrix A Values:\n");
             for(int i = 0; i <aRows; i++){
                 for(int j = 0; j <aColumns; j++) {
-                    printf("%f  ", matrixA[i][j]);
+                    printf("%3.2f  ", matrixA[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixA[i][j]);
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
     
             printf("\n=\n\n");
+            fprintf(file2, "\n=\n\n");
 
             //Printing Output Values
             printf("Matrix C Values:\n");
-            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
-                    printf("%f  ", matrixC[i][j]);
+                    printf("%3.2f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f ", matrixC[i][j]);
+                    fprintf(file2, "%3.2f ", matrixC[i][j]);
 
                 }
                 printf("\n");
@@ -305,35 +329,43 @@ int main() {
                     matrixC[i][j] = matrixA[i][j] - matrixB[i][j];
                 }
             }
+
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
+
             //Showing the Values stored in Matrix A
             printf("Matrix A Values:\n");
             for(int i = 0; i <aRows; i++){
                 for(int j = 0; j <aColumns; j++) {
-                    printf("%f  ", matrixA[i][j]);
+                    printf("%3.2f  ", matrixA[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixA[i][j]);
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
             printf("\n-\n\n");
+            fprintf(file2, "\n-\n\n");
 
             //Showing the Values stored in Matrix B
             printf("Matrix B Values:\n");
             for(int i = 0; i <bRows; i++){
                 for(int j = 0; j <bColumns; j++) {
-                    printf("%f  ", matrixB[i][j]);
+                    printf("%3.2f  ", matrixB[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixB[i][j]);
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
             printf("\n=\n\n");
+            fprintf(file2, "\n=\n\n");
 
             //Printing Output Values
             printf("Matrix C Values:\n");
-            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
-                    printf("%f  ", matrixC[i][j]);
+                    printf("%3.2f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f ", matrixC[i][j]);
+                    fprintf(file2, "%3.2f ", matrixC[i][j]);
 
                 }
                 printf("\n");
@@ -357,36 +389,43 @@ int main() {
                 }
             }
 
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
+
             //Showing the Values stored in Matrix B
             printf("Matrix B Values:\n");
             for(int i = 0; i <bRows; i++){
                 for(int j = 0; j <bColumns; j++) {
-                    printf("%f  ", matrixB[i][j]);
+                    printf("%3.2f  ", matrixB[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixB[i][j]);
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
 
             printf("\n-\n\n");
+            fprintf(file2, "\n-\n\n");
 
             //Showing the Values stored in Matrix A
             printf("Matrix A Values:\n");
             for(int i = 0; i <aRows; i++){
                 for(int j = 0; j <aColumns; j++) {
-                    printf("%f  ", matrixA[i][j]);
+                    printf("%3.2f  ", matrixA[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixA[i][j]);
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
     
             printf("\n=\n\n");
+            fprintf(file2, "\n=\n\n");
 
             printf("Matrix C Values:\n");
-            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
-                    printf("%f  ", matrixC[i][j]);
+                    printf("%3.2f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f ", matrixC[i][j]);
+                    fprintf(file2, "%3.2f ", matrixC[i][j]);
 
                 }
                 printf("\n");
@@ -405,26 +444,30 @@ int main() {
                     matrixC[i][j] = matrixA[j][i];
                 }
             }
+
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
+
             //Showing the Values stored in Matrix A
             printf("Matrix A Values:\n");
             for(int i = 0; i <aRows; i++){
                 for(int j = 0; j <aColumns; j++) {
-                    printf("%f  ", matrixA[i][j]);
+                    printf("%3.2f  ", matrixA[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixA[i][j]);
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
 
             printf("\nTranspose\n\n");
 
             //Printing Output Values
             printf("Matrix C Values:\n");
-            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
-                    printf("%f  ", matrixC[i][j]);
+                    printf("%3.2f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f ", matrixC[i][j]);
+                    fprintf(file2, "%3.2f ", matrixC[i][j]);
                 }
                 printf("\n");
                 fprintf(file2, "\n");
@@ -443,26 +486,29 @@ int main() {
                 }
             }
 
+            fprintf(file2, "\nOutput %d\n", numberOfUses);
+
             //Showing the Values stored in Matrix B
             printf("Matrix B Values:\n");
             for(int i = 0; i <bRows; i++){
                 for(int j = 0; j <bColumns; j++) {
-                    printf("%f  ", matrixB[i][j]);
+                    printf("%3.2f  ", matrixB[i][j]);
+                    fprintf(file2, "%3.2f  ", matrixB[i][j]);
                 }
                 printf("\n");
+                fprintf(file2, "\n");
             }
 
             printf("\nTranspose\n\n");
 
             //Printing output values
             printf("Matrix C Values:\n");
-            fprintf(file2, "\nOutput %d\n", numberOfUses);
             for(int i = 0; i <cRows; i++){
                 for(int j = 0; j <cColumns; j++) {
-                    printf("%f  ", matrixC[i][j]);
+                    printf("%3.2f  ", matrixC[i][j]);
 
                     //Saving Output Values to text file
-                    fprintf(file2, "%f ", matrixC[i][j]);
+                    fprintf(file2, "%3.2f ", matrixC[i][j]);
                 }
                 printf("\n");
                 fprintf(file2, "\n");
@@ -474,7 +520,7 @@ int main() {
         printf("Matrix A Values:\n");
         for(int i = 0; i <aRows; i++){
             for(int j = 0; j <aColumns; j++) {
-                printf("%f  ", matrixA[i][j]);
+                printf("%3.2f  ", matrixA[i][j]);
             }
             printf("\n");
         }
@@ -485,7 +531,7 @@ int main() {
         printf("Matrix B Values:\n");
         for(int i = 0; i <bRows; i++){
             for(int j = 0; j <bColumns; j++) {
-                printf("%f  ", matrixB[i][j]);
+                printf("%3.2f  ", matrixB[i][j]);
             }
             printf("\n");
         }
@@ -496,7 +542,7 @@ int main() {
         printf("Matrix C Values:\n");
         for(int i = 0; i <cRows; i++){
             for(int j = 0; j <cColumns; j++) {
-                printf("%f  ", matrixC[i][j]);
+                printf("%3.2f  ", matrixC[i][j]);
             }
             printf("\n");
         }
