@@ -10,11 +10,14 @@
 *  matrices/v/multiplying-a-matrix-by-a-matrix                                *
 *  Big thanks to Khan Academy for the help                                    *
 ******************************************************************************/
+/*Note that the first two numbers in the text file tell the computer
+how many numbers to read into the Matrix*/
 
 #include <stdio.h>
 #define MAXSIZE 5
 
 int main() {
+    
     //Opening File
     FILE *file = fopen("matrixIn.txt","r");
 
