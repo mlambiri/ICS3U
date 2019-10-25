@@ -1,15 +1,15 @@
 /*******************************************************************************
-*  Name: Michael Lambiri             Course ICS3U          Date Oct 22 2019   *
-*                                                                             *
-*  Instructor Ms. Cullum                                                      *
-*                                                                             *
-*  Matrix Operations Assignment                                               *
-*                                                                             *
-*  https://www.khanacademy.org/math/precalculus/                              *
-*  x9e81a4f98389efdf:matrices/x9e81a4f98389efdf:multiplying-matrices-by-      *
-*  matrices/v/multiplying-a-matrix-by-a-matrix                                *
-*  Big thanks to Khan Academy for the help                                    *
-******************************************************************************/
+ *  Name: Michael Lambiri             Course ICS3U          Date Oct 22 2019   *
+ *                                                                             *
+ *  Instructor Ms. Cullum                                                      *
+ *                                                                             *
+ *  Matrix Operations Assignment                                               *
+ *                                                                             *
+ *  https://www.khanacademy.org/math/precalculus/                              *
+ *  x9e81a4f98389efdf:matrices/x9e81a4f98389efdf:multiplying-matrices-by-      *
+ *  matrices/v/multiplying-a-matrix-by-a-matrix                                *
+ *  Big thanks to Khan Academy for the help                                    *
+ ******************************************************************************/
 /*Note that the first two numbers in the text file tell the computer
 how many numbers to read into the Matrix*/
 
@@ -17,7 +17,7 @@ how many numbers to read into the Matrix*/
 #define MAXSIZE 5
 
 int main() {
-    
+
     //Opening File
     FILE *file = fopen("matrixIn.txt","r");
 
@@ -28,9 +28,9 @@ int main() {
     int aRows = 0, aColumns = 0, bRows = 0, bColumns = 0, cRows =0, cColumns = 0;
 
     /* Step 1
-    * Checking if file is open
-    * If not, nothing else to do, we return
-    */
+     * Checking if file is open
+     * If not, nothing else to do, we return
+     */
     if(file == NULL) {
         printf("Cannot open matrix file\n");
         return 22;
@@ -98,7 +98,7 @@ int main() {
     // The user has to pick the operation
     int opType = 0;
 
-     //Opening file to write output values
+    //Opening file to write output values
     fclose(file);
     FILE *file2 = fopen("matrixOut.txt","w");
     int numberOfUses = 0;
@@ -153,7 +153,7 @@ int main() {
                 printf("\n");
                 fprintf(file2, "\n");
             }
-            
+
             printf("\n+\n\n");
             fprintf(file2, "\n+\n\n");
 
@@ -295,7 +295,7 @@ int main() {
                 printf("\n");
                 fprintf(file2, "\n");
             }
-    
+
             printf("\n=\n\n");
             fprintf(file2, "\n=\n\n");
 
@@ -415,7 +415,7 @@ int main() {
                 printf("\n");
                 fprintf(file2, "\n");
             }
-    
+
             printf("\n=\n\n");
             fprintf(file2, "\n=\n\n");
 
@@ -515,38 +515,38 @@ int main() {
             }
 
             break;
-    case 8:
-        //Showing the Values stored in Matrix A
-        printf("Matrix A Values:\n");
-        for(int i = 0; i <aRows; i++){
-            for(int j = 0; j <aColumns; j++) {
-                printf("%3.2f  ", matrixA[i][j]);
+        case 8:
+            //Showing the Values stored in Matrix A
+            printf("Matrix A Values:\n");
+            for(int i = 0; i <aRows; i++){
+                for(int j = 0; j <aColumns; j++) {
+                    printf("%3.2f  ", matrixA[i][j]);
+                }
+                printf("\n");
             }
-            printf("\n");
-        }
-        break;
+            break;
 
-    case 9:
-        //Showing the Values stored in Matrix B
-        printf("Matrix B Values:\n");
-        for(int i = 0; i <bRows; i++){
-            for(int j = 0; j <bColumns; j++) {
-                printf("%3.2f  ", matrixB[i][j]);
+        case 9:
+            //Showing the Values stored in Matrix B
+            printf("Matrix B Values:\n");
+            for(int i = 0; i <bRows; i++){
+                for(int j = 0; j <bColumns; j++) {
+                    printf("%3.2f  ", matrixB[i][j]);
+                }
+                printf("\n");
             }
-            printf("\n");
-        }
-        break;
-        
-    case 10:
-        //Showing the Values stored in Matrix C
-        printf("Matrix C Values:\n");
-        for(int i = 0; i <cRows; i++){
-            for(int j = 0; j <cColumns; j++) {
-                printf("%3.2f  ", matrixC[i][j]);
+            break;
+
+        case 10:
+            //Showing the Values stored in Matrix C
+            printf("Matrix C Values:\n");
+            for(int i = 0; i <cRows; i++){
+                for(int j = 0; j <cColumns; j++) {
+                    printf("%3.2f  ", matrixC[i][j]);
+                }
+                printf("\n");
             }
-            printf("\n");
-        }
-    break;
+            break;
         case 20: //If they decide to exit
             printf("Goodbye!\n");
             fclose(file2);
