@@ -1,9 +1,9 @@
-# Grade 10 Pong Project
+# Grade 10 Car Smasher Game
 
-(c) Darius W Lambiri 2017
+(c) Michael C Lambiri 2019
 
 ## Game Information
-[Link to Github Wiki!](https://github.com/dwlambiri/ping-pong-grade10/wiki)
+[Link to Github Wiki!](https://github.com/mlambiri/car-breaker-grade10/wiki)
 
 
 ## Useful Links
