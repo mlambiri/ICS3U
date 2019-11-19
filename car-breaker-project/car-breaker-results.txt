@@ -45,3 +45,4 @@
 2019-11-18 21:11:21  [Mode: Arcade] [Level: 1] [Score: LRT 3 Bus 0] 
 2019-11-18 21:15:41  [Mode: Arcade] [Level: 1] [Score: LRT 3 Bus 0] 
 2019-11-18 21:18:55  [Mode: Arcade] [Level: 1] [Score: LRT 0 Bus 0] 
+2019-11-18 23:03:14  [Mode: Arcade] [Level: 1] [Score: LRT 5 Bus 0] 
