@@ -36,8 +36,8 @@ static const char botName[] = "LRT";
 //declaring the main data variable of the game
 //usually passed to functions using a pointer
 static GameData carBreaker = {
-        INITPLAYER,
-        INITPLAYER,
+        {INITPLAYER,
+        INITPLAYER},
         INITGE,
         INITDISPLAY, false, maxballspeed_c, NULL, FONTSIZE, MAXROUNDS, 1, { 0 }, { 0 },
         FRAMERATE
@@ -301,9 +301,9 @@ static void setInitialObjectPositions(GameData *gamePtr) {
             + rand() % (gamePtr->maxballspeed - minballspeed_c);
     if (gamePtr->roundWinner) {
         gamePtr->turn = gamePtr->roundWinner;
-        if (gamePtr->roundWinner == &(gamePtr->p1)) {
+        if (gamePtr->roundWinner == &(gamePtr->player[0])) {
             gamePtr->ball.yspeed *= -1;
-        } //end-of-if(p->roundWinner == &(p->p1))
+        } //end-of-if(p->roundWinner == &(p->player[0]))
     } else {
         //if there is no roundwinnner, it is the first serve of the game
         //we need to pick at random a starting player
@@ -311,11 +311,11 @@ static void setInitialObjectPositions(GameData *gamePtr) {
         case 0:
             // player 1
             gamePtr->ball.yspeed *= -1;
-            gamePtr->turn = &gamePtr->p1;
+            gamePtr->turn = &gamePtr->player[0];
             break;
         default:
             //player 2
-            gamePtr->turn = &gamePtr->p2;
+            gamePtr->turn = &gamePtr->player[1];
             break;
         } //end-switch(rand() %2)
     } //end-of-if(p->roundWinner)
@@ -335,22 +335,22 @@ static void setInitialObjectPositions(GameData *gamePtr) {
         break;
     } //end-switch(rand() %2)
 
-    gamePtr->p1.ge.xposition = gamePtr->display.width / 2 - gamePtr->p1.ge.width / 2;
-    gamePtr->p1.ge.yposition = gamePtr->display.height - gamePtr->p1.ge.height;
-    gamePtr->p1.ge.xspeed = 0;
-    gamePtr->p2.ge.xposition = gamePtr->display.width / 2 - gamePtr->p1.ge.width / 2;
-    gamePtr->p2.ge.yposition = 0;
-    gamePtr->p2.ge.xspeed = 0;
+    gamePtr->player[0].ge.xposition = gamePtr->display.width / 2 - gamePtr->player[0].ge.width / 2;
+    gamePtr->player[0].ge.yposition = gamePtr->display.height - gamePtr->player[0].ge.height;
+    gamePtr->player[0].ge.xspeed = 0;
+    gamePtr->player[1].ge.xposition = gamePtr->display.width / 2 - gamePtr->player[0].ge.width / 2;
+    gamePtr->player[1].ge.yposition = 0;
+    gamePtr->player[1].ge.xspeed = 0;
 
     if (gamePtr->ball.yspeed > 0)
-        gamePtr->ball.yposition = gamePtr->p2.ge.yposition + gamePtr->p2.ge.height;
+        gamePtr->ball.yposition = gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height;
     else
-        gamePtr->ball.yposition = gamePtr->p1.ge.yposition - gamePtr->ball.height;
+        gamePtr->ball.yposition = gamePtr->player[0].ge.yposition - gamePtr->ball.height;
     gamePtr->ball.xposition = gamePtr->display.width / 2 - (gamePtr->ball.width / 2);
     if (gamePtr->ball.yspeed > 0) {
-        gamePtr->startsample = gamePtr->p2.sample;
+        gamePtr->startsample = gamePtr->player[1].sample;
     } else {
-        gamePtr->startsample = gamePtr->p1.sample;
+        gamePtr->startsample = gamePtr->player[0].sample;
     }
 
     int ypos = (gamePtr->display.height - gamePtr->bricks[0][0].height*MAXBRICKROWS)/2;
@@ -437,26 +437,26 @@ static bool processKeyPressEvent(GameData *gamePtr) {
     if (gamePtr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
         switch (gamePtr->ev.keyboard.keycode) {
         case ALLEGRO_KEY_LEFT:
-            gamePtr->p1.keyPress[0] = true;
-            gamePtr->p1.keyPress[1] = false;
+            gamePtr->player[0].keyPress[0] = true;
+            gamePtr->player[0].keyPress[1] = false;
             break;
         case ALLEGRO_KEY_RIGHT:
-            gamePtr->p1.keyPress[0] = false;
-            gamePtr->p1.keyPress[1] = true;
+            gamePtr->player[0].keyPress[0] = false;
+            gamePtr->player[0].keyPress[1] = true;
             break;
         case ALLEGRO_KEY_W:
             if (gamePtr->arcade == false)
-                gamePtr->p2.keyPress[0] = true;
+                gamePtr->player[1].keyPress[0] = true;
             else
-                gamePtr->p2.keyPress[0] = false;
-            gamePtr->p2.keyPress[1] = false;
+                gamePtr->player[1].keyPress[0] = false;
+            gamePtr->player[1].keyPress[1] = false;
             break;
         case ALLEGRO_KEY_S:
             if (gamePtr->arcade == false)
-                gamePtr->p2.keyPress[1] = true;
+                gamePtr->player[1].keyPress[1] = true;
             else
-                gamePtr->p2.keyPress[1] = false;
-            gamePtr->p1.keyPress[0] = false;
+                gamePtr->player[1].keyPress[1] = false;
+            gamePtr->player[0].keyPress[0] = false;
             break;
         case ALLEGRO_KEY_P:
             if (pauseGame(gamePtr) == false) {
@@ -472,18 +472,18 @@ static bool processKeyPressEvent(GameData *gamePtr) {
     } else if (gamePtr->ev.type == ALLEGRO_EVENT_KEY_UP) {
         switch (gamePtr->ev.keyboard.keycode) {
         case ALLEGRO_KEY_LEFT:
-            gamePtr->p1.keyPress[0] = false;
+            gamePtr->player[0].keyPress[0] = false;
             break;
         case ALLEGRO_KEY_RIGHT:
-            gamePtr->p1.keyPress[1] = false;
+            gamePtr->player[0].keyPress[1] = false;
             break;
         case ALLEGRO_KEY_W:
             if (gamePtr->arcade == false)
-                gamePtr->p2.keyPress[0] = false;
+                gamePtr->player[1].keyPress[0] = false;
             break;
         case ALLEGRO_KEY_S:
             if (gamePtr->arcade == false)
-                gamePtr->p2.keyPress[1] = false;
+                gamePtr->player[1].keyPress[1] = false;
             break;
         case ALLEGRO_KEY_ESCAPE:
             //exit game
@@ -551,28 +551,28 @@ static void movePlayers(GameData *gamePtr) {
 
     FENTRY();
     TRACE();
-    if (gamePtr->p1.keyPress[0] == true) {
-        gamePtr->p1.ge.xposition -= gamePtr->p1.paddleSpeed;
-        if (gamePtr->p1.ge.xposition < 0)
-            gamePtr->p1.ge.xposition = 0;
+    if (gamePtr->player[0].keyPress[0] == true) {
+        gamePtr->player[0].ge.xposition -= gamePtr->player[0].paddleSpeed;
+        if (gamePtr->player[0].ge.xposition < 0)
+            gamePtr->player[0].ge.xposition = 0;
     }
-    if (gamePtr->p1.keyPress[1] == true) {
-        gamePtr->p1.ge.xposition += gamePtr->p1.paddleSpeed;
-        if (gamePtr->p1.ge.xposition >= (gamePtr->display.width - gamePtr->p1.ge.width))
-            gamePtr->p1.ge.xposition = (gamePtr->display.width - gamePtr->p1.ge.width);
-    } //end-of-if(p->p1.keyPress[1] ==true)
+    if (gamePtr->player[0].keyPress[1] == true) {
+        gamePtr->player[0].ge.xposition += gamePtr->player[0].paddleSpeed;
+        if (gamePtr->player[0].ge.xposition >= (gamePtr->display.width - gamePtr->player[0].ge.width))
+            gamePtr->player[0].ge.xposition = (gamePtr->display.width - gamePtr->player[0].ge.width);
+    } //end-of-if(p->player[0].keyPress[1] ==true)
 
-    if (gamePtr->p2.keyPress[0] == true) {
-        gamePtr->p2.ge.xposition -= gamePtr->p2.paddleSpeed;
-        if (gamePtr->p2.ge.xposition < 0)
-            gamePtr->p2.ge.xposition = 0;
-    } //end-of-if(p->p2.keyPress[0] == true)
+    if (gamePtr->player[1].keyPress[0] == true) {
+        gamePtr->player[1].ge.xposition -= gamePtr->player[1].paddleSpeed;
+        if (gamePtr->player[1].ge.xposition < 0)
+            gamePtr->player[1].ge.xposition = 0;
+    } //end-of-if(p->player[1].keyPress[0] == true)
 
-    if (gamePtr->p2.keyPress[1] == true) {
-        gamePtr->p2.ge.xposition += gamePtr->p2.paddleSpeed;
-        if (gamePtr->p2.ge.xposition >= (gamePtr->display.width - gamePtr->p2.ge.width))
-            gamePtr->p2.ge.xposition = (gamePtr->display.width - gamePtr->p2.ge.width);
-    } //end-of-if(p->p2.keyPress[1] == true)
+    if (gamePtr->player[1].keyPress[1] == true) {
+        gamePtr->player[1].ge.xposition += gamePtr->player[1].paddleSpeed;
+        if (gamePtr->player[1].ge.xposition >= (gamePtr->display.width - gamePtr->player[1].ge.width))
+            gamePtr->player[1].ge.xposition = (gamePtr->display.width - gamePtr->player[1].ge.width);
+    } //end-of-if(p->player[1].keyPress[1] == true)
 
     FEXIT();
 } // end-of-function MovePaddles
@@ -670,11 +670,11 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
     if ((gamePtr->roundNumber == gamePtr->maxscore) || (gamePtr->remainingCars == 0)){
         gamePtr->roundNumber = 1;
         GamePlayer* ptr;
-        if(gamePtr->p1.carsSmashed > gamePtr->p2.carsSmashed) {
-            ptr = &gamePtr->p1;
+        if(gamePtr->player[0].carsSmashed > gamePtr->player[1].carsSmashed) {
+            ptr = &gamePtr->player[0];
         }
-        else if(gamePtr->p1.carsSmashed < gamePtr->p2.carsSmashed) {
-            ptr = &gamePtr->p2;
+        else if(gamePtr->player[0].carsSmashed < gamePtr->player[1].carsSmashed) {
+            ptr = &gamePtr->player[1];
         }
         else {
             ptr= NULL;
@@ -687,8 +687,8 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
         }
         int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2,
                 gamePtr->display.height / 4, largeFont_c);
-        sprintf(textBuffer, "Smashes: %s %d %s %d", gamePtr->p2.name, gamePtr->p2.carsSmashed,
-                gamePtr->p1.name, gamePtr->p1.carsSmashed);
+        sprintf(textBuffer, "Smashes: %s %d %s %d", gamePtr->player[1].name, gamePtr->player[1].carsSmashed,
+                gamePtr->player[0].name, gamePtr->player[0].carsSmashed);
         next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2, next,
                 regularFont_c);
 
@@ -697,18 +697,18 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 
         playSound(gamePtr->winsample);
         sprintf(textBuffer, "[Mode: %s] [Level: %d] [Score: %s %d %s %d]",
-                (gamePtr->arcade ? "Arcade" : "Human"), gamePtr->level, gamePtr->p2.name,
-                gamePtr->p2.score, gamePtr->p1.name, gamePtr->p1.score);
+                (gamePtr->arcade ? "Arcade" : "Human"), gamePtr->level, gamePtr->player[1].name,
+                gamePtr->player[1].score, gamePtr->player[0].name, gamePtr->player[0].score);
         recordResult(textBuffer);
-        gamePtr->p2.score = 0;
-        gamePtr->p1.score = 0;
+        gamePtr->player[1].score = 0;
+        gamePtr->player[0].score = 0;
         gamePtr->bcolor = gamePtr->initcolor;
         initBrickLayout(gamePtr);
 
     } else {
         sprintf(textBuffer, "Smashes: %s %d %s %d",
-                gamePtr->p2.name, gamePtr->p2.carsSmashed, gamePtr->p1.name,
-                gamePtr->p1.carsSmashed);
+                gamePtr->player[1].name, gamePtr->player[1].carsSmashed, gamePtr->player[0].name,
+                gamePtr->player[0].carsSmashed);
         int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2,
                 gamePtr->display.height / 4, regularFont_c);
         char buffer[100];
@@ -725,8 +725,8 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
     }
 
     for (int i = 0; i < 2; i++) {
-        gamePtr->p1.keyPress[i] = false;
-        gamePtr->p2.keyPress[i] = false;
+        gamePtr->player[0].keyPress[i] = false;
+        gamePtr->player[1].keyPress[i] = false;
     } //end-of-for
     al_flush_event_queue(gamePtr->eventqueue);
 
@@ -749,8 +749,8 @@ static bool displayScore(GameData *gamePtr) {
     TRACE();
     char textBuffer[255];
     sprintf(textBuffer, "Smashes: %s %d %s %d",
-            gamePtr->p2.name, gamePtr->p2.carsSmashed, gamePtr->p1.name,
-            gamePtr->p1.carsSmashed);
+            gamePtr->player[1].name, gamePtr->player[1].carsSmashed, gamePtr->player[0].name,
+            gamePtr->player[0].carsSmashed);
     int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width -100,
             20, smallFont_c);
     sprintf(textBuffer, "Remain: %d",
@@ -809,8 +809,8 @@ static void drawObjects(GameData *gamePtr) {
     FENTRY();
     TRACE();
     setBackgroundColor(*(gamePtr->bcolor));
-    drawBitmapSection(&(gamePtr->p1.ge));
-    drawBitmapSection(&(gamePtr->p2.ge));
+    drawBitmapSection(&(gamePtr->player[0].ge));
+    drawBitmapSection(&(gamePtr->player[1].ge));
     drawBitmap(&(gamePtr->ball));
     for (int i = 0; i < MAXBRICKROWS; i++) {
         for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
@@ -869,17 +869,17 @@ static bool checkCollisionTopAndBottom(GameData *gamePtr) {
     TRACE();
     if ((gamePtr->ball.yposition >= (gamePtr->display.height - gamePtr->ball.height))
             && (gamePtr->ball.yspeed > 0)) {
-        gamePtr->p2.score++;
-        gamePtr->p2.totalpoints++;
-        gamePtr->roundWinner = &(gamePtr->p2);
+        gamePtr->player[1].score++;
+        gamePtr->player[1].totalpoints++;
+        gamePtr->roundWinner = &(gamePtr->player[1]);
         FEXIT();
         return true;
 
     } else if ((gamePtr->ball.yposition <= 0) && (gamePtr->ball.yspeed < 0)) {
         TRACE();
-        gamePtr->p1.score++;
-        gamePtr->p1.totalpoints++;
-        gamePtr->roundWinner = &(gamePtr->p1);
+        gamePtr->player[0].score++;
+        gamePtr->player[0].totalpoints++;
+        gamePtr->roundWinner = &(gamePtr->player[0]);
         FEXIT();
         return true;
     }FEXIT();
@@ -1053,28 +1053,28 @@ static bool checkCollisionWithPlayers(GameData *gamePtr) {
     FENTRY();
     TRACE();
 
-    if (gamePtr->ball.xposition + gamePtr->ball.width >= gamePtr->p1.ge.xposition
-            && gamePtr->ball.xposition < gamePtr->p1.ge.width + gamePtr->p1.ge.xposition
-            && gamePtr->ball.yposition + gamePtr->ball.height >= gamePtr->p1.ge.yposition
-            && gamePtr->ball.yposition <= gamePtr->p1.ge.yposition + gamePtr->p1.ge.height) {
+    if (gamePtr->ball.xposition + gamePtr->ball.width >= gamePtr->player[0].ge.xposition
+            && gamePtr->ball.xposition < gamePtr->player[0].ge.width + gamePtr->player[0].ge.xposition
+            && gamePtr->ball.yposition + gamePtr->ball.height >= gamePtr->player[0].ge.yposition
+            && gamePtr->ball.yposition <= gamePtr->player[0].ge.yposition + gamePtr->player[0].ge.height) {
 
-        gamePtr->ball.yposition = gamePtr->p1.ge.yposition - gamePtr->ball.height;
-        ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->p1), gamePtr->maxballspeed,
+        gamePtr->ball.yposition = gamePtr->player[0].ge.yposition - gamePtr->ball.height;
+        ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[0]), gamePtr->maxballspeed,
                 gamePtr->level);
-        gamePtr->turn = &gamePtr->p1;
+        gamePtr->turn = &gamePtr->player[0];
         FEXIT();
         return true;
     }
 
-    else if (gamePtr->ball.xposition < gamePtr->p2.ge.xposition + gamePtr->p2.ge.width
-            && gamePtr->ball.xposition + gamePtr->ball.width >= gamePtr->p2.ge.xposition
-            && gamePtr->ball.yposition + gamePtr->ball.height >= gamePtr->p2.ge.yposition
-            && gamePtr->ball.yposition <= gamePtr->p2.ge.yposition + gamePtr->p2.ge.height) {
+    else if (gamePtr->ball.xposition < gamePtr->player[1].ge.xposition + gamePtr->player[1].ge.width
+            && gamePtr->ball.xposition + gamePtr->ball.width >= gamePtr->player[1].ge.xposition
+            && gamePtr->ball.yposition + gamePtr->ball.height >= gamePtr->player[1].ge.yposition
+            && gamePtr->ball.yposition <= gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height) {
 
-        gamePtr->ball.yposition = gamePtr->p2.ge.yposition + gamePtr->p2.ge.height;
-        ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->p2), gamePtr->maxballspeed,
+        gamePtr->ball.yposition = gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height;
+        ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[1]), gamePtr->maxballspeed,
                 gamePtr->level);
-        gamePtr->turn = &gamePtr->p2;
+        gamePtr->turn = &gamePtr->player[1];
         FEXIT();
         return true;
     }
@@ -1220,26 +1220,26 @@ static void botControl(GameData *gamePtr) {
     //We decide to move up based on the ball Y speed
     // if Y speed > 0 it means the ball is moving downward
     //If the Y speed < 0 it means the ball is moving upwards
-    float f = gamePtr->p2.paddleSpeed * mult;
+    float f = gamePtr->player[1].paddleSpeed * mult;
     if (gamePtr->ball.xspeed > 0) {
-        if (gamePtr->ball.xposition > (gamePtr->p2.ge.xposition + gamePtr->p2.ge.width)) {
-            gamePtr->p2.ge.xposition += (int) f;
-        } else if (gamePtr->ball.xposition < gamePtr->p2.ge.xposition) {
-            gamePtr->p2.ge.xposition -= (int) f;
+        if (gamePtr->ball.xposition > (gamePtr->player[1].ge.xposition + gamePtr->player[1].ge.width)) {
+            gamePtr->player[1].ge.xposition += (int) f;
+        } else if (gamePtr->ball.xposition < gamePtr->player[1].ge.xposition) {
+            gamePtr->player[1].ge.xposition -= (int) f;
         }
     } else {
-        if (gamePtr->ball.xposition < gamePtr->p2.ge.xposition) {
-            gamePtr->p2.ge.xposition -= (int) f;
-        } else if (gamePtr->ball.xposition  > (gamePtr->p2.ge.xposition + gamePtr->p2.ge.width)) {
-            gamePtr->p2.ge.xposition += (int) f;
+        if (gamePtr->ball.xposition < gamePtr->player[1].ge.xposition) {
+            gamePtr->player[1].ge.xposition -= (int) f;
+        } else if (gamePtr->ball.xposition  > (gamePtr->player[1].ge.xposition + gamePtr->player[1].ge.width)) {
+            gamePtr->player[1].ge.xposition += (int) f;
         }
     }
     //end of display to the left
-    if (gamePtr->p2.ge.xposition < 0)
-        gamePtr->p2.ge.xposition = 0;
+    if (gamePtr->player[1].ge.xposition < 0)
+        gamePtr->player[1].ge.xposition = 0;
     //end of display to the right
-    if (gamePtr->p2.ge.xposition >= (gamePtr->display.width - gamePtr->p2.ge.width))
-        gamePtr->p2.ge.xposition = (gamePtr->display.width - gamePtr->p2.ge.width);
+    if (gamePtr->player[1].ge.xposition >= (gamePtr->display.width - gamePtr->player[1].ge.width))
+        gamePtr->player[1].ge.xposition = (gamePtr->display.width - gamePtr->player[1].ge.width);
 
     FEXIT();
 } // end-of-function botControl
@@ -1364,8 +1364,8 @@ static void exitGame(GameData *gamePtr) {
         } //end-of-if(p->font[i])
     } //end-of-for
 
-    al_destroy_bitmap(gamePtr->p1.ge.bmap);
-    al_destroy_bitmap(gamePtr->p2.ge.bmap);
+    al_destroy_bitmap(gamePtr->player[0].ge.bmap);
+    al_destroy_bitmap(gamePtr->player[1].ge.bmap);
     al_destroy_bitmap(gamePtr->ball.bmap);
     FEXIT();
 } // end-of-function GameExit
@@ -1391,13 +1391,13 @@ bool initializeGameData(int argc, char **argv) {
     TRACE();
     GameData *p = &carBreaker;
 
-    strcpy(p->p1.name, "Player1");
-    strcpy(p->p2.name, "Player2");
+    strcpy(p->player[0].name, "Player1");
+    strcpy(p->player[1].name, "Player2");
     strcpy(p->fontFileName, FONTNAME);
-    strcpy(p->p1.audioFileName, P1SOUND);
-    strcpy(p->p2.audioFileName, P2SOUND);
-    strcpy(p->p1.ge.bitmapFileName, P1FNAME);
-    strcpy(p->p2.ge.bitmapFileName, P2FNAME);
+    strcpy(p->player[0].audioFileName, P1SOUND);
+    strcpy(p->player[1].audioFileName, P2SOUND);
+    strcpy(p->player[0].ge.bitmapFileName, P1FNAME);
+    strcpy(p->player[1].ge.bitmapFileName, P2FNAME);
     strcpy(p->ball.bitmapFileName, BALLFNAME);
 
     for (int i = 0; i < MAXBRICKROWS; i++) {
@@ -1444,11 +1444,11 @@ bool initializeGameData(int argc, char **argv) {
         } else if (strcmp(argv[param], "p1name") == 0) {
             //player1 name
             if (++param < argc)
-                strcpy(p->p1.name, argv[param]);
+                strcpy(p->player[0].name, argv[param]);
         } else if (strcmp(argv[param], "p2name") == 0) {
             //player2 name
             if (++param < argc)
-                strcpy(p->p2.name, argv[param]);
+                strcpy(p->player[1].name, argv[param]);
         } else if (strcmp(argv[param], "maxscore") == 0) {
             //maxscore
             if (++param < argc)
@@ -1464,11 +1464,11 @@ bool initializeGameData(int argc, char **argv) {
         } else if (strcmp(argv[param], "player1bmp") == 0) {
             //player 1 bitmap file name
             if (++param < argc)
-                strcpy(p->p1.ge.bitmapFileName, argv[param]);
+                strcpy(p->player[0].ge.bitmapFileName, argv[param]);
         } else if (strcmp(argv[param], "player2bmp") == 0) {
             //player 2 bitmap file name
             if (++param < argc)
-                strcpy(p->p2.ge.bitmapFileName, argv[param]);
+                strcpy(p->player[1].ge.bitmapFileName, argv[param]);
         } else if (strcmp(argv[param], "ballbmp") == 0) {
             //ball bitmap file name
             if (++param < argc)
@@ -1476,23 +1476,23 @@ bool initializeGameData(int argc, char **argv) {
         } else if (strcmp(argv[param], "player1sound") == 0) {
             //player 1 sound file name
             if (++param < argc)
-                strcpy(p->p1.audioFileName, argv[param]);
+                strcpy(p->player[0].audioFileName, argv[param]);
         } else if (strcmp(argv[param], "player2sound") == 0) {
             //player 2 sound file name
             if (++param < argc)
-                strcpy(p->p2.audioFileName, argv[param]);
+                strcpy(p->player[1].audioFileName, argv[param]);
         } else if (strcmp(argv[param], "p1paddleSpeed") == 0) {
             //player 1 paddle speed
             if (++param < argc)
-                p->p1.paddleSpeed = atoi(argv[param]);
+                p->player[0].paddleSpeed = atoi(argv[param]);
         } else if (strcmp(argv[param], "p2paddleSpeed") == 0) {
             //player 2 paddle speed
             if (++param < argc) {
-                p->p2.paddleSpeed = atoi(argv[param]);
-                botArray[0].paddlespeed = p->p2.paddleSpeed / 2;
-                botArray[1].paddlespeed = p->p2.paddleSpeed;
-                botArray[2].paddlespeed = (3 * p->p2.paddleSpeed) / 2;
-                botArray[3].paddlespeed = p->p2.paddleSpeed * 2;
+                p->player[1].paddleSpeed = atoi(argv[param]);
+                botArray[0].paddlespeed = p->player[1].paddleSpeed / 2;
+                botArray[1].paddlespeed = p->player[1].paddleSpeed;
+                botArray[2].paddlespeed = (3 * p->player[1].paddleSpeed) / 2;
+                botArray[3].paddlespeed = p->player[1].paddleSpeed * 2;
             }
         } else if (strcmp(argv[param], "level") == 0) {
             //level (controls the paddle size)
@@ -1595,7 +1595,7 @@ bool initializeGraphics() {
     TRACE();
     //IF game is in arcade mode, player 2 is HAL9000
     if (p->arcade == true) {
-        strcpy(p->p2.name, botName);
+        strcpy(p->player[1].name, botName);
     }
 
     TRACE();
@@ -1625,17 +1625,17 @@ bool initializeGraphics() {
             al_get_timer_event_source(p->timer));
     if (p->arcade == true) {
         INFO("Arcade Mode Detected\n");
-        p->botTimer = al_create_timer(1.0 / (float) p->p2.paddleSpeed);
+        p->botTimer = al_create_timer(1.0 / (float) p->player[1].paddleSpeed);
         al_register_event_source(p->eventqueue,
                 al_get_timer_event_source(p->botTimer));
     } else
         p->botTimer = NULL;
 
-    if (loadPlayerBitmap(&(p->p1.ge), p->level) == false) {
+    if (loadPlayerBitmap(&(p->player[0].ge), p->level) == false) {
         FEXIT();
         return false;
     }
-    if (loadPlayerBitmap(&(p->p2.ge), p->level) == false) {
+    if (loadPlayerBitmap(&(p->player[1].ge), p->level) == false) {
         FEXIT();
         return false;
     }
@@ -1655,8 +1655,8 @@ bool initializeGraphics() {
         } //end-of-for
     } //end-of-for
 
-    loadAudio(&(p->p1));
-    loadAudio(&(p->p2));
+    loadAudio(&(p->player[0]));
+    loadAudio(&(p->player[1]));
     loadAudioWinner(p);
 
     setInitialObjectPositions(p);

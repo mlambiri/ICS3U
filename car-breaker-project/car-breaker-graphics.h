@@ -46,7 +46,6 @@ bool initializeGameData(int argc, char **argv);
 #define FONTSIZE    24
 #define MAXROUNDS    10
 
-
 enum FONTSIZES {
     smallFont_c = 0, regularFont_c = 1, largeFont_c = 2
 };
@@ -146,8 +145,7 @@ typedef struct GameDisplay {
   ---------------------------------------------------------------------------
  */
 typedef struct GameData {
-    GamePlayer p1;
-    GamePlayer p2;
+    GamePlayer player[2];
     GameBasicBlock   ball;
     GameDisplay display;
     bool   arcade;
