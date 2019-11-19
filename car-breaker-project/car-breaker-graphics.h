@@ -92,7 +92,6 @@ typedef struct GameBasicBlock {
     char bitmapFileName[MAXNAME];
 }GameBasicBlock;
 
-
 /**
   ---------------------------------------------------------------------------
    @author     mlambiri

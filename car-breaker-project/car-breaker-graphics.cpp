@@ -1251,6 +1251,7 @@ static void botControl(GameData *gamePtr, uint botNumber) {
 			gamePtr->player[botNumber].ge.xposition += (int) f;
 		}
 	}
+
 	//end of display to the left
 	if (gamePtr->player[botNumber].ge.xposition < 0)
 		gamePtr->player[botNumber].ge.xposition = 0;
