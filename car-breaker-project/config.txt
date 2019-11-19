@@ -1,0 +1,43 @@
+# this is a comment
+# no '"' characters are allowed
+
+#screenwidth sets the width of the screen, it is in pixels
+screenwidth = 900
+
+screenheight = 700
+fontsize = 34
+
+p1name = Bus
+p2name = LRT
+
+maxscore = 5
+maxballspeed     =  1
+arcade = true
+
+#fontfile = mexcellent3d.ttf
+#fontfile = pirulen.ttf
+fontfile =  fofbb_reg.ttf
+player1bmp = player1.png
+player2bmp = player2.png
+ballbmp = ball.png
+
+player1sound = p1sound.ogg
+player2sound = p2sound.ogg
+#player1sound = tennisserve.wav
+#player2sound = tennisserve.wav
+
+# possible values yellow, blue, white, green
+colourscheme = white
+
+p1paddleSpeed = 15
+p2paddleSpeed = 15
+
+winSound = applause6.wav
+
+#level sets the paddle size, it is between 1 and 7
+#level 1 is a paddle of 7 blocks while 
+#level 7 is a paddle of 1 block
+level = 1
+
+#frames per second min 5 max 240
+fps = 60
