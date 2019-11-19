@@ -96,7 +96,7 @@ typedef struct GameBasicBlock {
 /**
   ---------------------------------------------------------------------------
    @author     mlambiri
-   @date       Nov 17, 2017
+   @date       Nov 17, 2019
    @name       GamePlayer
    @details     contains all player information
         Player is a GameBasicBlock that has several extra variables
