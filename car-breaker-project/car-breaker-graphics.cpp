@@ -6,21 +6,21 @@
 // Description : car breaker game
 //============================================================================
 
-#include "../car-breaker-project/car-breaker-graphics.h"
+#include "car-breaker-graphics.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 
-#include "../car-breaker-project/game-debug.h"
+#include "game-debug.h"
 
 
 static const int minballspeed_c = 3;
 static const int maxballspeed_c = minballspeed_c + 2;
 static const uint maxlevel_c = 7;
 static const uint maxdiff_c = 4;
-static const uint halarrays_c = 5;
+static const uint botArrays_c = 5;
 
 static const char P1FNAME[] = "player1.png";
 static const char P2FNAME[] = "player2.png";
@@ -61,22 +61,34 @@ static GameData carBreaker = {
  */
 typedef struct BotControlArray {
 	//first array represents where in the field HAL will start to move
-	int cond[halarrays_c];
+	int cond[botArrays_c];
 	//This array is a multiplier to determine how much HAL should move
 	//setting an entry to zero will prevent HAL from moving
-	float val[halarrays_c];
+	float val[botArrays_c];
 	int paddlespeed;
 } BotControlArray;
 
 //It is an array that stores several sets of conditions and values
 //The values make the Bot more responsive as the index in the array increases
-BotControlArray botArray[pro_c + 1] = { { { 2, 2, 3, 4, 8 }, { 0.25, 0.25, 0.25, 0.25,0.25 }, (int) PLAYERSPEED },
+BotControlArray lrtBotArray[pro_c + 1] = {
+		{ { 2, 2, 3, 4, 8 }, { 0.25, 0.25, 0.25, 0.25,0.25 }, (int) PLAYERSPEED },
 		{ { 2, 2, 3, 4, 8 }, { 0.5, 0.5, 0.5, 0.5, 0.5 }, (int) PLAYERSPEED },
 		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED },
 		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, 40 } };
 
-static int botPlayingLevel = pro_c;
-static BotControlArray *botPtr = &(botArray[botPlayingLevel]);
+//It is an array that stores several sets of conditions and values
+//The values make the Bot more responsive as the index in the array increases
+BotControlArray busBotArray[pro_c + 1] = {
+		{ { 2, 2, 3, 4, 8 }, { 0.25, 0.25, 0.25, 0.25,0.25 }, (int) PLAYERSPEED },
+		{ { 2, 2, 3, 4, 8 }, { 0.5, 0.5, 0.5, 0.5, 0.5 }, (int) PLAYERSPEED },
+		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED },
+		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, 40 } };
+
+static int lrtBotPlayingLevel = pro_c;
+static BotControlArray *lrtBotPtr = &(lrtBotArray[lrtBotPlayingLevel]);
+
+static int busBotPlayingLevel = pro_c;
+static BotControlArray *busBotPtr = &(busBotArray[busBotPlayingLevel]);
 
 //======= EXTERNAL FUNCTION DECLARATION=====//
 bool recordResult(char *p);
@@ -102,7 +114,7 @@ static bool updateBallPosition(GameData *gamePtr);
 static int drawTextOnScreen(GameData *gamePtr, char *text, int x, int y, int size);
 static int signOfNumber(int value);
 static void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int, int);
-static void botControl(GameData *gamePtr, uint botNumber);
+static void lrtBotControl(GameData *gamePtr, uint botNumber);
 static void drawBitmap(GameBasicBlock *g);
 static void drawBitmapSection(GameBasicBlock *g);
 static void drawObjects(GameData *gamePtr);
@@ -174,7 +186,7 @@ static bool loadPlayerBitmap(GameBasicBlock *g, int level) {
 		return false;
 	}
 	g->width = (al_get_bitmap_width(g->bmap)* (maxlevel_c + 1 - level))
-                        								/ maxlevel_c;;
+                        														/ maxlevel_c;;
 	g->height = al_get_bitmap_height(g->bmap);
 	FEXIT();
 	return true;
@@ -645,7 +657,8 @@ static bool drawTextAndWaitBegin(GameData *gamePtr) {
 	if (pressAnyKeyToBeginGame(gamePtr) == false) {
 		FEXIT();
 		return false;
-	}DEBUG2("HAL skill: ", botPlayingLevel);FEXIT();
+	}
+	FEXIT();
 	return true;
 } // end-of-function DisplayTextAndWaitBegin
 
@@ -1188,14 +1201,14 @@ static bool updateBallPosition(GameData *gamePtr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 14, 2019
- @mname   botControl
+ @mname   lrtBotControl
  @details
  This is the auto player function
  It checks the ball position relative to the position on the field and then
  decides the speed of the movement as well as direction.\n
  --------------------------------------------------------------------------
  */
-static void botControl(GameData *gamePtr, uint botNumber) {
+static void lrtBotControl(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1203,39 +1216,29 @@ static void botControl(GameData *gamePtr, uint botNumber) {
 	//We decide to move up based on the ball Y speed
 	// if Y speed > 0 it means the ball is moving downward
 	//If the Y speed < 0 it means the ball is moving upwards
-	if(botNumber ==1 ) {
-		//bot 1 is at the top
-		if (gamePtr->ball.yspeed > 0) {
-			FEXIT();
-			return;
-		}
+	//bot 1 is at the top
+	uint botNumber = 1;
+
+	if (gamePtr->ball.yspeed > 0) {
+		FEXIT();
+		return;
 	}
-	else {
-		//bot 0 is at the bottom
-		if (gamePtr->ball.yspeed < 0) {
-			FEXIT();
-			return;
-		}
-	}
+
 	float mult = 1;
-	if (gamePtr->ball.yposition > gamePtr->display.height / botPtr->cond[0])
-		mult = botPtr->val[0];
-	if (gamePtr->ball.yposition <= gamePtr->display.height / botPtr->cond[1])
-		mult = botPtr->val[1];
-	if (gamePtr->ball.yposition <= gamePtr->display.height / botPtr->cond[2])
-		mult = botPtr->val[2];
-	if (gamePtr->ball.yposition <= gamePtr->display.height / botPtr->cond[3])
-		mult = botPtr->val[3];
-	if (gamePtr->ball.yposition <= gamePtr->display.height / botPtr->cond[4])
-		mult = botPtr->val[4];
-	if(botNumber ==1 ) {
-		if(gamePtr->ball.yposition > gamePtr->display.height/2)
-			mult = 0;
-	}
-	else {
-		if(gamePtr->ball.yposition < gamePtr->display.height/2)
-			mult = 0;
-	}
+	if (gamePtr->ball.yposition > gamePtr->display.height / lrtBotPtr->cond[0])
+		mult = lrtBotPtr->val[0];
+	if (gamePtr->ball.yposition <= gamePtr->display.height / lrtBotPtr->cond[1])
+		mult = lrtBotPtr->val[1];
+	if (gamePtr->ball.yposition <= gamePtr->display.height / lrtBotPtr->cond[2])
+		mult = lrtBotPtr->val[2];
+	if (gamePtr->ball.yposition <= gamePtr->display.height / lrtBotPtr->cond[3])
+		mult = lrtBotPtr->val[3];
+	if (gamePtr->ball.yposition <= gamePtr->display.height / lrtBotPtr->cond[4])
+		mult = lrtBotPtr->val[4];
+
+	if(gamePtr->ball.yposition > gamePtr->display.height/2)
+		mult = 0;
+
 
 	float f = gamePtr->player[botNumber].paddleSpeed * mult;
 	if (gamePtr->ball.xspeed > 0) {
@@ -1261,6 +1264,76 @@ static void botControl(GameData *gamePtr, uint botNumber) {
 
 	FEXIT();
 } // end-of-function botControl
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 14, 2019
+ @mname   busBotControl
+ @details
+ This is the auto player function
+ It checks the ball position relative to the position on the field and then
+ decides the speed of the movement as well as direction.\n
+ --------------------------------------------------------------------------
+ */
+static void busBotControl(GameData *gamePtr) {
+
+	FENTRY();
+	TRACE();
+	//update only when ball moves towards the player
+	//We decide to move up based on the ball Y speed
+	// if Y speed > 0 it means the ball is moving downward
+	//If the Y speed < 0 it means the ball is moving upwards
+	uint botNumber = 0;
+
+	//bot 0 is at the bottom
+	if (gamePtr->ball.yspeed < 0) {
+		FEXIT();
+		return;
+	}
+
+	float mult = 1;
+	if ((gamePtr->display.height - gamePtr->ball.yposition) > gamePtr->display.height / busBotPtr->cond[0])
+		mult = busBotPtr->val[0];
+	if ((gamePtr->display.height - gamePtr->ball.yposition) <= gamePtr->display.height / busBotPtr->cond[1])
+		mult = busBotPtr->val[1];
+	if ((gamePtr->display.height - gamePtr->ball.yposition) <= gamePtr->display.height / busBotPtr->cond[2])
+		mult = busBotPtr->val[2];
+	if ((gamePtr->display.height - gamePtr->ball.yposition) <= gamePtr->display.height / busBotPtr->cond[3])
+		mult = busBotPtr->val[3];
+	if ((gamePtr->display.height - gamePtr->ball.yposition) <= gamePtr->display.height / busBotPtr->cond[4])
+		mult = busBotPtr->val[4];
+
+	if(gamePtr->ball.yposition< gamePtr->display.height/2)
+		mult = 0;
+
+
+	float f = gamePtr->player[botNumber].paddleSpeed * mult;
+	if (gamePtr->ball.xspeed > 0) {
+		if (gamePtr->ball.xposition > (gamePtr->player[botNumber].ge.xposition + gamePtr->player[botNumber].ge.width)) {
+			gamePtr->player[botNumber].ge.xposition += (int) f;
+		} else if (gamePtr->ball.xposition < gamePtr->player[botNumber].ge.xposition) {
+			gamePtr->player[botNumber].ge.xposition -= (int) f;
+		}
+	} else {
+		if (gamePtr->ball.xposition < gamePtr->player[botNumber].ge.xposition) {
+			gamePtr->player[botNumber].ge.xposition -= (int) f;
+		} else if (gamePtr->ball.xposition  > (gamePtr->player[botNumber].ge.xposition + gamePtr->player[botNumber].ge.width)) {
+			gamePtr->player[botNumber].ge.xposition += (int) f;
+		}
+	}
+
+	//end of display to the left
+	if (gamePtr->player[botNumber].ge.xposition < 0)
+		gamePtr->player[botNumber].ge.xposition = 0;
+	//end of display to the right
+	if (gamePtr->player[botNumber].ge.xposition >= (gamePtr->display.width - gamePtr->player[botNumber].ge.width))
+		gamePtr->player[botNumber].ge.xposition = (gamePtr->display.width - gamePtr->player[botNumber].ge.width);
+
+	FEXIT();
+} // end-of-function botControl
+
 
 /**
  ---------------------------------------------------------------------------
@@ -1330,8 +1403,8 @@ static bool gameMainLoop(GameData *gamePtr) {
 					&& gamePtr->ev.timer.source == gamePtr->botTimer) {
 				//if we are in arcade mode and the timer event belongs to the hal timer then
 				// we have to run the bot control logic
-				botControl(gamePtr, 0);
-				botControl(gamePtr, 1);
+				lrtBotControl(gamePtr);
+				busBotControl(gamePtr);
 			} else {
 				//check if escape key has been pressed
 				if (processKeyPressEvent(gamePtr) == false) {
@@ -1508,10 +1581,10 @@ bool initializeGameData(int argc, char **argv) {
 			//player 2 paddle speed
 			if (++param < argc) {
 				p->player[1].paddleSpeed = atoi(argv[param]);
-				botArray[0].paddlespeed = p->player[1].paddleSpeed / 2;
-				botArray[1].paddlespeed = p->player[1].paddleSpeed;
-				botArray[2].paddlespeed = (3 * p->player[1].paddleSpeed) / 2;
-				botArray[3].paddlespeed = p->player[1].paddleSpeed * 2;
+				lrtBotArray[0].paddlespeed = p->player[1].paddleSpeed / 2;
+				lrtBotArray[1].paddlespeed = p->player[1].paddleSpeed;
+				lrtBotArray[2].paddlespeed = (3 * p->player[1].paddleSpeed) / 2;
+				lrtBotArray[3].paddlespeed = p->player[1].paddleSpeed * 2;
 			}
 		} else if (strcmp(argv[param], "level") == 0) {
 			//level (controls the paddle size)
@@ -1544,6 +1617,9 @@ bool initializeGameData(int argc, char **argv) {
 					break;
 				case 'g':
 					p->bcolor = &(p->bcolorarray[green_c]);
+					break;
+				case 'q':
+					p->bcolor = &(p->bcolorarray[grey_c]);
 					break;
 				default:
 					break;
@@ -1627,8 +1703,9 @@ bool initializeGraphics() {
 	TRACE();
 	p->bcolorarray[yellow_c] = al_map_rgb(255, 255, 0);
 	p->bcolorarray[blue_c] = al_map_rgb(200, 200, 255);
-	p->bcolorarray[white_c] = al_map_rgb(180, 180, 180);
-	p->bcolorarray[green_c] = al_map_rgb(0, 255, 0);
+	p->bcolorarray[grey_c] = al_map_rgb(180, 180, 180);
+	p->bcolorarray[white_c] = al_map_rgb(0, 0, 0);
+	p->bcolorarray[green_c] = al_map_rgb(0, 180, 0);
 
 	p->fcolor = al_map_rgb(0, 100, 0);
 	p->timer = al_create_timer(1.0 / p->fps);

@@ -26,8 +26,8 @@ player2sound = p2sound.ogg
 #player1sound = tennisserve.wav
 #player2sound = tennisserve.wav
 
-# possible values yellow, blue, white, green
-colourscheme = white
+# possible values yellow, blue, white, green, q
+colourscheme = q
 
 p1paddleSpeed = 15
 p2paddleSpeed = 15

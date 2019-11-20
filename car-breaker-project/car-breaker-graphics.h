@@ -31,7 +31,6 @@ void runGame();
 bool initializeGameData(int argc, char **argv);
 
 #define MAXNAME 200
-#define MAXCOLORS 4
 #define MAXFONTS 3
 
 #define MAXBRICKROWS 3
@@ -50,7 +49,7 @@ enum FONTSIZES {
     smallFont_c = 0, regularFont_c = 1, largeFont_c = 2
 };
 enum COLOURS {
-    yellow_c = 0, blue_c = 1, white_c = 2, green_c = 3
+    yellow_c = 0, blue_c = 1, white_c = 2, green_c = 3, grey_c = 4, maxColors_c
 };
 enum BOTPLAYINGABILITY {
     novice_c = 0, intermediate_c, expert_c, pro_c
@@ -162,7 +161,7 @@ typedef struct GameData {
     ALLEGRO_TIMER *timer;
     ALLEGRO_TIMER *botTimer;
     ALLEGRO_FONT *font[MAXFONTS];
-    ALLEGRO_COLOR bcolorarray[MAXCOLORS];
+    ALLEGRO_COLOR bcolorarray[maxColors_c];
     ALLEGRO_COLOR* bcolor;
     ALLEGRO_COLOR fcolor;
     ALLEGRO_SAMPLE *startsample;
