@@ -18,7 +18,7 @@
 
 static const int minballspeed_c = 3;
 static const int maxballspeed_c = minballspeed_c + 2;
-static const uint maxlevel_c = 7;
+static const uint maxPaddleSize_c = 7;
 static const uint maxdiff_c = 4;
 static const uint botArrays_c = 5;
 
@@ -36,10 +36,9 @@ static const char botName[] = "LRT";
 //declaring the main data variable of the game
 //usually passed to functions using a pointer
 static GameData carBreaker = {
-		{INITPLAYER,
-				INITPLAYER},
-				INITGE,
-				INITDISPLAY, false, maxballspeed_c, NULL, FONTSIZE, MAXROUNDS, 1, { 0 }, { 0 },
+				{INITPLAYER, INITPLAYER},
+				INITGBB,
+				INITDISPLAY, false, maxballspeed_c, NULL, FONTSIZE, MAXROUNDS, { 0 }, { 0 },
 				FRAMERATE
 
 };
@@ -105,7 +104,7 @@ static bool loadAudio(GamePlayer *gamePtr);
 static bool loadAudioWinner(GameData *gamePtr);
 static bool loadBitmap(GameBasicBlock *g);
 static bool loadFont(GameData *gamePtr, int size);
-static bool loadPlayerBitmap(GameBasicBlock *g, int level);
+static bool loadPlayerBitmap(GamePlayer *p);
 static bool pauseGame(GameData *gamePtr);
 static bool pressAnyKeyToBeginGame(GameData *gamePtr);
 static bool printRoundWinner(GameData *gamePtr);
@@ -113,7 +112,7 @@ static bool processKeyPressEvent(GameData *gamePtr);
 static bool updateBallPosition(GameData *gamePtr);
 static int drawTextOnScreen(GameData *gamePtr, char *text, int x, int y, int size);
 static int signOfNumber(int value);
-static void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int, int);
+static void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int);
 static void lrtBotControl(GameData *gamePtr, uint botNumber);
 static void drawBitmap(GameBasicBlock *g);
 static void drawBitmapSection(GameBasicBlock *g);
@@ -155,6 +154,29 @@ static void initBrickLayout(GameData*gamePtr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
+ @date    Nov 19, 2019
+ @mname   setPointsPerCarSmashed
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+static void setPointsPerSmash(GameData*gamePtr) {
+
+	if(gamePtr->remainingCars<= level6_c){
+		gamePtr->scorePointsPerSmash = 10;
+	}else if (gamePtr->remainingCars< level5_c) {
+		gamePtr->scorePointsPerSmash = 3;
+	}else if (gamePtr->remainingCars< level4_c) {
+		gamePtr->scorePointsPerSmash = 2;
+	}
+	else {
+		gamePtr->scorePointsPerSmash = 1;
+	}
+
+}
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
  @date    Nov 22, 2019
  @mname   SetBackgroundColor
  @details
@@ -177,17 +199,17 @@ static void setBackgroundColor(ALLEGRO_COLOR color) {
  \n
  --------------------------------------------------------------------------
  */
-static bool loadPlayerBitmap(GameBasicBlock *g, int level) {
+static bool loadPlayerBitmap(GamePlayer *p) {
 	FENTRY();
 	TRACE();
-	if ((g->bmap = al_load_bitmap(g->bitmapFileName)) == NULL) {
-		printf("cannot load %s\n ", g->bitmapFileName);
+	if ((p->ge.bmap = al_load_bitmap(p->ge.bitmapFileName)) == NULL) {
+		printf("cannot load %s\n ", p->ge.bitmapFileName);
 		FEXIT();
 		return false;
 	}
-	g->width = (al_get_bitmap_width(g->bmap)* (maxlevel_c + 1 - level))
-                        														/ maxlevel_c;;
-	g->height = al_get_bitmap_height(g->bmap);
+	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize))
+                        														/ maxPaddleSize_c;
+	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
 	return true;
 } // end-of-function LoadPlayerBitmap
@@ -700,7 +722,7 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 		}
 		int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2,
 				gamePtr->display.height / 4, largeFont_c);
-		sprintf(textBuffer, "Smashes: %s %d %s %d", gamePtr->player[1].name, gamePtr->player[1].carsSmashed,
+		sprintf(textBuffer, "Score: %s %d %s %d", gamePtr->player[1].name, gamePtr->player[1].carsSmashed,
 				gamePtr->player[0].name, gamePtr->player[0].carsSmashed);
 		next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2, next,
 				regularFont_c);
@@ -709,8 +731,8 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 				gamePtr->display.width / 2, next + 100, regularFont_c);
 
 		playSound(gamePtr->winsample);
-		sprintf(textBuffer, "[Mode: %s] [Level: %d] [Score: %s %d %s %d]",
-				(gamePtr->arcade ? "Arcade" : "Human"), gamePtr->level, gamePtr->player[1].name,
+		sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]",
+				(gamePtr->arcade ? "Arcade" : "Human"), gamePtr->player[1].name,
 				gamePtr->player[1].score, gamePtr->player[0].name, gamePtr->player[0].score);
 		recordResult(textBuffer);
 		gamePtr->player[1].score = 0;
@@ -719,7 +741,7 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 		initBrickLayout(gamePtr);
 
 	} else {
-		sprintf(textBuffer, "Smashes: %s %d %s %d",
+		sprintf(textBuffer, "Score: %s %d %s %d",
 				gamePtr->player[1].name, gamePtr->player[1].carsSmashed, gamePtr->player[0].name,
 				gamePtr->player[0].carsSmashed);
 		int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2,
@@ -761,7 +783,7 @@ static bool displayScore(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 	char textBuffer[255];
-	sprintf(textBuffer, "Smashes: %s %d %s %d",
+	sprintf(textBuffer, "Score: %s %d %s %d",
 			gamePtr->player[1].name, gamePtr->player[1].carsSmashed, gamePtr->player[0].name,
 			gamePtr->player[0].carsSmashed);
 	int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width -100,
@@ -1016,7 +1038,7 @@ static int signOfNumber(int value) {
  --------------------------------------------------------------------------
  */
 static void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
-		int maxballspeed, int level) {
+		int maxballspeed) {
 
 	FENTRY();
 	TRACE();
@@ -1025,8 +1047,8 @@ static void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 		newxspeed = maxballspeed;
 	ball->yspeed = signOfNumber(ball->yspeed) * -1 * newxspeed;
 
-	int zones_c = 8 - level;
-	if (level == maxlevel_c) {
+	int zones_c = 8 - playerPtr->paddleSize;
+	if (playerPtr->paddleSize == maxPaddleSize_c) {
 		//ball->xspeed += 5;
 	} else {
 		int zonelength = playerPtr->ge.width / zones_c;
@@ -1072,8 +1094,7 @@ static bool checkCollisionWithPlayers(GameData *gamePtr) {
 			&& gamePtr->ball.yposition <= gamePtr->player[0].ge.yposition + gamePtr->player[0].ge.height) {
 
 		gamePtr->ball.yposition = gamePtr->player[0].ge.yposition - gamePtr->ball.height;
-		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[0]), gamePtr->maxballspeed,
-				gamePtr->level);
+		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[0]), gamePtr->maxballspeed);
 		gamePtr->turn = &gamePtr->player[0];
 		FEXIT();
 		return true;
@@ -1085,8 +1106,7 @@ static bool checkCollisionWithPlayers(GameData *gamePtr) {
 			&& gamePtr->ball.yposition <= gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height) {
 
 		gamePtr->ball.yposition = gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height;
-		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[1]), gamePtr->maxballspeed,
-				gamePtr->level);
+		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[1]), gamePtr->maxballspeed);
 		gamePtr->turn = &gamePtr->player[1];
 		FEXIT();
 		return true;
@@ -1109,13 +1129,14 @@ static bool checkCollisionWithPlayers(GameData *gamePtr) {
 					gamePtr->ball.yspeed *= -1;
 					gamePtr->bricks[i][j].onScreen = false;
 					gamePtr->remainingCars--;
-					if(gamePtr->remainingCars < 10 ) {
+					setPointsPerSmash(gamePtr);
+					if(gamePtr->remainingCars < level5_c ) {
 						gamePtr->bcolor = &(gamePtr->bcolorarray[green_c]);
-					}else if(gamePtr->remainingCars < 20 ) {
+					}else if(gamePtr->remainingCars < level4_c ) {
 						gamePtr->bcolor = &(gamePtr->bcolorarray[blue_c]);
 					}
 					if(gamePtr->turn) {
-						gamePtr->turn->carsSmashed++;
+						gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
 					}
 					FEXIT();
 					return true;
@@ -1141,13 +1162,14 @@ static bool checkCollisionWithPlayers(GameData *gamePtr) {
 					gamePtr->ball.yspeed *= -1;
 					gamePtr->bricks[i][j].onScreen = false;
 					gamePtr->remainingCars--;
-					if(gamePtr->remainingCars < 10 ) {
+					setPointsPerSmash(gamePtr);
+					if(gamePtr->remainingCars < level5_c ) {
 						gamePtr->bcolor = &(gamePtr->bcolorarray[green_c]);
-					}else if(gamePtr->remainingCars < 20 ) {
+					}else if(gamePtr->remainingCars < level4_c ) {
 						gamePtr->bcolor = &(gamePtr->bcolorarray[blue_c]);
 					}
 					if(gamePtr->turn) {
-						gamePtr->turn->carsSmashed++;
+						gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
 					}
 					FEXIT();
 					return true;
@@ -1203,9 +1225,7 @@ static bool updateBallPosition(GameData *gamePtr) {
  @date    Nov 14, 2019
  @mname   lrtBotControl
  @details
- This is the auto player function
- It checks the ball position relative to the position on the field and then
- decides the speed of the movement as well as direction.\n
+ This function controls the LRT bot.\n
  --------------------------------------------------------------------------
  */
 static void lrtBotControl(GameData *gamePtr) {
@@ -1269,12 +1289,10 @@ static void lrtBotControl(GameData *gamePtr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 14, 2019
+ @date    Nov 19, 2019
  @mname   busBotControl
  @details
- This is the auto player function
- It checks the ball position relative to the position on the field and then
- decides the speed of the movement as well as direction.\n
+  This function controls the bus Bot\n
  --------------------------------------------------------------------------
  */
 static void busBotControl(GameData *gamePtr) {
@@ -1575,8 +1593,13 @@ bool initializeGameData(int argc, char **argv) {
 				strcpy(p->player[1].audioFileName, argv[param]);
 		} else if (strcmp(argv[param], "p1paddleSpeed") == 0) {
 			//player 1 paddle speed
-			if (++param < argc)
+			if (++param < argc) {
 				p->player[0].paddleSpeed = atoi(argv[param]);
+				busBotArray[0].paddlespeed = p->player[1].paddleSpeed / 2;
+				busBotArray[1].paddlespeed = p->player[1].paddleSpeed;
+				busBotArray[2].paddlespeed = (3 * p->player[1].paddleSpeed) / 2;
+				busBotArray[3].paddlespeed = p->player[1].paddleSpeed * 2;
+			}
 		} else if (strcmp(argv[param], "p2paddleSpeed") == 0) {
 			//player 2 paddle speed
 			if (++param < argc) {
@@ -1586,12 +1609,19 @@ bool initializeGameData(int argc, char **argv) {
 				lrtBotArray[2].paddlespeed = (3 * p->player[1].paddleSpeed) / 2;
 				lrtBotArray[3].paddlespeed = p->player[1].paddleSpeed * 2;
 			}
-		} else if (strcmp(argv[param], "level") == 0) {
+		} else if (strcmp(argv[param], "p1level") == 0) {
 			//level (controls the paddle size)
 			if (++param < argc) {
-				p->level = atoi(argv[param]);
-				if (p->level > maxlevel_c)
-					p->level = maxlevel_c;
+				p->player[0].paddleSize = atoi(argv[param]);
+				if (p->player[0].paddleSize > maxPaddleSize_c)
+					p->player[0].paddleSize = maxPaddleSize_c;
+			}
+		} else if (strcmp(argv[param], "p2level") == 0) {
+			//level (controls the paddle size)
+			if (++param < argc) {
+				p->player[1].paddleSize = atoi(argv[param]);
+				if (p->player[1].paddleSize > maxPaddleSize_c)
+					p->player[1].paddleSize = maxPaddleSize_c;
 			}
 		} else if (strcmp(argv[param], "fps") == 0) {
 			//display fps
@@ -1727,11 +1757,11 @@ bool initializeGraphics() {
 	} else
 		p->botTimer = NULL;
 
-	if (loadPlayerBitmap(&(p->player[0].ge), p->level) == false) {
+	if (loadPlayerBitmap(&(p->player[0])) == false) {
 		FEXIT();
 		return false;
 	}
-	if (loadPlayerBitmap(&(p->player[1].ge), p->level) == false) {
+	if (loadPlayerBitmap(&(p->player[1])) == false) {
 		FEXIT();
 		return false;
 	}

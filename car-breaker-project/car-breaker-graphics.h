@@ -55,6 +55,9 @@ enum BOTPLAYINGABILITY {
     novice_c = 0, intermediate_c, expert_c, pro_c
 };
 
+enum SCREENCOLORCHANGE {
+	level0_c = 50, level1_c = 40, level2_c = 30, level4_c = 20, level5_c = 10, level6_c=1
+};
 
 //======= GAME STRUCTURE DEFINITIONS =========
 
@@ -113,6 +116,7 @@ typedef struct GamePlayer {
     ALLEGRO_SAMPLE *sample;
     bool keyPress[2];
     int paddleSpeed;
+    int paddleSize;
 }GamePlayer;
 
 /**
@@ -151,7 +155,6 @@ typedef struct GameData {
     GamePlayer* roundWinner;
     int    fontsize;
     uint maxscore;
-    uint level;
     char fontFileName[MAXNAME];
     char winSoundFile[MAXNAME];
     float  fps;
@@ -173,11 +176,12 @@ typedef struct GameData {
     uint roundNumber;
     uint remainingCars;
     ALLEGRO_COLOR* initcolor;
+    uint scorePointsPerSmash;
 } GameData;
 
 
-#define INITGE {true, 0, 0, 0, 0, 0, 0, NULL, {0} }
-#define INITPLAYER { 0, 0, 0, 0, INITGE, {0}, {0}, NULL, {false, false}, 0}
+#define INITGBB {true, 0, 0, 0, 0, 0, 0, NULL, {0} }
+#define INITPLAYER { 0, 0, 0, 0, INITGBB, {0}, {0}, NULL, {false, false}, 0}
 #define INITDISPLAY {SCREEN_W, SCREEN_H, NULL}
 
 
