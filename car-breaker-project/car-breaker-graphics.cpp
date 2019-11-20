@@ -95,7 +95,7 @@ bool recordResult(char *p);
 //======= FUNCTION DECLARATIONS =====
 static bool checkCollisionLeftRight(GameData *gamePtr);
 static bool checkCollisionTopAndBottom(GameData *gamePtr);
-static bool checkCollisionWithPlayers(GameData *gamePtr);
+static bool checkBallCollisionWithObjects(GameData *gamePtr);
 static bool displayScore(GameData *gamePtr);
 static bool drawTextAndWaitBegin(GameData *gamePtr);
 static bool drawTextAndWaitRoundWin(GameData *gamePtr);
@@ -168,12 +168,95 @@ static void setPointsPerSmash(GameData*gamePtr) {
 		gamePtr->scorePointsPerSmash = 3;
 	}else if (gamePtr->remainingCars< level4_c) {
 		gamePtr->scorePointsPerSmash = 2;
-	}
-	else {
+	}else {
 		gamePtr->scorePointsPerSmash = 1;
 	}
-
 }
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 19, 2019
+ @mname   isPointInObject
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+static bool isPointInObject(GameBasicBlock* b, int x, int y){
+
+	if((x>=b->xposition)
+		&& (x <= (b->xposition+b->width))
+		&&(y>=b->yposition)
+		&& (y<=(b->yposition+b->height))) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 19, 2019
+ @mname   areObjectsColliding
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+static bool areObjectsColliding(GameBasicBlock* a, GameBasicBlock* b){
+
+	if(isPointInObject(b,a->xposition,a->yposition)) return true;
+	if(isPointInObject(b, a->xposition+a->width, a->yposition)) return true;
+	if(isPointInObject(b,a->xposition, a->yposition+a->height)) return true;
+	if(isPointInObject(b, a->xposition+a->width, a->yposition+a->height)) return true;
+
+	return false;
+}
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 19, 2019
+ @mname   ballBrickCollision
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+static bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
+
+	FENTRY();
+	TRACE();
+	if (gamePtr->bricks[i][j].onScreen == false) {
+		FEXIT();
+		return false;
+	}
+
+	if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->bricks[i][j]))) {
+		if(gamePtr->ball.yspeed > 0)
+			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition - gamePtr->ball.height;
+		else
+			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition + gamePtr->bricks[i][j].height;
+		gamePtr->ball.yspeed *= -1;
+		gamePtr->bricks[i][j].onScreen = false;
+		gamePtr->remainingCars--;
+		setPointsPerSmash(gamePtr);
+		if(gamePtr->remainingCars < level5_c ) {
+			gamePtr->bcolor = &(gamePtr->bcolorarray[green_c]);
+		}else if(gamePtr->remainingCars < level4_c ) {
+			gamePtr->bcolor = &(gamePtr->bcolorarray[blue_c]);
+		}
+		if(gamePtr->turn) {
+			gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
+		}
+		FEXIT();
+		return true;
+	}
+
+	FEXIT();
+	return false;
+}
+
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
@@ -372,7 +455,7 @@ static void setInitialObjectPositions(GameData *gamePtr) {
 	gamePtr->player[0].ge.xposition = gamePtr->display.width / 2 - gamePtr->player[0].ge.width / 2;
 	gamePtr->player[0].ge.yposition = gamePtr->display.height - gamePtr->player[0].ge.height;
 	gamePtr->player[0].ge.xspeed = 0;
-	gamePtr->player[1].ge.xposition = gamePtr->display.width / 2 - gamePtr->player[0].ge.width / 2;
+	gamePtr->player[1].ge.xposition = gamePtr->display.width / 2 - gamePtr->player[1].ge.width / 2;
 	gamePtr->player[1].ge.yposition = 0;
 	gamePtr->player[1].ge.xspeed = 0;
 
@@ -787,10 +870,14 @@ static bool displayScore(GameData *gamePtr) {
 			gamePtr->player[1].name, gamePtr->player[1].carsSmashed, gamePtr->player[0].name,
 			gamePtr->player[0].carsSmashed);
 	int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width -100,
-			20, smallFont_c);
+			30, smallFont_c);
 	sprintf(textBuffer, "Remain: %d",
 			gamePtr->remainingCars);
-	drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width -100,
+	next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width -100,
+			next, smallFont_c);
+	sprintf(textBuffer, "%d Points Per Smash",
+			gamePtr->scorePointsPerSmash);
+	next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width -100,
 			next, smallFont_c);
 }
 
@@ -1072,27 +1159,23 @@ static void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 17, 2019
- @mname   CheckPaletteCollision
+ @mname   checkBallCollisionWithObjects
  @details
  true if there is a collision false otherwise
  This function checks if the ball touches the play edge of the pallet
  Player one is the *bottom* edge
- Player two it is the *top* edge. HAL is player2 when in arcade mode
+ Player two it is the *top* edge.
 
  We are using inequalities because we update the positions in non-multiples of the field
  length and width because of that it is possible that the ball and pallete Nov slightly superpose
  That condition is a valid collision \n
  --------------------------------------------------------------------------
  */
-static bool checkCollisionWithPlayers(GameData *gamePtr) {
+static bool checkBallCollisionWithObjects(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 
-	if (gamePtr->ball.xposition + gamePtr->ball.width >= gamePtr->player[0].ge.xposition
-			&& gamePtr->ball.xposition < gamePtr->player[0].ge.width + gamePtr->player[0].ge.xposition
-			&& gamePtr->ball.yposition + gamePtr->ball.height >= gamePtr->player[0].ge.yposition
-			&& gamePtr->ball.yposition <= gamePtr->player[0].ge.yposition + gamePtr->player[0].ge.height) {
-
+	if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->player[0].ge))) {
 		gamePtr->ball.yposition = gamePtr->player[0].ge.yposition - gamePtr->ball.height;
 		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[0]), gamePtr->maxballspeed);
 		gamePtr->turn = &gamePtr->player[0];
@@ -1100,11 +1183,7 @@ static bool checkCollisionWithPlayers(GameData *gamePtr) {
 		return true;
 	}
 
-	else if (gamePtr->ball.xposition < gamePtr->player[1].ge.xposition + gamePtr->player[1].ge.width
-			&& gamePtr->ball.xposition + gamePtr->ball.width >= gamePtr->player[1].ge.xposition
-			&& gamePtr->ball.yposition + gamePtr->ball.height >= gamePtr->player[1].ge.yposition
-			&& gamePtr->ball.yposition <= gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height) {
-
+	else if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->player[1].ge))) {
 		gamePtr->ball.yposition = gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height;
 		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[1]), gamePtr->maxballspeed);
 		gamePtr->turn = &gamePtr->player[1];
@@ -1112,69 +1191,23 @@ static bool checkCollisionWithPlayers(GameData *gamePtr) {
 		return true;
 	}
 
-	if(gamePtr->ball.yspeed < 0) {
+	if(gamePtr->ball.yspeed <= 0) {
 		for (int i = MAXBRICKROWS-1; i >=0; i--) {
 			for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
-				if (gamePtr->bricks[i][j].onScreen == false) {
-					continue;
-				}
-
-				if (((gamePtr->ball.xposition + gamePtr->ball.width >= gamePtr->bricks[i][j].xposition
-						&& gamePtr->ball.xposition < gamePtr->bricks[i][j].xposition)
-						|| (gamePtr->ball.xposition < gamePtr->bricks[i][j].xposition + gamePtr->bricks[i][j].width
-								&& gamePtr->ball.xposition > gamePtr->bricks[i][j].xposition))
-						&& gamePtr->ball.yposition  <= gamePtr->bricks[i][j].yposition + gamePtr->bricks[i][j].height
-						&& gamePtr->ball.yposition > gamePtr->bricks[i][j].yposition) {
-					gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition + gamePtr->bricks[i][j].height;
-					gamePtr->ball.yspeed *= -1;
-					gamePtr->bricks[i][j].onScreen = false;
-					gamePtr->remainingCars--;
-					setPointsPerSmash(gamePtr);
-					if(gamePtr->remainingCars < level5_c ) {
-						gamePtr->bcolor = &(gamePtr->bcolorarray[green_c]);
-					}else if(gamePtr->remainingCars < level4_c ) {
-						gamePtr->bcolor = &(gamePtr->bcolorarray[blue_c]);
-					}
-					if(gamePtr->turn) {
-						gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
-					}
+				if(isBallBrickCollision(gamePtr, i, j)) {
 					FEXIT();
 					return true;
 				}
-
 			} //end-of-for
 		} //end-of-for
 	}
-	if(gamePtr->ball.yspeed > 0) {
+	else if(gamePtr->ball.yspeed > 0) {
 		for (int i = 0; i < MAXBRICKROWS; i++) {
 			for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
-				if (gamePtr->bricks[i][j].onScreen == false) {
-					continue;
-				}
-
-				if (((gamePtr->ball.xposition + gamePtr->ball.width >= gamePtr->bricks[i][j].xposition
-						&& gamePtr->ball.xposition < gamePtr->bricks[i][j].xposition)
-						|| (gamePtr->ball.xposition < gamePtr->bricks[i][j].xposition + gamePtr->bricks[i][j].width
-								&& gamePtr->ball.xposition > gamePtr->bricks[i][j].xposition))
-						&& gamePtr->ball.yposition + gamePtr->ball.height >= gamePtr->bricks[i][j].yposition
-						&& gamePtr->ball.yposition <= gamePtr->bricks[i][j].yposition ) {
-					gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition - gamePtr->ball.height;
-					gamePtr->ball.yspeed *= -1;
-					gamePtr->bricks[i][j].onScreen = false;
-					gamePtr->remainingCars--;
-					setPointsPerSmash(gamePtr);
-					if(gamePtr->remainingCars < level5_c ) {
-						gamePtr->bcolor = &(gamePtr->bcolorarray[green_c]);
-					}else if(gamePtr->remainingCars < level4_c ) {
-						gamePtr->bcolor = &(gamePtr->bcolorarray[blue_c]);
-					}
-					if(gamePtr->turn) {
-						gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
-					}
+				if(isBallBrickCollision(gamePtr, i, j)) {
 					FEXIT();
 					return true;
 				}
-
 			} //end-of-for
 		} //end-of-for
 	}
@@ -1208,7 +1241,7 @@ static bool updateBallPosition(GameData *gamePtr) {
 	gamePtr->ball.xposition = gamePtr->ball.xposition + gamePtr->ball.xspeed;
 	gamePtr->ball.yposition = gamePtr->ball.yposition + gamePtr->ball.yspeed;
 
-	if (checkCollisionWithPlayers(gamePtr) == false) {
+	if (checkBallCollisionWithObjects(gamePtr) == false) {
 		if (checkCollisionTopAndBottom(gamePtr) == true) {
 			FEXIT();
 			return true;
