@@ -1,0 +1,41 @@
+# depslib dependency file v1.0
+1525048129 source:c:\users\linds\documents\ocdsb\000 ics3u\monarchstemplate\main.cpp
+	<allegro5/allegro.h>
+	<allegro5/allegro_native_dialog.h>
+	"monarchs.h"
+
+1525066092 c:\users\linds\documents\ocdsb\000 ics3u\monarchstemplate\monarchs.h
+
+1525065722 source:c:\users\linds\documents\ocdsb\000 ics3u\monarchstemplate\monarchsmain.cpp
+	<stdio.h>
+	<allegro5/allegro.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_native_dialog.h>
+	"monarchs.h"
+
+1525063832 source:c:\users\linds\documents\ocdsb\000 ics3u\monarchstemplate\monarchsallegro.cpp
+	<stdio.h>
+	<allegro5/allegro.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_native_dialog.h>
+	"monarchs.h"
+
+1525062880 source:c:\users\linds\documents\ocdsb\000 ics3u\monarchstemplate\filefunctions.cpp
+	<stdio.h>
+	<allegro5/allegro.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_native_dialog.h>
+	"monarchs.h"
+
+1525065686 source:c:\users\linds\documents\ocdsb\000 ics3u\monarchstemplate\databasefunctions.cpp
+	<stdio.h>
+	<string.h>
+	<allegro5/allegro.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_native_dialog.h>
+	"monarchs.h"
+
