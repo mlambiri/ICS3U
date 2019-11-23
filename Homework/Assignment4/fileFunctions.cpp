@@ -13,14 +13,14 @@ static char configName[] = "MonarchsData.txt";
   ---------------------------------------------------------------------------
    @author  mlambiri
    @date    Nov 22, 2019
-   @mname   checkRegnal
+   @mname   regnalToNumeral
    @details
     transform regnal to numeral. see the link below
      https://helloacm.com/how-to-convert-roman-to-integer-in-cc/
 	  \n
   --------------------------------------------------------------------------
  */
-int checkRegnal(const Person* p) {
+int regnalToNumeral(const Person* p) {
 	const char* c = p->regnal;
 
 	int r = 0;
@@ -75,11 +75,11 @@ int checkRegnal(const Person* p) {
 //https://stackoverflow.com/questions/5820810/case-insensitive-string-comp-in-c#5820991
 int strcicmp(char const *a, char const *b)
 {
-    for (;; a++, b++) {
-        int d = tolower((unsigned char)*a) - tolower((unsigned char)*b);
-        if (d != 0 || !*a)
-            return d;
-    }
+	for (;; a++, b++) {
+		int d = tolower((unsigned char)*a) - tolower((unsigned char)*b);
+		if (d != 0 || !*a)
+			return d;
+	}
 }
 
 /**
@@ -93,7 +93,7 @@ int strcicmp(char const *a, char const *b)
 	  \n
   --------------------------------------------------------------------------
  */
-int monthToInt(Date* d) {
+int monthToInt(const Date* d) {
 	int month = 0;
 
 	if(strcicmp(d->month, "january") == 0) {
@@ -180,7 +180,7 @@ bool checkDate(Date* d) {
 	  \n
   --------------------------------------------------------------------------
  */
-int calculateAge(Person* p) {
+int calculateAge(const Person* p) {
 
 	int age = p->death.year - p->birth.year;
 	if(monthToInt(&(p->death)) < monthToInt(&(p->birth))) {
@@ -188,7 +188,7 @@ int calculateAge(Person* p) {
 	}
 
 	if(monthToInt(&(p->death)) == monthToInt(&(p->birth))
-		&& p->death.day < p->birth.day	) {
+			&& p->death.day < p->birth.day	) {
 		age--;
 	}
 
@@ -199,32 +199,168 @@ int calculateAge(Person* p) {
 /**
   ---------------------------------------------------------------------------
    @author  mlambiri
-   @date    Nov 20, 2019
-   @mname   monarchCompare
+   @date    Nov 22, 2019
+   @mname   monarchNameCompareIncreasing
    @details
       compare names and then regnals
 	  \n
   --------------------------------------------------------------------------
  */
-int monarchCompare(const void * a, const void * b){
+int monarchNameCompareIncreasing(const void * a, const void * b){
 
 	const Person* ap = (Person*)a;
 	const Person* bp = (Person*)b;
 
-		  if ( strcicmp(ap->name, bp->name) < 0) return -1;
-		  if( strcicmp(ap->name, bp->name) > 0) return 1;
+	if ( strcicmp(ap->name, bp->name) < 0) return -1;
+	if( strcicmp(ap->name, bp->name) > 0) return 1;
 
-		  if(strcicmp(ap->name, bp->name) == 0) {
-			  // need to compare regnal
-			  int ar = checkRegnal(ap);
-			  int br = checkRegnal(bp);
-			  if(ar < br) return -1;
-			  if(ar > br) return 1;
-			  return 0;
-		  }
+	if(strcicmp(ap->name, bp->name) == 0) {
+		// need to compare regnal
+		int ar = regnalToNumeral(ap);
+		int br = regnalToNumeral(bp);
+		if(ar < br) return -1;
+		if(ar > br) return 1;
+		return 0;
+	}
 
-		  return 0;
+	return 0;
 }
+
+/**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Nov 22, 2019
+   @mname   monarchNameCompareDecreasing
+   @details
+      compare names and then regnals
+	  \n
+  --------------------------------------------------------------------------
+ */
+int monarchNameCompareDecreasing(const void * a, const void * b){
+
+	const Person* ap = (Person*)a;
+	const Person* bp = (Person*)b;
+
+	if ( strcicmp(ap->name, bp->name) > 0) return -1;
+	if( strcicmp(ap->name, bp->name) < 0) return 1;
+
+	if(strcicmp(ap->name, bp->name) == 0) {
+		// need to compare regnal
+		int ar = regnalToNumeral(ap);
+		int br = regnalToNumeral(bp);
+		if(ar < br) return 1;
+		if(ar > br) return -1;
+		return 0;
+	}
+
+	return 0;
+}
+
+
+/**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Nov 22, 2019
+   @mname   ageCompareIncreasing
+   @details
+      compare ages
+	  \n
+  --------------------------------------------------------------------------
+ */
+int ageCompareIncreasing(const void * a, const void * b){
+
+	const Person* ap = (Person*)a;
+	const Person* bp = (Person*)b;
+
+	int ageA = calculateAge(ap);
+	int ageB = calculateAge(bp);
+
+	if ( ageA < ageB) return -1;
+	if( ageA > ageB ) return 1;
+	if( ageA == ageB) return 0;
+
+	return 0;
+}
+
+
+
+/**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Nov 22, 2019
+   @mname   ageCompareIncreasing
+   @details
+      compare ages
+	  \n
+  --------------------------------------------------------------------------
+ */
+int ageCompareDecreasing(const void * a, const void * b){
+
+	const Person* ap = (Person*)a;
+	const Person* bp = (Person*)b;
+
+	int ageA = calculateAge(ap);
+	int ageB = calculateAge(bp);
+
+	if ( ageA > ageB) return -1;
+	if( ageA < ageB ) return 1;
+	if( ageA == ageB) 	return 0;
+
+	return 0;
+}
+
+/**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Nov 22, 2019
+   @mname   regnalCompareIncreasing
+   @details
+      compare ages
+	  \n
+  --------------------------------------------------------------------------
+ */
+int regnalCompareIncreasing(const void * a, const void * b){
+
+	const Person* ap = (Person*)a;
+	const Person* bp = (Person*)b;
+
+	int regnalA = regnalToNumeral(ap);
+	int regnalB = regnalToNumeral(bp);
+
+	if ( regnalA < regnalB) return -1;
+	if( regnalA > regnalB ) return 1;
+
+	if( regnalA == regnalB) return 0;
+
+	return 0;
+}
+
+/**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Nov 22, 2019
+   @mname   regnalCompareIncreasing
+   @details
+      compare ages
+	  \n
+  --------------------------------------------------------------------------
+ */
+int regnalCompareDecreasing(const void * a, const void * b){
+
+	const Person* ap = (Person*)a;
+	const Person* bp = (Person*)b;
+
+	int regnalA = regnalToNumeral(ap);
+	int regnalB = regnalToNumeral(bp);
+
+	if ( regnalA > regnalB) return -1;
+	if( regnalA < regnalB ) return 1;
+
+	if( regnalA == regnalB) return 0;
+
+	return 0;
+}
+
 
 
 /**
@@ -240,7 +376,7 @@ int monarchCompare(const void * a, const void * b){
 	  \n
   --------------------------------------------------------------------------
  */
-int readFile(Person p[], int monarchAges[], int &counter, char* fileName, ALLEGRO_DISPLAY *display) {
+int readFile(Person p[],  int &counter, char* fileName, ALLEGRO_DISPLAY *display) {
 
 	const int bufferSize_c = 200;
 	char text[bufferSize_c];
@@ -266,205 +402,203 @@ int readFile(Person p[], int monarchAges[], int &counter, char* fileName, ALLEGR
 	if(fptr == NULL){
 		//if file is not found return 0
 		sprintf(errorText, "File %s not found", tempName);
-    	al_show_native_message_box(display, "Error", "Error", errorText,
-                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+		al_show_native_message_box(display, "Error", "Error", errorText,
+				nullptr, ALLEGRO_MESSAGEBOX_ERROR);
 		return 0;
 	}
 
 	//i am reading in a buffer
 	while(fgets(buffer, bufferSize_c, fptr)) {
-		 //increment the counter
-		 if(counter >= maxMonarchs_c) {
-			 // I can store only maxMonarch_c lines in the array
-			 // if the file has more line I need to stop reading
+		//increment the counter
+		if(counter >= maxMonarchs_c) {
+			// I can store only maxMonarch_c lines in the array
+			// if the file has more line I need to stop reading
 			sprintf(errorText, "Cannot store more than %d monarchs", counter);
-		    al_show_native_message_box(display, "Warning", "Warning", errorText,
-		                                 nullptr, ALLEGRO_MESSAGEBOX_WARN);
-		    return 1;
-		 }
+			al_show_native_message_box(display, "Warning", "Warning", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_WARN);
+			return 1;
+		}
 
 		// printf ("%s\n",buffer);
-		 char * pch = strtok (buffer, delim);
-		 if (pch != NULL) {
-			 //printf ("%s\n",pch);
-			 strncpy(p[counter].name, pch, maxName_c);
-			 //make sure we terminate the name with a zero!!
-			 //the text file might contain looooooong names
-			 p[counter].name[maxName_c - 1] = 0;
-		 } //end-of-if(pch == NULL)
-		 else {
-			 // error
-				sprintf(errorText, "Read error in line %d", counter+1);
-		    	al_show_native_message_box(display, "Error", "Error", errorText,
-		                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
-		 pch = strtok (NULL, delim);
-		 if (pch != NULL) {
-			 //printf ("%s\n",pch);
-			 strncpy(p[counter].regnal, pch, maxRegnal_c);
-			 //make sure we terminate the name with a zero!!
-			 //the text file might contain looooooong names
-			 p[counter].regnal[maxRegnal_c-1] = 0;
-			 if(checkRegnal(&(p[counter])) <= 0) {
-				 //error
+		char * pch = strtok (buffer, delim);
+		if (pch != NULL) {
+			//printf ("%s\n",pch);
+			strncpy(p[counter].name, pch, maxName_c);
+			//make sure we terminate the name with a zero!!
+			//the text file might contain looooooong names
+			p[counter].name[maxName_c - 1] = 0;
+		} //end-of-if(pch == NULL)
+		else {
+			// error
+			sprintf(errorText, "Read error in line %d", counter+1);
+			al_show_native_message_box(display, "Error", "Error", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
+		pch = strtok (NULL, delim);
+		if (pch != NULL) {
+			//printf ("%s\n",pch);
+			strncpy(p[counter].regnal, pch, maxRegnal_c);
+			//make sure we terminate the name with a zero!!
+			//the text file might contain looooooong names
+			p[counter].regnal[maxRegnal_c-1] = 0;
+			if(regnalToNumeral(&(p[counter])) <= 0) {
+				//error
 				sprintf(errorText, "Invalid Regnal in line %d", counter+1);
-			    al_show_native_message_box(display, "Error", "Error", errorText,
-			                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-				 return 0;
-			 }
-		 } //end-of-if(pch == NULL)
-		 else {
-			 //error
+				al_show_native_message_box(display, "Error", "Error", errorText,
+						nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+				return 0;
+			}
+		} //end-of-if(pch == NULL)
+		else {
+			//error
 			sprintf(errorText, "Read error in line %d", counter+1);
-		    al_show_native_message_box(display, "Error", "Error", errorText,
-		                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
-		 pch = strtok (NULL, delim);
-		 if (pch != NULL) {
-			 //printf ("%s\n",pch);
-			  sscanf(pch, "%d", &(p[counter].birth.year));
-		 } //end-of-if(pch == NULL)
-		 else {
-			 //error
+			al_show_native_message_box(display, "Error", "Error", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
+		pch = strtok (NULL, delim);
+		if (pch != NULL) {
+			//printf ("%s\n",pch);
+			sscanf(pch, "%d", &(p[counter].birth.year));
+		} //end-of-if(pch == NULL)
+		else {
+			//error
 			sprintf(errorText, "Read error in line %d", counter+1);
-		    al_show_native_message_box(display, "Error", "Error", errorText,
-		                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
-		 pch = strtok (NULL, delim);
-		 if (pch != NULL) {
-			 //printf ("%s\n",pch);
-			 strncpy(p[counter].birth.month, pch, maxMonth_c);
-			 //make sure we terminate the name with a zero!!
-			 //the text file might contain looooooong names
-			 p[counter].birth.month[maxMonth_c - 1] = 0;
-		 } //end-of-if(pch == NULL)
-		 else {
-			 //error
+			al_show_native_message_box(display, "Error", "Error", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
+		pch = strtok (NULL, delim);
+		if (pch != NULL) {
+			//printf ("%s\n",pch);
+			strncpy(p[counter].birth.month, pch, maxMonth_c);
+			//make sure we terminate the name with a zero!!
+			//the text file might contain looooooong names
+			p[counter].birth.month[maxMonth_c - 1] = 0;
+		} //end-of-if(pch == NULL)
+		else {
+			//error
 			sprintf(errorText, "Read error in line %d", counter+1);
-		    al_show_native_message_box(display, "Error", "Error", errorText,
-		                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
-		 pch = strtok (NULL, delim);
-		 if (pch != NULL) {
-			 //printf ("%s\n",pch);
-			  sscanf(pch, "%d", &(p[counter].birth.day));
-		 } //end-of-if(pch == NULL)
-		 else {
-			 //error
+			al_show_native_message_box(display, "Error", "Error", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
+		pch = strtok (NULL, delim);
+		if (pch != NULL) {
+			//printf ("%s\n",pch);
+			sscanf(pch, "%d", &(p[counter].birth.day));
+		} //end-of-if(pch == NULL)
+		else {
+			//error
 			sprintf(errorText, "Read error in line %d", counter+1);
-		    al_show_native_message_box(display, "Error", "Error", errorText,
-		                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
+			al_show_native_message_box(display, "Error", "Error", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
 
-		 if(checkDate(&(p[counter].birth)) == false) {
-			 //error
+		if(checkDate(&(p[counter].birth)) == false) {
+			//error
 			sprintf(errorText, "Birthday format error in line %d", counter+1);
-		    al_show_native_message_box(display, "Error", "Error", errorText,
-		                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
+			al_show_native_message_box(display, "Error", "Error", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
 
-		 pch = strtok (NULL, delim);
-		 if (pch != NULL) {
-			 //printf ("%s\n",pch);
-			 if(strcmp(pch, "to")!=0) {
-				 //error
+		pch = strtok (NULL, delim);
+		if (pch != NULL) {
+			//printf ("%s\n",pch);
+			if(strcmp(pch, "to")!=0) {
+				//error
 				sprintf(errorText, "Missing 'to' word in line %d", counter+1);
-			    al_show_native_message_box(display, "Error", "Error", errorText,
-			                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-				 return 0;
-			 }
-		 } //end-of-if(pch == NULL)
-		 else {
-			 //error
+				al_show_native_message_box(display, "Error", "Error", errorText,
+						nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+				return 0;
+			}
+		} //end-of-if(pch == NULL)
+		else {
+			//error
 			sprintf(errorText, "Read error in line %d", counter+1);
 			al_show_native_message_box(display, "Error", "Error", errorText,
-			                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
-		 pch = strtok (NULL, delim);
-		 if (pch != NULL) {
-			 //printf ("%s\n",pch);
-			  sscanf(pch, "%d", &(p[counter].death.year));
-		 } //end-of-if(pch == NULL)
-		 else {
-			 //error
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
+		pch = strtok (NULL, delim);
+		if (pch != NULL) {
+			//printf ("%s\n",pch);
+			sscanf(pch, "%d", &(p[counter].death.year));
+		} //end-of-if(pch == NULL)
+		else {
+			//error
 			sprintf(errorText, "Read error in line %d", counter+1);
 			al_show_native_message_box(display, "Error", "Error", errorText,
-			                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
-		 pch = strtok (NULL, delim);
-		 if (pch != NULL) {
-			 //printf ("%s\n",pch);
-			 strncpy(p[counter].death.month, pch, maxMonth_c);
-			 //make sure we terminate the name with a zero!!
-			 //the text file might contain looooooong names
-			 p[counter].death.month[maxMonth_c -1] = 0;
-		 } //end-of-if(pch == NULL)
-		 else {
-			 //error
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
+		pch = strtok (NULL, delim);
+		if (pch != NULL) {
+			//printf ("%s\n",pch);
+			strncpy(p[counter].death.month, pch, maxMonth_c);
+			//make sure we terminate the name with a zero!!
+			//the text file might contain looooooong names
+			p[counter].death.month[maxMonth_c -1] = 0;
+		} //end-of-if(pch == NULL)
+		else {
+			//error
 			sprintf(errorText, "Read error in line %d", counter+1);
 			al_show_native_message_box(display, "Error", "Error", errorText,
-			                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
-		 pch = strtok (NULL, delim);
-		 if (pch != NULL) {
-			 //printf ("%s\n",pch);
-			  sscanf(pch, "%d", &(p[counter].death.day));
-		 } //end-of-if(pch == NULL)
-		 else {
-			 //error
-			 sprintf(errorText, "Read error in line %d", counter+1);
-			 al_show_native_message_box(display, "Error", "Error", errorText,
-			                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
+		pch = strtok (NULL, delim);
+		if (pch != NULL) {
+			//printf ("%s\n",pch);
+			sscanf(pch, "%d", &(p[counter].death.day));
+		} //end-of-if(pch == NULL)
+		else {
+			//error
+			sprintf(errorText, "Read error in line %d", counter+1);
+			al_show_native_message_box(display, "Error", "Error", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
 
-		 if(checkDate(&(p[counter].death)) == false) {
-			 //error
+		if(checkDate(&(p[counter].death)) == false) {
+			//error
 			sprintf(errorText, "Death date format error in line %d", counter+1);
-		    al_show_native_message_box(display, "Error", "Error", errorText,
-		                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
+			al_show_native_message_box(display, "Error", "Error", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
 
-		 if(p[counter].birth.year > p[counter].death.year) {
-			 //error
+		if(p[counter].birth.year > p[counter].death.year) {
+			//error
 			sprintf(errorText, "Causal issue with dates in line %d", counter+1);
-		    al_show_native_message_box(display, "Error", "Error", errorText,
-		                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
+			al_show_native_message_box(display, "Error", "Error", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
 
-		 if((p[counter].birth.year == p[counter].death.year)
+		if((p[counter].birth.year == p[counter].death.year)
 				&& (monthToInt(&(p[counter].birth)) > monthToInt(&(p[counter].death)))) {
-			 //error
+			//error
 			sprintf(errorText, "Causal issue with dates in line %d", counter+1);
-		    al_show_native_message_box(display, "Error", "Error", errorText,
-		                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
+			al_show_native_message_box(display, "Error", "Error", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
 
-		 if((p[counter].birth.year == p[counter].death.year)
+		if((p[counter].birth.year == p[counter].death.year)
 				&& (monthToInt(&(p[counter].birth)) == monthToInt(&(p[counter].death)))
 				&& (p[counter].birth.day > p[counter].death.day)) {
-			 //error
+			//error
 			sprintf(errorText, "Causal issue with dates in line %d", counter+1);
-		    al_show_native_message_box(display, "Error", "Error", errorText,
-		                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			 return 0;
-		 }
+			al_show_native_message_box(display, "Error", "Error", errorText,
+					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+			return 0;
+		}
 
-		 monarchAges[counter] = calculateAge(&(p[counter]));
-
-		 counter++;
+		counter++;
 
 	} //end-of-while(fgets(buffer, bufferSize_c, fptr))
 	fclose(fptr);
@@ -502,8 +636,8 @@ writeFile(Person p[], int &counter, char* fileName, ALLEGRO_DISPLAY *display) {
 
 	if(fptr == NULL){
 		sprintf(errorText, "Error opening file %s for writing", tempName);
-    	al_show_native_message_box(display, "Error", "Error", errorText,
-                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+		al_show_native_message_box(display, "Error", "Error", errorText,
+				nullptr, ALLEGRO_MESSAGEBOX_ERROR);
 		return 0;
 	}
 
