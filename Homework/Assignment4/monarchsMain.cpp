@@ -49,7 +49,13 @@ int main(int argc, char *argv[]) {
 		//Builds screen by printing to the buffer
 		al_clear_to_color(BACKGROUND);
 		printTitle(font);
+
+		//sort the file
+		qsort(monarchs, number, sizeof(Person), monarchCompare);
+
 		printDatabase(font, monarchs, monarchAges, number);
+
+		writeFile(monarchs, number, NULL, display);
 
 		//flips the buffer to the screen
 		al_flip_display();

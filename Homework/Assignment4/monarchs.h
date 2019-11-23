@@ -35,6 +35,8 @@ void initializeAllegro();
 int checkSetup(ALLEGRO_DISPLAY *display, ALLEGRO_FONT *font);
 void printTitle(ALLEGRO_FONT *font);
 int readFile(Person p[], int monarchAges[], int &counter, char* fileName, ALLEGRO_DISPLAY *display);
+int writeFile(Person p[], int &counter, char* fileName, ALLEGRO_DISPLAY *display);
 void printDatabase(ALLEGRO_FONT *font, Person p[], int age[], int counter);
+int monarchCompare(const void * a, const void * b);
 
 #endif

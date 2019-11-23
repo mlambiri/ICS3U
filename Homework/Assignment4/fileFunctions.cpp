@@ -15,36 +15,59 @@ static char configName[] = "MonarchsData.txt";
    @date    Nov 22, 2019
    @mname   checkRegnal
    @details
-     check if the regnal string is an actual roman numeral
-     do not accept other types of strings
-     check each letter in the string and see if it is
-     one of 'I', 'V', 'X', 'M', 'C' both upper and lower case
+    transform regnal to numeral. see the link below
+     https://helloacm.com/how-to-convert-roman-to-integer-in-cc/
 	  \n
   --------------------------------------------------------------------------
  */
-bool checkRegnal(Person* p) {
-	char* c = p->regnal;
+int checkRegnal(const Person* p) {
+	const char* c = p->regnal;
 
-	bool r = true;
-
+	int r = 0;
+	int prev =0;
 	while(*c) {
+		int value = 0;
 		switch (*c++) {
 		case 'X':
 		case 'x':
+			value = 10;
+			break;
 		case 'i':
 		case 'I':
+			value = 1;
+			break;
 		case 'M':
 		case 'm':
+			value = 1000;
+			break;
 		case 'C':
 		case 'c':
+			value = 100;
+			break;
 		case 'V':
 		case 'v':
-			break;;
+			value = 5;
+			break;
+		case 'L':
+		case 'l':
+			value = 50;
+			break;
+		case 'd':
+		case 'D':
+			value = 500;
+			break;
 		default:
-			return false;
+			return -1;
 		}
+
+		r += value;
+		if(prev < value) {
+			r -= 2*prev;
+		}
+		prev = value;
 	}
 
+	if(r< 0) r = 0;
 	return r;
 }
 
@@ -172,6 +195,38 @@ int calculateAge(Person* p) {
 	return age;
 }
 
+
+/**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Nov 20, 2019
+   @mname   monarchCompare
+   @details
+      compare names and then regnals
+	  \n
+  --------------------------------------------------------------------------
+ */
+int monarchCompare(const void * a, const void * b){
+
+	const Person* ap = (Person*)a;
+	const Person* bp = (Person*)b;
+
+		  if ( strcicmp(ap->name, bp->name) < 0) return -1;
+		  if( strcicmp(ap->name, bp->name) > 0) return 1;
+
+		  if(strcicmp(ap->name, bp->name) == 0) {
+			  // need to compare regnal
+			  int ar = checkRegnal(ap);
+			  int br = checkRegnal(bp);
+			  if(ar < br) return -1;
+			  if(ar > br) return 1;
+			  return 0;
+		  }
+
+		  return 0;
+}
+
+
 /**
   ---------------------------------------------------------------------------
    @author  mlambiri
@@ -250,8 +305,8 @@ int readFile(Person p[], int monarchAges[], int &counter, char* fileName, ALLEGR
 			 strncpy(p[counter].regnal, pch, maxRegnal_c);
 			 //make sure we terminate the name with a zero!!
 			 //the text file might contain looooooong names
-			 p[counter].name[maxRegnal_c-1] = 0;
-			 if(checkRegnal(&(p[counter])) == false) {
+			 p[counter].regnal[maxRegnal_c-1] = 0;
+			 if(checkRegnal(&(p[counter])) <= 0) {
 				 //error
 				sprintf(errorText, "Invalid Regnal in line %d", counter+1);
 			    al_show_native_message_box(display, "Error", "Error", errorText,
@@ -426,14 +481,43 @@ int readFile(Person p[], int monarchAges[], int &counter, char* fileName, ALLEGR
   --------------------------------------------------------------------------
  */
 int
-writeFile(Person p[], int &counter, char* fileName) {
+writeFile(Person p[], int &counter, char* fileName, ALLEGRO_DISPLAY *display) {
 
-	FILE* fptr;
-	fptr = fopen(fileName, "w");
+	char* tempName = fileName;
+	const int bufferSize_c = 200;
+	char errorText[bufferSize_c];
+
+	FILE* fptr = NULL;
+	if (fileName == NULL) {
+		tempName = configName;
+		fptr = fopen(tempName, "w");
+	} else {
+		fptr = fopen(tempName, "w");
+		if (fptr == NULL) {
+			tempName = configName;
+			fptr = fopen( tempName, "w");
+		} //end-of-if(fptr == NULL)
+	}
+
+
 	if(fptr == NULL){
+		sprintf(errorText, "Error opening file %s for writing", tempName);
+    	al_show_native_message_box(display, "Error", "Error", errorText,
+                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
 		return 0;
 	}
 
+	for (int i = 0; i < counter; i++ ) {
+		fprintf(fptr, "%s %s %d %s %d to %d %s %d\n",
+				p[i].name,
+				p[i].regnal,
+				p[i].birth.year,
+				p[i].birth.month,
+				p[i].birth.day,
+				p[i].death.year,
+				p[i].death.month,
+				p[i].death.day);
+	} //end-of-for
 	// write operation goes here
 	fclose(fptr);
 
