@@ -73,6 +73,8 @@ int regnalToNumeral(const Person* p) {
 
 // this function is copied from here
 //https://stackoverflow.com/questions/5820810/case-insensitive-string-comp-in-c#5820991
+//it does case insensitive compare
+//this helps a lot!!!
 int strcicmp(char const *a, char const *b)
 {
 	for (;; a++, b++) {
@@ -80,6 +82,37 @@ int strcicmp(char const *a, char const *b)
 		if (d != 0 || !*a)
 			return d;
 	}
+}
+
+/**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Nov 22, 2019
+   @mname   causalityCheck
+   @details
+     check if birth date is before death date
+	  \n
+  --------------------------------------------------------------------------
+ */
+bool causalityCheck(Person* p) {
+	if(p->birth.year > p->death.year) {
+		//error
+		return false;
+	}
+
+	if((p->birth.year == p->death.year)
+			&& (monthToInt(&(p->birth)) > monthToInt(&(p->death)))) {
+		//error
+		return false;
+	}
+
+	if((p->birth.year == p->death.year)
+			&& (monthToInt(&(p->birth)) == monthToInt(&(p->death)))
+			&& (p->birth.day > p->death.day)) {
+		//error
+		return false;
+	}
+	return true;
 }
 
 /**
@@ -173,7 +206,7 @@ bool checkDate(Date* d) {
 /**
   ---------------------------------------------------------------------------
    @author  mlambiri
-   @date    Nov 22, 2019
+   @date    Nov 23, 2019
    @mname   calculate age
    @details
 
@@ -373,12 +406,17 @@ int regnalCompareDecreasing(const void * a, const void * b){
     Parameters: p[] is the array of Persons that will be populated by this function.
     counter is the number of monarchs in the array.
     Returns a 0 if all good, 1 if there is an error reading the text file.
+
+    I am using the strtok function to read the input from the file
+    this function is more powerful
+    details of use are here: http://www.cplusplus.com/reference/cstring/strtok/?kw=strtok
+    It can break files with many types of delimiting characters.
+    With this function, if the file has any of the characters "\t\r\n =,.;" it will break it in parts
 	  \n
   --------------------------------------------------------------------------
  */
 int readFile(Person p[],  int &counter, char* fileName, ALLEGRO_DISPLAY *display) {
 
-	const int bufferSize_c = 200;
 	char text[bufferSize_c];
 	char errorText[bufferSize_c];
 	counter = 0;
@@ -397,7 +435,7 @@ int readFile(Person p[],  int &counter, char* fileName, ALLEGRO_DISPLAY *display
 	}
 
 	char* buffer = text;
-	const char* delim = "\t\r\n =";
+	const char* delim = "\t\r\n =,.;";
 
 	if(fptr == NULL){
 		//if file is not found return 0
@@ -571,28 +609,9 @@ int readFile(Person p[],  int &counter, char* fileName, ALLEGRO_DISPLAY *display
 			return 0;
 		}
 
-		if(p[counter].birth.year > p[counter].death.year) {
+		if( causalityCheck(&(p[counter])) == false) {
 			//error
-			sprintf(errorText, "Causal issue with dates in line %d", counter+1);
-			al_show_native_message_box(display, "Error", "Error", errorText,
-					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			return 0;
-		}
-
-		if((p[counter].birth.year == p[counter].death.year)
-				&& (monthToInt(&(p[counter].birth)) > monthToInt(&(p[counter].death)))) {
-			//error
-			sprintf(errorText, "Causal issue with dates in line %d", counter+1);
-			al_show_native_message_box(display, "Error", "Error", errorText,
-					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
-			return 0;
-		}
-
-		if((p[counter].birth.year == p[counter].death.year)
-				&& (monthToInt(&(p[counter].birth)) == monthToInt(&(p[counter].death)))
-				&& (p[counter].birth.day > p[counter].death.day)) {
-			//error
-			sprintf(errorText, "Causal issue with dates in line %d", counter+1);
+			sprintf(errorText, "Causal issue with birth/death dates in line %d", counter+1);
 			al_show_native_message_box(display, "Error", "Error", errorText,
 					nullptr, ALLEGRO_MESSAGEBOX_ERROR);
 			return 0;
@@ -610,8 +629,12 @@ int readFile(Person p[],  int &counter, char* fileName, ALLEGRO_DISPLAY *display
   ---------------------------------------------------------------------------
    @author  mlambiri
    @date    Nov 20, 2019
-   @mname   recordResult
+   @mname   writeFile
    @detail
+     this function writes back the database to the file
+     it opens the file in 'write' mode and
+     writes all the entries in the database
+     then closes the file
   --------------------------------------------------------------------------
  */
 int
