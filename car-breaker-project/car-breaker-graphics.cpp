@@ -141,16 +141,38 @@ static void setBrickInfo(GameData* p);
 static void initBrickLayout(GameData*gamePtr) {
 
 	gamePtr->remainingCars = 0;
-	uint rNumber = ((10 - gamePtr->gameNumber)>0)?10-gamePtr->gameNumber:1;
+	int year = (gamePtr->year > 2080)?2080:gamePtr->year;
+	uint rNumber = (year > 2020)? (2100- year )/10:10;
+	uint maxCars = MAXBRICKCOLUMNS*MAXBRICKROWS;
+
+	if(year > 2020) {
+		maxCars -= (2080-year)*MAXBRICKCOLUMNS*MAXBRICKROWS/160;
+	}
+
+	// number of smashable cars in top and bottom row must be similar
+	// othewise there is in an advantage to one player
+	int topCount = 0;
+
 	for(int i = 0; i < MAXBRICKROWS; i++) {
 		for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
 			gamePtr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
 			if(gamePtr->bricks[i][j].onScreen == true ) {
-				// set about 10% of cars 'indestructible'
-				// this is for ecars
-				gamePtr->bricks[i][j].indestructible = (rand() %10)? false: true;
+				// ecars are 'indestructible'
+				// as times goes by more are ecars
+				// but also less cars on road
+				if(gamePtr->year >= 2000) {
+					if(i == MAXBRICKROWS - 1) {
+						if(topCount-- > 0) {
+							continue;
+						}
+					}
+					gamePtr->bricks[i][j].indestructible = (rand() % rNumber)? false: true;
+				}
 				if(gamePtr->bricks[i][j].indestructible  == false) {
 					gamePtr->remainingCars++;
+					if(i == 0) {
+						topCount++;
+					}
 				}
 			}
 		} //end-of-for
@@ -1680,7 +1702,9 @@ bool initializeGameData(int argc, char **argv) {
 	strcpy(p->gasBitmapName, GASCARFNAME);
 	strcpy(p->ecarBitmapName, ECARFNAME);
 
-	initBrickLayout(p);
+	// today
+	p->year = 2019;
+
 
 	p->gameNumber = 1;
 	p->roundNumber = 1;
@@ -1708,6 +1732,11 @@ bool initializeGameData(int argc, char **argv) {
 			//display height
 			if (++param < argc)
 				p->display.height = atoi(argv[param]);
+		}else if (strcmp(argv[param], "year") == 0) {
+			//the year of play
+			// pre 2000 there are no electric cars
+			if (++param < argc)
+				p->year = atoi(argv[param]);
 		} else if (strcmp(argv[param], "fontsize") == 0) {
 			//font size
 			if (++param < argc)
@@ -1835,6 +1864,7 @@ bool initializeGameData(int argc, char **argv) {
 		}
 	} //end-of-for
 
+	initBrickLayout(p);
 	FEXIT();
 	return true;
 } // end-of-function CreateGameData

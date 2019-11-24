@@ -10,7 +10,7 @@
 #include "../car-breaker-project/game-debug.h"
 
 static const char configName[] = "config.txt";
-static const int bufferSize_c = 1000;
+static const int bufferSize_c = 3000;
 static char text[bufferSize_c];
 static const int numberParams_c = 100;
 static char* params[numberParams_c];

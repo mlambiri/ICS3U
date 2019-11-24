@@ -16,6 +16,10 @@ maxballspeed =  1
 # gamemode is one of: human, arcade, auto
 gamemode = auto
 
+# before 2000 there are no electric cars
+
+year = 2060
+
 #fontfile = mexcellent3d.ttf
 #fontfile = pirulen.ttf
 fontfile =  fofbb_reg.ttf

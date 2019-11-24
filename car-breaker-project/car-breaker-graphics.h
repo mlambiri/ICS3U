@@ -197,6 +197,8 @@ typedef struct GameData {
     ALLEGRO_BITMAP* gasBitmap;
     ALLEGRO_BITMAP* ecarBitmap;
 
+    int year;
+
 } GameData;
 
 
