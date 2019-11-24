@@ -163,6 +163,7 @@ static void initBrickLayout(GameData*gamePtr) {
 				if(gamePtr->year >= 2000) {
 					if(i == MAXBRICKROWS - 1) {
 						if(topCount-- > 0) {
+							gamePtr->remainingCars++;
 							continue;
 						}
 					}
