@@ -11,8 +11,10 @@ p1name = Bus
 p2name = LRT
 
 maxscore = 5
-maxballspeed     =  1
-arcade = true
+maxballspeed =  1
+
+# gamemode is one of: human, arcade, auto
+gamemode = auto
 
 #fontfile = mexcellent3d.ttf
 #fontfile = pirulen.ttf
@@ -20,6 +22,8 @@ fontfile =  fofbb_reg.ttf
 player1bmp = player1.png
 player2bmp = player2.png
 ballbmp = ball.png
+gascarbmp = gascar.png
+ecarbmp = ecar.png
 
 player1sound = p1sound.ogg
 player2sound = p2sound.ogg

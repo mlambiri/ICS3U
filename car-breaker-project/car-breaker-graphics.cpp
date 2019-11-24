@@ -25,12 +25,12 @@ static const uint botArrays_c = 5;
 static const char P1FNAME[] = "player1.png";
 static const char P2FNAME[] = "player2.png";
 static const char BALLFNAME[] = "ball.png";
-static const char BRICKFNAME[] = "ball.png";
+static const char GASCARFNAME[] = "gascar.png";
+static const char ECARFNAME[] = "ecar.png";
 static const char P1SOUND[] = "p1sound.ogg";
 static const char P2SOUND[] = "p2sound.ogg";
 static const char FONTNAME[] = "pirulen.ttf";
 
-static const char botName[] = "LRT";
 
 //========VARIABLE DECLARATIONS=====
 //declaring the main data variable of the game
@@ -38,7 +38,7 @@ static const char botName[] = "LRT";
 static GameData carBreaker = {
 				{INITPLAYER, INITPLAYER},
 				INITGBB,
-				INITDISPLAY, false, maxballspeed_c, NULL, FONTSIZE, MAXROUNDS, { 0 }, { 0 },
+				INITDISPLAY, human_c, maxballspeed_c, NULL, FONTSIZE, MAXROUNDS, { 0 }, { 0 },
 				FRAMERATE
 
 };
@@ -102,9 +102,10 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr);
 static bool gameMainLoop(GameData *gamePtr);
 static bool loadAudio(GamePlayer *gamePtr);
 static bool loadAudioWinner(GameData *gamePtr);
-static bool loadBitmap(GameBasicBlock *g);
+static bool loadBitmap(GameBasicBlock *g, char* fname);
+static bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
 static bool loadFont(GameData *gamePtr, int size);
-static bool loadPlayerBitmap(GamePlayer *p);
+static bool loadPlayerBitmap(GamePlayer *p, char* fname);
 static bool pauseGame(GameData *gamePtr);
 static bool pressAnyKeyToBeginGame(GameData *gamePtr);
 static bool printRoundWinner(GameData *gamePtr);
@@ -125,6 +126,7 @@ static void setBackgroundColor(ALLEGRO_COLOR color);
 static void setInitialObjectPositions(GameData *gamePtr);
 static void startTimers(GameData *gamePtr);
 static void stopTimers(GameData *gamePtr);
+static void setBrickInfo(GameData* p);
 
 
 /**
@@ -144,11 +146,46 @@ static void initBrickLayout(GameData*gamePtr) {
 		for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
 			gamePtr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
 			if(gamePtr->bricks[i][j].onScreen == true ) {
-				gamePtr->remainingCars++;
+				// set about 10% of cars 'indestructible'
+				// this is for ecars
+				gamePtr->bricks[i][j].indestructible = (rand() %10)? false: true;
+				if(gamePtr->bricks[i][j].indestructible  == false) {
+					gamePtr->remainingCars++;
+				}
 			}
 		} //end-of-for
 	} //end-of-for
 	gamePtr->gameNumber++;
+}
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 24, 2019
+ @mname   setBrickInfo
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+static void setBrickInfo(GameData* p) {
+	for (int i = 0; i < MAXBRICKROWS; i++) {
+		for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
+			if(p->bricks[i][j].indestructible == false) {
+				if (setBitmap(&(p->bricks[i][j]), p->gasBitmap) == false) {
+					FEXIT();
+					return;
+				}
+			}
+			else {
+				if (setBitmap(&(p->bricks[i][j]), p->ecarBitmap) == false) {
+					FEXIT();
+					return;
+				}
+			}
+			p->bricks[i][j].xspeed = 0;
+			p->bricks[i][j].yspeed = 0;
+		} //end-of-for
+	} //end-of-for
 }
 
 /**
@@ -201,17 +238,65 @@ static bool isPointInObject(GameBasicBlock* b, int x, int y){
  @date    Nov 19, 2019
  @mname   areObjectsColliding
  @details
- \n
+  side returns the side of the object hit by the ball\n
  --------------------------------------------------------------------------
  */
-static bool areObjectsColliding(GameBasicBlock* a, GameBasicBlock* b){
+static bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSIDE& side){
 
-	if(isPointInObject(b,a->xposition,a->yposition)) return true;
-	if(isPointInObject(b, a->xposition+a->width, a->yposition)) return true;
-	if(isPointInObject(b,a->xposition, a->yposition+a->height)) return true;
-	if(isPointInObject(b, a->xposition+a->width, a->yposition+a->height)) return true;
+	bool result = isPointInObject(obj,ball->xposition,ball->yposition);
+	result = result || isPointInObject(obj, ball->xposition+ball->width, ball->yposition);
+	result = result || isPointInObject(obj,ball->xposition, ball->yposition+ball->height);
+	result = result || isPointInObject(obj, ball->xposition+ball->width, ball->yposition+ball->height);
 
-	return false;
+	if(result == false) return false;
+
+	float ballXCenter = ball->xposition + (float) ball->width/2;
+	float ballYCenter = ball->yposition + (float) ball->height/2;
+
+	float objXCenter = obj->xposition + (float) obj->width/2;
+	float objYCenter = obj->yposition + (float) obj->height/2;
+
+
+	float o1a = atan((float)obj->width/(float)obj->height);
+
+	if((ball-> yspeed > 0) && (ballYCenter < objYCenter)) {
+		side = top_c;
+	}
+	if((ball-> yspeed < 0) && (ballYCenter > objYCenter)) {
+		side = bottom_c;
+	}
+
+	// above left
+	if(ballYCenter < objYCenter) {
+		if(ballXCenter <= objXCenter) {
+			float bAngle = atan((float)(objXCenter - ballXCenter)/(objYCenter - ballYCenter));
+			if(bAngle < o1a) side = top_c;
+			else side = left_c;
+		}
+		else {
+			float bAngle = atan((float)( ballXCenter - objXCenter)/(objYCenter - ballYCenter));
+			if(bAngle < o1a) side = top_c;
+			else side = right_c;
+		}
+	} else if(ballYCenter == objYCenter) {
+		if(ballXCenter <= objXCenter) {
+			side = left_c;
+		}
+		else {
+			side = right_c;
+		}
+	} else if(ballYCenter > objYCenter) {
+		if(ballXCenter <= objXCenter) {
+			float bAngle = atan((float)(objXCenter - ballXCenter)/(ballYCenter - objYCenter));
+			if(bAngle < o1a) side = bottom_c;
+			else side = left_c;
+		}
+		else {
+			float bAngle = atan((float)( ballXCenter - objXCenter)/(ballYCenter - objYCenter));
+			if(bAngle < o1a) side = bottom_c;
+			else side = right_c;
+		}
+	}
 }
 
 /**
@@ -232,21 +317,44 @@ static bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 		return false;
 	}
 
-	if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->bricks[i][j]))) {
-		if(gamePtr->ball.yspeed > 0)
+	COLLISIONSIDE side;
+
+	if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->bricks[i][j]), side)) {
+
+		switch(side){
+		case top_c:
+			gamePtr->ball.yspeed *= -1;
 			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition - gamePtr->ball.height;
-		else
+			break;
+		case bottom_c:
+			gamePtr->ball.yspeed *= -1;
 			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition + gamePtr->bricks[i][j].height;
-		gamePtr->ball.yspeed *= -1;
-		gamePtr->bricks[i][j].onScreen = false;
-		gamePtr->remainingCars--;
-		setPointsPerSmash(gamePtr);
+			break;
+		case left_c:
+			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition - gamePtr->ball.width;
+			gamePtr->ball.xspeed *= -1;
+			break;
+		case right_c:
+			gamePtr->ball.xspeed *= -1;
+			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition + gamePtr->bricks[i][j].width;
+			break;
+		default:
+			break;
+		}
+
+
+		if(gamePtr->bricks[i][j].indestructible == false) {
+			gamePtr->bricks[i][j].onScreen = false;
+			gamePtr->remainingCars--;
+			setPointsPerSmash(gamePtr);
+		}
 		if(gamePtr->remainingCars < level5_c ) {
 			gamePtr->bcolor = &(gamePtr->bcolorarray[green_c]);
 		}else if(gamePtr->remainingCars < level4_c ) {
 			gamePtr->bcolor = &(gamePtr->bcolorarray[blue_c]);
 		}
-		if(gamePtr->turn) {
+
+		if(gamePtr->bricks[i][j].indestructible == false && gamePtr->turn) {
 			gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
 		}
 		FEXIT();
@@ -282,11 +390,11 @@ static void setBackgroundColor(ALLEGRO_COLOR color) {
  \n
  --------------------------------------------------------------------------
  */
-static bool loadPlayerBitmap(GamePlayer *p) {
+static bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 	FENTRY();
 	TRACE();
-	if ((p->ge.bmap = al_load_bitmap(p->ge.bitmapFileName)) == NULL) {
-		printf("cannot load %s\n ", p->ge.bitmapFileName);
+	if ((p->ge.bmap = al_load_bitmap(fname)) == NULL) {
+		printf("cannot load %s\n ", fname);
 		FEXIT();
 		return false;
 	}
@@ -306,11 +414,11 @@ static bool loadPlayerBitmap(GamePlayer *p) {
  return true if ok false otherwise\n
  --------------------------------------------------------------------------
  */
-static bool loadBitmap(GameBasicBlock *g) {
+static bool loadBitmap(GameBasicBlock *g, char* fname) {
 	FENTRY();
 	TRACE();
-	if ((g->bmap = al_load_bitmap(g->bitmapFileName)) == NULL) {
-		printf("cannot load %s\n ", g->bitmapFileName);
+	if ((g->bmap = al_load_bitmap(fname)) == NULL) {
+		printf("cannot load %s\n ", fname);
 		FEXIT();
 		return false;
 	}
@@ -320,6 +428,27 @@ static bool loadBitmap(GameBasicBlock *g) {
 	FEXIT();
 	return true;
 } // end-of-function LoadBitmap
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   LoadBitmap
+ @details
+ return true if ok false otherwise\n
+ --------------------------------------------------------------------------
+ */
+static bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
+	FENTRY();
+	TRACE();
+	g->bmap = b;
+	g->width = al_get_bitmap_width(g->bmap);
+	g->height = al_get_bitmap_height(g->bmap);
+	FEXIT();
+	return true;
+} // end-of-function setBitmap
+
 
 /**
  ---------------------------------------------------------------------------
@@ -562,14 +691,14 @@ static bool processKeyPressEvent(GameData *gamePtr) {
 			gamePtr->player[0].keyPress[1] = true;
 			break;
 		case ALLEGRO_KEY_W:
-			if (gamePtr->arcade == false)
+			if (gamePtr->gameMode == human_c)
 				gamePtr->player[1].keyPress[0] = true;
 			else
 				gamePtr->player[1].keyPress[0] = false;
 			gamePtr->player[1].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_S:
-			if (gamePtr->arcade == false)
+			if (gamePtr->gameMode == human_c)
 				gamePtr->player[1].keyPress[1] = true;
 			else
 				gamePtr->player[1].keyPress[1] = false;
@@ -595,11 +724,11 @@ static bool processKeyPressEvent(GameData *gamePtr) {
 			gamePtr->player[0].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_W:
-			if (gamePtr->arcade == false)
+			if (gamePtr->gameMode == human_c)
 				gamePtr->player[1].keyPress[0] = false;
 			break;
 		case ALLEGRO_KEY_S:
-			if (gamePtr->arcade == false)
+			if (gamePtr->gameMode == human_c)
 				gamePtr->player[1].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_ESCAPE:
@@ -744,8 +873,12 @@ static bool drawTextAndWaitBegin(GameData *gamePtr) {
 	drawTextOnScreen(gamePtr, (char*) "(c) mlambiri 2019", gamePtr->display.width / 2, next,
 			smallFont_c);
 
-	if (gamePtr->arcade == true) {
-		next = drawTextOnScreen(gamePtr, (char*) "Arcade Mode (HAL is UP)",
+	if(gamePtr->gameMode == fullbot_c) {
+		next = drawTextOnScreen(gamePtr, (char*) "Full Auto Mode (Bot v Bot)", gamePtr->display.width / 2,
+				gamePtr->display.height / 2, regularFont_c);
+	}
+	else if (gamePtr->gameMode == arcade_c) {
+		next = drawTextOnScreen(gamePtr, (char*) "Arcade Mode (Bot Controls LRT)",
 				gamePtr->display.width / 2, gamePtr->display.height / 2, regularFont_c);
 	} else {
 		next = drawTextOnScreen(gamePtr, (char*) "Two Player Mode", gamePtr->display.width / 2,
@@ -784,7 +917,7 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
-	char textBuffer[255];
+	char textBuffer[MAXBUFFER];
 	if ((gamePtr->roundNumber == gamePtr->maxscore) || (gamePtr->remainingCars == 0)){
 		gamePtr->roundNumber = 1;
 		GamePlayer* ptr;
@@ -815,13 +948,14 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 
 		playSound(gamePtr->winsample);
 		sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]",
-				(gamePtr->arcade ? "Arcade" : "Human"), gamePtr->player[1].name,
+				(gamePtr->gameMode ? "Arcade" : "Human"), gamePtr->player[1].name,
 				gamePtr->player[1].score, gamePtr->player[0].name, gamePtr->player[0].score);
 		recordResult(textBuffer);
 		gamePtr->player[1].score = 0;
 		gamePtr->player[0].score = 0;
 		gamePtr->bcolor = gamePtr->initcolor;
 		initBrickLayout(gamePtr);
+		setBrickInfo(gamePtr);
 
 	} else {
 		sprintf(textBuffer, "Score: %s %d %s %d",
@@ -865,7 +999,7 @@ static bool displayScore(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
-	char textBuffer[255];
+	char textBuffer[MAXBUFFER];
 	sprintf(textBuffer, "Score: %s %d %s %d",
 			gamePtr->player[1].name, gamePtr->player[1].carsSmashed, gamePtr->player[0].name,
 			gamePtr->player[0].carsSmashed);
@@ -1039,7 +1173,7 @@ static void stopTimers(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 	al_stop_timer(gamePtr->timer);
-	if (gamePtr->arcade)
+	if (gamePtr->gameMode != human_c)
 		al_stop_timer(gamePtr->botTimer);
 	FEXIT();
 
@@ -1059,7 +1193,7 @@ static void startTimers(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 	al_start_timer(gamePtr->timer);
-	if (gamePtr->arcade)
+	if (gamePtr->gameMode != human_c)
 		al_start_timer(gamePtr->botTimer);
 	FEXIT();
 } // end-of-function StartTimers
@@ -1136,7 +1270,7 @@ static void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 
 	int zones_c = 8 - playerPtr->paddleSize;
 	if (playerPtr->paddleSize == maxPaddleSize_c) {
-		//ball->xspeed += 5;
+		ball->xspeed += rand()%2;
 	} else {
 		int zonelength = playerPtr->ge.width / zones_c;
 		int zonenum = (ball->xposition - playerPtr->ge.xposition) / zonelength;
@@ -1147,7 +1281,7 @@ static void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 			zonenum = zones_c - 1;
 		} //end-of-if(zonenum > zones_c -1)
 
-		//ball->xspeed += 5;
+		ball->xspeed += rand()%2;
 	}
 
 	playSound(playerPtr->sample);
@@ -1175,7 +1309,8 @@ static bool checkBallCollisionWithObjects(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 
-	if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->player[0].ge))) {
+	COLLISIONSIDE side;
+	if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->player[0].ge), side)) {
 		gamePtr->ball.yposition = gamePtr->player[0].ge.yposition - gamePtr->ball.height;
 		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[0]), gamePtr->maxballspeed);
 		gamePtr->turn = &gamePtr->player[0];
@@ -1183,7 +1318,7 @@ static bool checkBallCollisionWithObjects(GameData *gamePtr) {
 		return true;
 	}
 
-	else if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->player[1].ge))) {
+	else if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->player[1].ge), side)) {
 		gamePtr->ball.yposition = gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height;
 		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[1]), gamePtr->maxballspeed);
 		gamePtr->turn = &gamePtr->player[1];
@@ -1450,7 +1585,7 @@ static bool gameMainLoop(GameData *gamePtr) {
 			TRACE();
 
 			//if this is a hal logic event we need to let hal work
-			if (gamePtr->arcade == true && gamePtr->ev.type == ALLEGRO_EVENT_TIMER
+			if (gamePtr->gameMode != human_c && gamePtr->ev.type == ALLEGRO_EVENT_TIMER
 					&& gamePtr->ev.timer.source == gamePtr->botTimer) {
 				//if we are in arcade mode and the timer event belongs to the hal timer then
 				// we have to run the bot control logic
@@ -1539,15 +1674,11 @@ bool initializeGameData(int argc, char **argv) {
 	strcpy(p->fontFileName, FONTNAME);
 	strcpy(p->player[0].audioFileName, P1SOUND);
 	strcpy(p->player[1].audioFileName, P2SOUND);
-	strcpy(p->player[0].ge.bitmapFileName, P1FNAME);
-	strcpy(p->player[1].ge.bitmapFileName, P2FNAME);
-	strcpy(p->ball.bitmapFileName, BALLFNAME);
-
-	for (int i = 0; i < MAXBRICKROWS; i++) {
-		for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
-			strcpy(p->bricks[i][j].bitmapFileName, BALLFNAME);
-		} //end-of-for
-	} //end-of-for
+	strcpy(p->p1BitmapName, P1FNAME);
+	strcpy(p->p2BitmapName, P2FNAME);
+	strcpy(p->ballBitmapName, BALLFNAME);
+	strcpy(p->gasBitmapName, GASCARFNAME);
+	strcpy(p->ecarBitmapName, ECARFNAME);
 
 	initBrickLayout(p);
 
@@ -1558,13 +1689,17 @@ bool initializeGameData(int argc, char **argv) {
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself
 	for (int param = 0; param < argc; param++) {
-		if (strcmp(argv[param], "arcade") == 0) {
+		if (strcmp(argv[param], "gamemode") == 0) {
 			//arcade mode
-			//player 2 is the computer
-			if (++param < argc && (strcmp(argv[param], "true") == 0))
-				p->arcade = true;
-			else
-				p->arcade = false;
+			//LRT (ie player2) is computer controlled
+			if (++param < argc ){
+				if (strcmp(argv[param], "arcade") == 0)
+					p->gameMode = arcade_c;
+				else if (strcmp(argv[param], "auto") == 0)
+					p->gameMode = fullbot_c;
+				else
+					p->gameMode = human_c;
+			}
 		} else if (strcmp(argv[param], "screenwidth") == 0) {
 			//display width
 			if (++param < argc)
@@ -1578,7 +1713,7 @@ bool initializeGameData(int argc, char **argv) {
 			if (++param < argc)
 				p->fontsize = atoi(argv[param]);
 		} else if (strcmp(argv[param], "maxballspeed") == 0) {
-			//level
+			// maximum number of pixels the ball will move between frames
 			if (++param < argc) {
 				p->maxballspeed = atoi(argv[param]);
 				if (p->maxballspeed <= maxballspeed_c)
@@ -1607,15 +1742,23 @@ bool initializeGameData(int argc, char **argv) {
 		} else if (strcmp(argv[param], "player1bmp") == 0) {
 			//player 1 bitmap file name
 			if (++param < argc)
-				strcpy(p->player[0].ge.bitmapFileName, argv[param]);
+				strcpy(p->p1BitmapName, argv[param]);
 		} else if (strcmp(argv[param], "player2bmp") == 0) {
 			//player 2 bitmap file name
 			if (++param < argc)
-				strcpy(p->player[1].ge.bitmapFileName, argv[param]);
+				strcpy(p->p2BitmapName, argv[param]);
 		} else if (strcmp(argv[param], "ballbmp") == 0) {
 			//ball bitmap file name
 			if (++param < argc)
-				strcpy(p->ball.bitmapFileName, argv[param]);
+				strcpy(p->ballBitmapName, argv[param]);
+		} else if (strcmp(argv[param], "gascarbmp") == 0) {
+			//gas car bitmap file name
+			if (++param < argc)
+				strcpy(p->gasBitmapName, argv[param]);
+		} else if (strcmp(argv[param], "ecarbmp") == 0) {
+			//ecar bitmap file name
+			if (++param < argc)
+				strcpy(p->ecarBitmapName, argv[param]);
 		} else if (strcmp(argv[param], "player1sound") == 0) {
 			//player 1 sound file name
 			if (++param < argc)
@@ -1751,12 +1894,6 @@ bool initializeGraphics() {
 	} //end-of-if(LoadFont(p, largeFont_c) == false)
 
 	TRACE();
-	//IF game is in arcade mode, player 2 is HAL9000
-	if (p->arcade == true) {
-		strcpy(p->player[1].name, botName);
-	}
-
-	TRACE();
 	if ((p->display.display = al_create_display(p->display.width,
 			p->display.height)) == NULL) {
 		ERROR("Cannot init display");FEXIT();
@@ -1782,37 +1919,40 @@ bool initializeGraphics() {
 			al_get_display_event_source(p->display.display));
 	al_register_event_source(p->eventqueue,
 			al_get_timer_event_source(p->timer));
-	if (p->arcade == true) {
-		INFO("Arcade Mode Detected\n");
+	if (p->gameMode == arcade_c || p->gameMode == fullbot_c) {
+		INFO("Arcade/Full Auto Modes Detected\n");
 		p->botTimer = al_create_timer(1.0 / (float) p->player[1].paddleSpeed);
 		al_register_event_source(p->eventqueue,
 				al_get_timer_event_source(p->botTimer));
 	} else
 		p->botTimer = NULL;
 
-	if (loadPlayerBitmap(&(p->player[0])) == false) {
+	if (loadPlayerBitmap(&(p->player[0]), p->p1BitmapName) == false) {
 		FEXIT();
 		return false;
 	}
-	if (loadPlayerBitmap(&(p->player[1])) == false) {
+	if (loadPlayerBitmap(&(p->player[1]), p->p2BitmapName) == false) {
 		FEXIT();
 		return false;
 	}
-	if (loadBitmap(&(p->ball)) == false) {
+	if (loadBitmap(&(p->ball), p->ballBitmapName) == false) {
 		FEXIT();
 		return false;
 	}
 
-	for (int i = 0; i < MAXBRICKROWS; i++) {
-		for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
-			if (loadBitmap(&(p->bricks[i][j])) == false) {
-				FEXIT();
-				return false;
-			}
-			p->bricks[i][j].xspeed = 0;
-			p->bricks[i][j].yspeed = 0;
-		} //end-of-for
-	} //end-of-for
+	if ((p->gasBitmap = al_load_bitmap(p->gasBitmapName)) == NULL) {
+		printf("cannot load %s\n ", p->gasBitmapName);
+		FEXIT();
+		return false;
+	}
+
+	if ((p->ecarBitmap = al_load_bitmap(p->ecarBitmapName)) == NULL) {
+		printf("cannot load %s\n ", p->ecarBitmapName);
+		FEXIT();
+		return false;
+	}
+
+	setBrickInfo(p);
 
 	loadAudio(&(p->player[0]));
 	loadAudio(&(p->player[1]));

@@ -93,26 +93,4 @@ GetParameters(int* n, char* configFileName) {
 	return params;
 } // end-of-function GetParameters
 
- /**
-  ---------------------------------------------------------------------------
-   @author  dwlambiri
-   @date    May 26, 2017
-   @name    main
-   @param   argc number of command line arguments
-   @param   argv command line arguments
-   @return  the return code
-   @details
-	The main function of the program.
-	\n
-  --------------------------------------------------------------------------
- */
-//int
-//main(int argc, char **argv) {
-//	int parameterSize = GetParameters();
-//	printf("------------%d\n", parameterSize);
-//	for (int  i = 0; i < parameterSize; i++ ) {
-//		printf("%s\n", params[i]);
-//	} //end-of-for
-//	return 0;
-//}
 

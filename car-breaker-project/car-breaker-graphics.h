@@ -31,7 +31,9 @@ void runGame();
 bool initializeGameData(int argc, char **argv);
 
 #define MAXNAME 200
+#define MAXBUFFER 200
 #define MAXFONTS 3
+#define MAXBITMAPS 2
 
 #define MAXBRICKROWS 3
 #define MAXBRICKCOLUMNS 20
@@ -59,6 +61,14 @@ enum SCREENCOLORCHANGE {
 	level0_c = 50, level1_c = 40, level2_c = 30, level4_c = 20, level5_c = 10, level6_c=1
 };
 
+enum GAMEMODE {
+	human_c = 0, arcade_c = 1, fullbot_c = 2
+};
+
+enum COLLISIONSIDE {
+	top_c, bottom_c, left_c, right_c
+};
+
 //======= GAME STRUCTURE DEFINITIONS =========
 
 /**
@@ -84,6 +94,7 @@ enum SCREENCOLORCHANGE {
  */
 typedef struct GameBasicBlock {
     bool onScreen;
+    bool indestructible;
     int xposition;
     int yposition;
     int width;
@@ -91,7 +102,6 @@ typedef struct GameBasicBlock {
     int xspeed;
     int yspeed;
     ALLEGRO_BITMAP* bmap;
-    char bitmapFileName[MAXNAME];
 }GameBasicBlock;
 
 /**
@@ -150,7 +160,7 @@ typedef struct GameData {
     GamePlayer player[2];
     GameBasicBlock   ball;
     GameDisplay display;
-    bool   arcade;
+    GAMEMODE   gameMode;
     int    maxballspeed;
     GamePlayer* roundWinner;
     int    fontsize;
@@ -177,10 +187,20 @@ typedef struct GameData {
     uint remainingCars;
     ALLEGRO_COLOR* initcolor;
     uint scorePointsPerSmash;
+
+    char p1BitmapName[MAXNAME];
+    char p2BitmapName[MAXNAME];
+    char ballBitmapName[MAXNAME];
+    char gasBitmapName[MAXNAME];
+    char ecarBitmapName[MAXNAME];
+
+    ALLEGRO_BITMAP* gasBitmap;
+    ALLEGRO_BITMAP* ecarBitmap;
+
 } GameData;
 
 
-#define INITGBB {true, 0, 0, 0, 0, 0, 0, NULL, {0} }
+#define INITGBB {true, true, 0, 0, 0, 0, 0, 0, NULL}
 #define INITPLAYER { 0, 0, 0, 0, INITGBB, {0}, {0}, NULL, {false, false}, 0}
 #define INITDISPLAY {SCREEN_W, SCREEN_H, NULL}
 
