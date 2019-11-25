@@ -67,3 +67,7 @@
 2019-11-24 13:36:55  [Mode: Arcade] [Score: LRT 0 Bus 0] 
 2019-11-24 13:41:56  [Mode: Arcade] [Score: LRT 0 Bus 0] 
 2019-11-24 13:49:45  [Mode: Arcade] [Score: LRT 0 Bus 0] 
+2019-11-24 17:57:09  [Mode: Arcade] [Score: LRT 1 Bus 1] 
+2019-11-24 21:07:34  [Mode: Arcade] [Score: LRT 0 Bus 0] 
+2019-11-24 21:25:07  [Mode: Arcade] [Score: LRT 0 Bus 0] 
+2019-11-24 21:26:51  [Mode: Arcade] [Score: LRT 2 Bus 0] 

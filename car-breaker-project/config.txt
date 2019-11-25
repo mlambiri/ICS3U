@@ -18,7 +18,7 @@ gamemode = auto
 
 # before 2000 there are no electric cars
 
-year = 2060
+year = 2100
 
 #fontfile = mexcellent3d.ttf
 #fontfile = pirulen.ttf

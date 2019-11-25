@@ -149,9 +149,12 @@ static void initBrickLayout(GameData*gamePtr) {
 		maxCars -= (2080-year)*MAXBRICKCOLUMNS*MAXBRICKROWS/160;
 	}
 
+
 	// number of smashable cars in top and bottom row must be similar
 	// othewise there is in an advantage to one player
 	int topCount = 0;
+
+	int totalCount = 0;
 
 	for(int i = 0; i < MAXBRICKROWS; i++) {
 		for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
@@ -160,6 +163,7 @@ static void initBrickLayout(GameData*gamePtr) {
 				// ecars are 'indestructible'
 				// as times goes by more are ecars
 				// but also less cars on road
+				totalCount++;
 				if(gamePtr->year >= 2000) {
 					if(i == MAXBRICKROWS - 1) {
 						if(topCount-- > 0) {
@@ -167,7 +171,7 @@ static void initBrickLayout(GameData*gamePtr) {
 							continue;
 						}
 					}
-					gamePtr->bricks[i][j].indestructible = (rand() % rNumber)? false: true;
+					gamePtr->bricks[i][j].indestructible = (totalCount % rNumber)?false:true;
 				}
 				if(gamePtr->bricks[i][j].indestructible  == false) {
 					gamePtr->remainingCars++;
@@ -1148,16 +1152,16 @@ static bool checkCollisionTopAndBottom(GameData *gamePtr) {
 	TRACE();
 	if ((gamePtr->ball.yposition >= (gamePtr->display.height - gamePtr->ball.height))
 			&& (gamePtr->ball.yspeed > 0)) {
-		gamePtr->player[1].score++;
-		gamePtr->player[1].totalpoints++;
+		gamePtr->player[1].carsSmashed += POINTSFORLOSTBALL;
+		//gamePtr->player[1].totalpoints++;
 		gamePtr->roundWinner = &(gamePtr->player[1]);
 		FEXIT();
 		return true;
 
 	} else if ((gamePtr->ball.yposition <= 0) && (gamePtr->ball.yspeed < 0)) {
 		TRACE();
-		gamePtr->player[0].score++;
-		gamePtr->player[0].totalpoints++;
+		gamePtr->player[0].carsSmashed += POINTSFORLOSTBALL;
+		//gamePtr->player[0].totalpoints++;
 		gamePtr->roundWinner = &(gamePtr->player[0]);
 		FEXIT();
 		return true;
@@ -1691,6 +1695,8 @@ bool initializeGameData(int argc, char **argv) {
 	FENTRY();
 	TRACE();
 	GameData *p = &carBreaker;
+
+	srand(time(0));
 
 	strcpy(p->player[0].name, "Player1");
 	strcpy(p->player[1].name, "Player2");

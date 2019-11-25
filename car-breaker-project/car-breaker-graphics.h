@@ -35,7 +35,7 @@ bool initializeGameData(int argc, char **argv);
 #define MAXFONTS 3
 #define MAXBITMAPS 2
 
-#define MAXBRICKROWS 3
+#define MAXBRICKROWS 4
 #define MAXBRICKCOLUMNS 20
 
 #define SCREEN_W  1600
@@ -46,6 +46,8 @@ bool initializeGameData(int argc, char **argv);
 #define PLAYERSPEED 30.0
 #define FONTSIZE    24
 #define MAXROUNDS    10
+
+#define POINTSFORLOSTBALL 5
 
 enum FONTSIZES {
     smallFont_c = 0, regularFont_c = 1, largeFont_c = 2
