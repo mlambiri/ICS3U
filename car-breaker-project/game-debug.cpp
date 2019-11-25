@@ -2,10 +2,10 @@
  * game-debug.cpp
  *
  *  Created on: Nov 17, 2017
- *      Author: mlambiri
+ *      Author: dwlambiri
  */
 
-#include "../car-breaker-project/game-debug.h"
+#include "game-debug.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -16,10 +16,11 @@ int  debuglevel = debug_c;
 
 static int calldepth = 0;
 static const int nospaces_c = 2;
+static const int debugBufferSize_c = 200;
 
 /**
   ---------------------------------------------------------------------------
-   @author  mlambiri
+   @author  dwlambiri
    @date    Nov 17, 2017
    @mname   printDebugTime
    @details
@@ -40,7 +41,7 @@ char*
 printDebugTime() {
 
 	static clock_t firstClock;
-	static char buffer[100];
+	static char buffer[debugBufferSize_c];
 	static time_t rawtime;
 	static bool single = true;
 	struct tm * timeinfo;
@@ -69,7 +70,7 @@ printDebugTime() {
 
 /**
   ---------------------------------------------------------------------------
-   @author  mlambiri
+   @author  dwlambiri
    @date    Nov 17, 2017
    @mname   functionEnter
    @details
@@ -86,7 +87,7 @@ functionEnter() {
 
 /**
   ---------------------------------------------------------------------------
-   @author  mlambiri
+   @author  dwlambiri
    @date    Nov 17, 2017
    @mname   functionExit
    @details
@@ -102,7 +103,7 @@ functionExit() {
 
 /**
   ---------------------------------------------------------------------------
-   @author  mlambiri
+   @author  dwlambiri
    @date    Nov 17, 2017
    @mname   printCallDepth
    @details
@@ -112,7 +113,7 @@ functionExit() {
 char*
 printCallDepth() {
 
-	static char buffer[200];
+	static char buffer[debugBufferSize_c];
 	int i;
 	for (i = 0; i < calldepth; i++ ) {
 		buffer[i] = ' ';

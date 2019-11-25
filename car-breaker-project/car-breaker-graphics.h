@@ -201,6 +201,9 @@ typedef struct GameData {
 
     int year;
 
+    char layout[MAXBRICKROWS][MAXBRICKCOLUMNS];
+    bool validLayout;
+
 } GameData;
 
 

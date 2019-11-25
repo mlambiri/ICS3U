@@ -31,8 +31,8 @@ ecarbmp = ecar.png
 
 player1sound = p1sound.ogg
 player2sound = p2sound.ogg
-#player1sound = tennisserve.wav
-#player2sound = tennisserve.wav
+
+pattern = carset.txt
 
 # possible values yellow, blue, white, green, q
 colourscheme = q

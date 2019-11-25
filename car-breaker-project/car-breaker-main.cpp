@@ -1,20 +1,23 @@
 /*
- * ping-pong-main.cpp
+ * car-breaker-main.cpp
  *
- *  Created on: May 14, 2017
- *      Author: dwlambiri
+ *  Created on: Nov 11, 2019
+ *      Author: mlambiri
+ *
+ *  this is based on the pong-main.cpp
+ *  from dwlambiri
  */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-#include "../car-breaker-project/car-breaker-graphics.h"
-#include "../car-breaker-project/game-debug.h"
+#include "car-breaker-graphics.h"
+#include "game-debug.h"
 
 
 //===== Public Data =====
 
-#define VERSION "1.9.2"
+#define VERSION "0.9"
 
 /**
   ---------------------------------------------------------------------------
@@ -22,9 +25,9 @@
    @date    May 22, 2017
    @mname   Usage
    @details
-	  If PONGDEBUG is defined the function prints the a message saying that this
+	  If CARDEBUG is defined the function prints the a message saying that this
 	  is a debug executable
-	  If PONGDEBUG is not defined it means that this if a release executable and that
+	  If CARDEBUG is not defined it means that this if a release executable and that
 	  all code will remain hidden from the user.
 	  The function is used to print a description of the command line parameters
 	  to the console. \n
@@ -32,7 +35,7 @@
  */
 static void
 Usage(void) {
-#ifdef PONGDEBUG
+#ifdef CARDEBUG
 	printf("Version %s [Debug Build %s %s]\n", VERSION, __DATE__, __TIME__);
 #else
 	printf("Version %s [Release Build %s %s]\n", VERSION, __DATE__, __TIME__);
@@ -40,7 +43,7 @@ Usage(void) {
 	printf("Program Options\n");
 	printf("   -c configFileName - selects the config file, if no config file present, default is config.txt	\n");
 	printf("   -h - displays command line parameters \n");
-#ifdef PONGDEBUG
+#ifdef CARDEBUG
 	printf("   -d - enables debug mode \n");
 	printf("   -l debuglevel - sets the debug level (higher means less messages) \n");
 	printf("   -t - enables trace mode \n");
@@ -82,7 +85,7 @@ main(int argc, char **argv) {
 			return 1;
 		}
 		//Some command line paramters are available only in the debug executable
-#ifdef PONGDEBUG
+#ifdef CARDEBUG
 		else if (strcmp(argv[param], "-d") == 0) {
 			debugon = true;
 		}
@@ -96,7 +99,7 @@ main(int argc, char **argv) {
 		}
 #endif
 		else if (strcmp(argv[param], "-v") == 0) {
-#ifdef PONGDEBUG
+#ifdef CARDEBUG
 			printf("%s Version %s [Debug Build %s %s]\n", argv[0], VERSION, __DATE__, __TIME__);
 #else
 			printf("%s Version %s [Release Build %s %s]\n", argv[0], VERSION, __DATE__, __TIME__);

@@ -1,5 +1,5 @@
 /*
- * @author   mlambiri
+ * @author   dwlambiri
  * @date     Nov 17, 2019
  *
  * car-breaker-debug.h
@@ -11,7 +11,7 @@
 #define CARBREAKER_DEBUG_H
 
 /*
- * @author   mlambiri
+ * @author   dwlambiri
  * @date     Nov 17, 2019
  *
  */
@@ -27,9 +27,9 @@ void  functionEnter();
 void  functionExit();
 char* printCallDepth();
 
-//#define PONGDEBUG
+//#define CARDEBUG
 
-#ifdef PONGDEBUG
+#ifdef CARDEBUG
 #define DEBUG(s) if(debugon && debuglevel == debug_c) printf("Debug[%s %s:%4d] %s\n", printDebugTime(),__FILE__, __LINE__,s)
 #define DEBUG2(s,d) if(debugon && debuglevel == debug_c) printf("Debug[%s %s:%4d] %s %d\n", printDebugTime(), __FILE__, __LINE__,s, d)
 #define INFO(s) if(debugon && debuglevel <= info_c) printf("Info[%s %s:%4d] %s\n", printDebugTime(), __FILE__, __LINE__,s)

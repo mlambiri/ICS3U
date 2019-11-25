@@ -31,15 +31,14 @@ static const char P1SOUND[] = "p1sound.ogg";
 static const char P2SOUND[] = "p2sound.ogg";
 static const char FONTNAME[] = "pirulen.ttf";
 
-
 //========VARIABLE DECLARATIONS=====
 //declaring the main data variable of the game
 //usually passed to functions using a pointer
 static GameData carBreaker = {
-				{INITPLAYER, INITPLAYER},
-				INITGBB,
-				INITDISPLAY, human_c, maxballspeed_c, NULL, FONTSIZE, MAXROUNDS, { 0 }, { 0 },
-				FRAMERATE
+		{INITPLAYER, INITPLAYER},
+		INITGBB,
+		INITDISPLAY, human_c, maxballspeed_c, NULL, FONTSIZE, MAXROUNDS, { 0 }, { 0 },
+		FRAMERATE
 
 };
 
@@ -129,6 +128,60 @@ static void stopTimers(GameData *gamePtr);
 static void setBrickInfo(GameData* p);
 
 
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 25, 2019
+ @mname   readLayoutFile
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+bool readFile(GameData* g, char* fileName) {
+
+	char text[MAXBUFFER];
+
+	FILE* fptr = NULL;
+	if (fileName == NULL) {
+		return false;
+	} else {
+		fptr = fopen(fileName, "r");
+		if (fptr == NULL) {
+			return false;
+		} //end-of-if(fptr == NULL)
+	}
+
+	char* buffer = text;
+	int i = 0;
+
+	while(fgets(buffer, MAXBUFFER, fptr)) {
+		for (int j = 0; j < MAXBRICKCOLUMNS; j++ ) {
+			if(buffer[j] == 0) return false;
+			switch(buffer[j]) {
+			case 'x':
+			case 'X':
+			case 'g':
+			case 'G':
+			case 'e':
+			case 'E':
+				g->layout[i][j] = buffer[j];
+				break;
+			default:
+				return false;
+			}
+		} //end-of-for
+		i++;
+		if(i>=MAXBRICKROWS) break;
+	}
+
+	if(i < MAXBRICKROWS) return false;
+
+	fclose(fptr);
+	return true;
+}
+
+
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
@@ -141,55 +194,87 @@ static void setBrickInfo(GameData* p);
 static void initBrickLayout(GameData*gamePtr) {
 
 	gamePtr->remainingCars = 0;
-	int year = (gamePtr->year > 2080)?2080:gamePtr->year;
-	uint rNumber = (year > 2020)? (2100- year )/10:10;
-	uint maxCars = MAXBRICKCOLUMNS*MAXBRICKROWS;
 
-	if(year > 2020) {
-		maxCars -= (2080-year)*MAXBRICKCOLUMNS*MAXBRICKROWS/160;
-	}
-
-
-	// number of smashable cars in top and bottom row must be similar
-	// othewise there is in an advantage to one player
-	int topCount = 0;
-
-	int totalCount = 0;
-
-	for(int i = 0; i < MAXBRICKROWS; i++) {
-		for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
-			gamePtr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
-			if(gamePtr->bricks[i][j].onScreen == true ) {
-				// ecars are 'indestructible'
-				// as times goes by more are ecars
-				// but also less cars on road
-				totalCount++;
-				if(gamePtr->year >= 2000) {
-					if(i == MAXBRICKROWS - 1) {
-						if(topCount-- > 0) {
-							gamePtr->remainingCars++;
-							continue;
-						}
-					}
-					gamePtr->bricks[i][j].indestructible = (totalCount % rNumber)?false:true;
-				}
-				if(gamePtr->bricks[i][j].indestructible  == false) {
+	if(gamePtr->validLayout == true) {
+		// use it once
+		gamePtr->validLayout = false;
+		for(int i = 0; i < MAXBRICKROWS; i++) {
+			for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
+				switch(gamePtr->layout[i][j]) {
+				case 'x':
+				case 'X':
+					gamePtr->bricks[i][j].onScreen = false;
+					gamePtr->bricks[i][j].indestructible = false;
+					break;
+				case 'e':
+				case 'E':
+					gamePtr->bricks[i][j].onScreen = true;
+					gamePtr->bricks[i][j].indestructible = true;
+					break;
+				case 'g':
+				case 'G':
+					gamePtr->bricks[i][j].onScreen = true;
+					gamePtr->bricks[i][j].indestructible = false;
 					gamePtr->remainingCars++;
-					if(i == 0) {
-						topCount++;
-					}
-				}
-				else {
-					if(i>=1) {
-						if(gamePtr->bricks[i-1][j].indestructible == true) {
-							gamePtr->bricks[i][j].indestructible = false;
-							gamePtr->remainingCars++;
-						}
-					}
+					break;
+				default:
+					break;
 				}
 			}
+		}
+	}
+	else {
+
+		int year = (gamePtr->year > 2080)?2080:gamePtr->year;
+		uint rNumber = (year > 2020)? (2100- year )/10:10;
+		uint maxCars = MAXBRICKCOLUMNS*MAXBRICKROWS;
+
+		if(year > 2020) {
+			maxCars -= (2080-year)*MAXBRICKCOLUMNS*MAXBRICKROWS/160;
+		}
+
+
+		// number of smashable cars in top and bottom row must be similar
+		// othewise there is in an advantage to one player
+		int topCount = 0;
+
+		int totalCount = 0;
+
+		for(int i = 0; i < MAXBRICKROWS; i++) {
+			for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
+				gamePtr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
+				if(gamePtr->bricks[i][j].onScreen == true ) {
+					// ecars are 'indestructible'
+					// as times goes by more are ecars
+					// but also less cars on road
+					totalCount++;
+					if(gamePtr->year >= 2000) {
+						if(i == MAXBRICKROWS - 1) {
+							if(topCount-- > 0) {
+								gamePtr->remainingCars++;
+								continue;
+							}
+						}
+						gamePtr->bricks[i][j].indestructible = (totalCount % rNumber)?false:true;
+					}
+					if(gamePtr->bricks[i][j].indestructible  == false) {
+						gamePtr->remainingCars++;
+						if(i == 0) {
+							topCount++;
+						}
+					}
+					else {
+						//					if(i>=1) {
+						//						if(gamePtr->bricks[i-1][j].indestructible == true) {
+						//							gamePtr->bricks[i][j].indestructible = false;
+						//							gamePtr->remainingCars++;
+						//						}
+						//					}
+					}
+				}
+			} //end-of-for
 		} //end-of-for
-	} //end-of-for
+	}
 	gamePtr->gameNumber++;
 }
 
@@ -257,9 +342,9 @@ static void setPointsPerSmash(GameData*gamePtr) {
 static bool isPointInObject(GameBasicBlock* b, int x, int y){
 
 	if((x>=b->xposition)
-		&& (x <= (b->xposition+b->width))
-		&&(y>=b->yposition)
-		&& (y<=(b->yposition+b->height))) {
+			&& (x <= (b->xposition+b->width))
+			&&(y>=b->yposition)
+			&& (y<=(b->yposition+b->height))) {
 		return true;
 	}
 	else {
@@ -291,15 +376,35 @@ static bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLI
 	float objXCenter = obj->xposition + (float) obj->width/2;
 	float objYCenter = obj->yposition + (float) obj->height/2;
 
+	if(ball->xposition == (obj->xposition+obj->width)) {
+		side = right_c;
+		return true;
+	}
+
+	if((ball->xposition + ball->width) == obj->xposition) {
+		side = left_c;
+		return true;
+	}
+
+	if(ball->yposition == (obj->yposition+obj->height)) {
+		side = bottom_c;
+		return true;
+	}
+
+	if((ball->yposition + ball->height) == obj->yposition) {
+		side = top_c;
+		return true;
+	}
+
 
 	float o1a = atan((float)obj->width/(float)obj->height);
 
-//	if((ball-> yspeed > 0) && (ballYCenter < objYCenter)) {
-//		side = top_c;
-//	}
-//	if((ball-> yspeed < 0) && (ballYCenter > objYCenter)) {
-//		side = bottom_c;
-//	}
+	//	if((ball-> yspeed > 0) && (ballYCenter < objYCenter)) {
+	//		side = top_c;
+	//	}
+	//	if((ball-> yspeed < 0) && (ballYCenter > objYCenter)) {
+	//		side = bottom_c;
+	//	}
 
 	// above left
 	if(ballYCenter < objYCenter) {
@@ -332,6 +437,7 @@ static bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLI
 			else side = right_c;
 		}
 	}
+	return true;
 }
 
 /**
@@ -440,7 +546,7 @@ static bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 		return false;
 	}
 	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize))
-                        														/ maxPaddleSize_c;
+                        																/ maxPaddleSize_c;
 	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
 	return true;
@@ -1726,6 +1832,7 @@ bool initializeGameData(int argc, char **argv) {
 	// today
 	p->year = 2019;
 
+	p->validLayout = false;
 
 	p->gameNumber = 1;
 	p->roundNumber = 1;
@@ -1817,6 +1924,11 @@ bool initializeGameData(int argc, char **argv) {
 			//player 2 sound file name
 			if (++param < argc)
 				strcpy(p->player[1].audioFileName, argv[param]);
+		} else if (strcmp(argv[param], "pattern") == 0) {
+			//player 2 sound file name
+			if (++param < argc) {
+				p->validLayout = readFile(p, argv[param]);
+			}
 		} else if (strcmp(argv[param], "p1paddleSpeed") == 0) {
 			//player 1 paddle speed
 			if (++param < argc) {

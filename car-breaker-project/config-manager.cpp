@@ -7,11 +7,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../car-breaker-project/game-debug.h"
+#include "game-debug.h"
 
 static const char configName[] = "config.txt";
-static const int bufferSize_c = 3000;
-static char text[bufferSize_c];
+static const int paramBufferSize_c = 3000;
+static char text[paramBufferSize_c];
 static const int numberParams_c = 100;
 static char* params[numberParams_c];
 /**
@@ -58,7 +58,7 @@ GetParameters(int* n, char* configFileName) {
 		FEXIT();
 		return params;
 	}
-	int amountleft = bufferSize_c;
+	int amountleft = paramBufferSize_c;
 	while(fgets(buffer, amountleft, fptr)) {
 		 if(buffer[0] == '#') {
 			 int size = strlen(buffer);

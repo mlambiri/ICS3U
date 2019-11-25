@@ -1,4 +1,4 @@
-CCFLAGS =	-g -I/usr/local/include -DPONGDEBUG
+CCFLAGS =	-g -I/usr/local/include -DCARDEBUG
 CC = g++
 
 OBJS =		car-breaker.o
