@@ -1272,7 +1272,7 @@ static bool checkCollisionTopAndBottom(GameData *gamePtr) {
 	TRACE();
 	if ((gamePtr->ball.yposition >= (gamePtr->display.height - gamePtr->ball.height))
 			&& (gamePtr->ball.yspeed > 0)) {
-		gamePtr->player[1].carsSmashed += POINTSFORLOSTBALL;
+		gamePtr->player[1].carsSmashed += gamePtr->penalty;
 		//gamePtr->player[1].totalpoints++;
 		gamePtr->roundWinner = &(gamePtr->player[1]);
 		FEXIT();
@@ -1280,7 +1280,7 @@ static bool checkCollisionTopAndBottom(GameData *gamePtr) {
 
 	} else if ((gamePtr->ball.yposition <= 0) && (gamePtr->ball.yspeed < 0)) {
 		TRACE();
-		gamePtr->player[0].carsSmashed += POINTSFORLOSTBALL;
+		gamePtr->player[0].carsSmashed += gamePtr->penalty;
 		//gamePtr->player[0].totalpoints++;
 		gamePtr->roundWinner = &(gamePtr->player[0]);
 		FEXIT();
@@ -1833,6 +1833,7 @@ bool initializeGameData(int argc, char **argv) {
 	p->year = 2019;
 
 	p->validLayout = false;
+	p->penalty = POINTSFORLOSTBALL;
 
 	p->gameNumber = 1;
 	p->roundNumber = 1;
@@ -1969,6 +1970,11 @@ bool initializeGameData(int argc, char **argv) {
 					p->fps = MINFPS;
 				if (p->fps > MAXFPS)
 					p->fps = MAXFPS;
+			}
+		} else if (strcmp(argv[param], "penalty") == 0) {
+			//display penalty
+			if (++param < argc) {
+				p->penalty = atoi(argv[param]);
 			}
 		} else if (strcmp(argv[param], "colourscheme") == 0) {
 			//player 2 bitmap file name

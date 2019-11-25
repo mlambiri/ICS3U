@@ -203,6 +203,7 @@ typedef struct GameData {
 
     char layout[MAXBRICKROWS][MAXBRICKCOLUMNS];
     bool validLayout;
+    int penalty;
 
 } GameData;
 

@@ -34,6 +34,9 @@ player2sound = p2sound.ogg
 
 pattern = carset.txt
 
+# points penalty for losing the ball
+penalty = 5
+
 # possible values yellow, blue, white, green, q
 colourscheme = q
 
