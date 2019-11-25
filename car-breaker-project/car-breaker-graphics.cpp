@@ -179,6 +179,14 @@ static void initBrickLayout(GameData*gamePtr) {
 						topCount++;
 					}
 				}
+				else {
+					if(i>=1) {
+						if(gamePtr->bricks[i-1][j].indestructible == true) {
+							gamePtr->bricks[i][j].indestructible = false;
+							gamePtr->remainingCars++;
+						}
+					}
+				}
 			}
 		} //end-of-for
 	} //end-of-for
@@ -286,12 +294,12 @@ static bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLI
 
 	float o1a = atan((float)obj->width/(float)obj->height);
 
-	if((ball-> yspeed > 0) && (ballYCenter < objYCenter)) {
-		side = top_c;
-	}
-	if((ball-> yspeed < 0) && (ballYCenter > objYCenter)) {
-		side = bottom_c;
-	}
+//	if((ball-> yspeed > 0) && (ballYCenter < objYCenter)) {
+//		side = top_c;
+//	}
+//	if((ball-> yspeed < 0) && (ballYCenter > objYCenter)) {
+//		side = bottom_c;
+//	}
 
 	// above left
 	if(ballYCenter < objYCenter) {
@@ -359,9 +367,15 @@ static bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 			break;
 		case left_c:
 			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition - gamePtr->ball.width;
+			if(gamePtr->ball.xspeed == 0) {
+				gamePtr->ball.xspeed = 2;
+			}
 			gamePtr->ball.xspeed *= -1;
 			break;
 		case right_c:
+			if(gamePtr->ball.xspeed == 0) {
+				gamePtr->ball.xspeed = -2;
+			}
 			gamePtr->ball.xspeed *= -1;
 			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition + gamePtr->bricks[i][j].width;
 			break;
