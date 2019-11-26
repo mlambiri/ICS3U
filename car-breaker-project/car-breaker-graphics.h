@@ -35,7 +35,7 @@ bool initializeGameData(int argc, char **argv);
 #define MAXFONTS 3
 #define MAXBITMAPS 2
 
-#define MAXBRICKROWS 4
+#define MAXBRICKROWS 6
 #define MAXBRICKCOLUMNS 20
 
 #define SCREEN_W  1600
