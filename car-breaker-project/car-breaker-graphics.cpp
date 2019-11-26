@@ -871,12 +871,18 @@ static bool processKeyPressEvent(GameData *gamePtr) {
 	if (gamePtr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
 		switch (gamePtr->ev.keyboard.keycode) {
 		case ALLEGRO_KEY_LEFT:
-			gamePtr->player[0].keyPress[0] = true;
+			if (gamePtr->gameMode != fullbot_c)
+				gamePtr->player[0].keyPress[0] = true;
+			else
+				gamePtr->player[0].keyPress[0] = false;
 			gamePtr->player[0].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_RIGHT:
-			gamePtr->player[0].keyPress[0] = false;
-			gamePtr->player[0].keyPress[1] = true;
+			if (gamePtr->gameMode != fullbot_c)
+				gamePtr->player[0].keyPress[1] = true;
+			else
+				gamePtr->player[0].keyPress[1] = false;
+				gamePtr->player[0].keyPress[0] = false;
 			break;
 		case ALLEGRO_KEY_Q:
 			if (gamePtr->gameMode == human_c)
@@ -906,10 +912,12 @@ static bool processKeyPressEvent(GameData *gamePtr) {
 	} else if (gamePtr->ev.type == ALLEGRO_EVENT_KEY_UP) {
 		switch (gamePtr->ev.keyboard.keycode) {
 		case ALLEGRO_KEY_LEFT:
-			gamePtr->player[0].keyPress[0] = false;
+			if (gamePtr->gameMode != fullbot_c)
+				gamePtr->player[0].keyPress[0] = false;
 			break;
 		case ALLEGRO_KEY_RIGHT:
-			gamePtr->player[0].keyPress[1] = false;
+			if (gamePtr->gameMode != fullbot_c)
+				gamePtr->player[0].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_Q:
 			if (gamePtr->gameMode == human_c)
@@ -1775,13 +1783,14 @@ static bool gameMainLoop(GameData *gamePtr) {
 		} else {
 			TRACE();
 
-			//if this is a hal logic event we need to let hal work
+			//we need to run the bot logic
 			if (gamePtr->gameMode != human_c && gamePtr->ev.type == ALLEGRO_EVENT_TIMER
 					&& gamePtr->ev.timer.source == gamePtr->botTimer) {
 				//if we are in arcade mode and the timer event belongs to the hal timer then
 				// we have to run the bot control logic
 				lrtBotControl(gamePtr);
-				busBotControl(gamePtr);
+				if(gamePtr->gameMode == fullbot_c)
+					busBotControl(gamePtr);
 			} else {
 				//check if escape key has been pressed
 				if (processKeyPressEvent(gamePtr) == false) {
