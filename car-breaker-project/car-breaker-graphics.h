@@ -205,6 +205,9 @@ typedef struct GameData {
     bool validLayout;
     int penalty;
 
+    char inLayout[MAXNAME];
+    char outLayout[MAXNAME];
+
 } GameData;
 
 

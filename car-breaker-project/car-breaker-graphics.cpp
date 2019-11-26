@@ -185,6 +185,47 @@ bool readFile(GameData* g, char* fileName) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
+ @date    Nov 25, 2019
+ @mname   writeFile
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+bool writeFile(GameData* g) {
+
+	char text[MAXBUFFER];
+
+	FILE* fptr = NULL;
+	if (g->outLayout[0] == 0) {
+		return false;
+	} else {
+		fptr = fopen( g->outLayout, "w");
+		if (fptr == NULL) {
+			return false;
+		} //end-of-if(fptr == NULL)
+	}
+
+	for (int i = 0; i < MAXBRICKROWS; i++ ) {
+		for (int j = 0; j < MAXBRICKCOLUMNS; j++ ) {
+			if( g->bricks[i][j].onScreen == false) {
+				fprintf(fptr, "x");
+			}else if(g->bricks[i][j].indestructible == false) {
+				fprintf(fptr, "g");
+			} else {
+				fprintf(fptr, "e");
+			}
+		} //end-of-for
+		fprintf(fptr, "\n");
+	} //end-of-for
+
+	fclose(fptr);
+	return true;
+}
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
  @date    Nov 18, 2019
  @mname   initBrickLAyout
  @details
@@ -837,14 +878,14 @@ static bool processKeyPressEvent(GameData *gamePtr) {
 			gamePtr->player[0].keyPress[0] = false;
 			gamePtr->player[0].keyPress[1] = true;
 			break;
-		case ALLEGRO_KEY_W:
+		case ALLEGRO_KEY_Q:
 			if (gamePtr->gameMode == human_c)
 				gamePtr->player[1].keyPress[0] = true;
 			else
 				gamePtr->player[1].keyPress[0] = false;
 			gamePtr->player[1].keyPress[1] = false;
 			break;
-		case ALLEGRO_KEY_S:
+		case ALLEGRO_KEY_E:
 			if (gamePtr->gameMode == human_c)
 				gamePtr->player[1].keyPress[1] = true;
 			else
@@ -870,13 +911,16 @@ static bool processKeyPressEvent(GameData *gamePtr) {
 		case ALLEGRO_KEY_RIGHT:
 			gamePtr->player[0].keyPress[1] = false;
 			break;
-		case ALLEGRO_KEY_W:
+		case ALLEGRO_KEY_Q:
 			if (gamePtr->gameMode == human_c)
 				gamePtr->player[1].keyPress[0] = false;
 			break;
-		case ALLEGRO_KEY_S:
+		case ALLEGRO_KEY_E:
 			if (gamePtr->gameMode == human_c)
 				gamePtr->player[1].keyPress[1] = false;
+			break;
+		case ALLEGRO_KEY_W:
+			writeFile(gamePtr);
 			break;
 		case ALLEGRO_KEY_ESCAPE:
 			//exit game
@@ -1834,6 +1878,8 @@ bool initializeGameData(int argc, char **argv) {
 
 	p->validLayout = false;
 	p->penalty = POINTSFORLOSTBALL;
+	p->inLayout[0] = 0;
+	p->outLayout[0] = 0;
 
 	p->gameNumber = 1;
 	p->roundNumber = 1;
@@ -1929,6 +1975,12 @@ bool initializeGameData(int argc, char **argv) {
 			//player 2 sound file name
 			if (++param < argc) {
 				p->validLayout = readFile(p, argv[param]);
+				strcpy(p->inLayout, argv[param]);
+			}
+		} else if (strcmp(argv[param], "outfile") == 0) {
+			//player 2 sound file name
+			if (++param < argc) {
+				strcpy(p->outLayout, argv[param]);
 			}
 		} else if (strcmp(argv[param], "p1paddleSpeed") == 0) {
 			//player 1 paddle speed

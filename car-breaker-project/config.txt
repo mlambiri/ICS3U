@@ -32,10 +32,14 @@ ecarbmp = ecar.png
 player1sound = p1sound.ogg
 player2sound = p2sound.ogg
 
-pattern = carset.txt
+#input file name for car setup
+pattern = testout.txt
+#output file name for saving car setup
+outfile = testout.txt
 
 # points penalty for losing the ball
 penalty = 5
+
 
 # possible values yellow, blue, white, green, q
 colourscheme = q
