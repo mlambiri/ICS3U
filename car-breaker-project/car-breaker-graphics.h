@@ -26,10 +26,6 @@
 typedef unsigned int uint;
 
 
-bool initializeGraphics();
-void runGame();
-bool initializeGameData(int argc, char **argv);
-
 #define MAXNAME 200
 #define MAXBUFFER 200
 #define MAXFONTS 3
@@ -91,6 +87,9 @@ enum COLLISIONSIDE {
      The players have an xspeed of 0 (cannot move left to right).
      The width is the number of pixels on the x dimension of the bitmap
      The height is the number of pixels in the y dimension of the bitmap
+     onScreen is true if the object is displayed and false if it is not
+     indestructible is true if the object cannot be removed by ball collision
+     and false otherwise.
     \n
   ---------------------------------------------------------------------------
  */
@@ -118,9 +117,7 @@ typedef struct GameBasicBlock {
   ---------------------------------------------------------------------------
  */
 typedef struct GamePlayer {
-    uint score;
     uint games;
-    uint totalpoints;
     uint carsSmashed;
     GameBasicBlock ge;
     char name[MAXNAME];
@@ -212,8 +209,51 @@ typedef struct GameData {
 
 
 #define INITGBB {true, true, 0, 0, 0, 0, 0, 0, NULL}
-#define INITPLAYER { 0, 0, 0, 0, INITGBB, {0}, {0}, NULL, {false, false}, 0}
+#define INITPLAYER {  0, 0, INITGBB, {0}, {0}, NULL, {false, false}, 0}
 #define INITDISPLAY {SCREEN_W, SCREEN_H, NULL}
+
+//======= FUNCTION DECLARATIONS =====
+bool checkCollisionLeftRight(GameData *gamePtr);
+bool checkCollisionTopAndBottom(GameData *gamePtr);
+bool checkBallCollisionWithObjects(GameData *gamePtr);
+bool displayScore(GameData *gamePtr);
+bool drawTextAndWaitBegin(GameData *gamePtr);
+bool drawTextAndWaitRoundWin(GameData *gamePtr);
+bool gameMainLoop(GameData *gamePtr);
+bool loadAudio(GamePlayer *gamePtr);
+bool loadAudioWinner(GameData *gamePtr);
+bool loadBitmap(GameBasicBlock *g, char* fname);
+bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
+bool loadFont(GameData *gamePtr, int size);
+bool loadPlayerBitmap(GamePlayer *p, char* fname);
+bool pauseGame(GameData *gamePtr);
+bool pressAnyKeyToBeginGame(GameData *gamePtr);
+bool printRoundWinner(GameData *gamePtr);
+bool processKeyPressEvent(GameData *gamePtr);
+bool updateBallPosition(GameData *gamePtr);
+int drawTextOnScreen(GameData *gamePtr, char *text, int x, int y, int size);
+int signOfNumber(int value);
+void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int);
+void  lrtBotControl(GameData *gamePtr, uint botNumber);
+void  drawBitmap(GameBasicBlock *g);
+void  drawBitmapSection(GameBasicBlock *g);
+void  drawObjects(GameData *gamePtr);
+void  exitGame(GameData *gamePtr);
+void  initBrickLayout(GameData*gamePtr);
+void  movePlayers(GameData *gamePtr);
+void  playSound(ALLEGRO_SAMPLE *s);
+void  setBackgroundColor(ALLEGRO_COLOR color);
+void  setInitialObjectPositions(GameData *gamePtr);
+void  startTimers(GameData *gamePtr);
+void  stopTimers(GameData *gamePtr);
+void  setBrickInfo(GameData* p);
+bool recordResult(char *p);
+
+//=====================
+bool initializeGraphics();
+void runGame();
+bool initializeGameData(int argc, char **argv);
+//============================
 
 
 #endif /* CARBREAKERGRAPHICS_H_ */

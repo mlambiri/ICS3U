@@ -46,22 +46,22 @@ static GameData carBreaker = {
 /*
  * @author   mlambiri
  * @date     Jun 2, 2019
- *  HAL needs two arrays of values to decide when and how fast to move
+ *  Bot needs two arrays of values to decide when and how fast to move
  *  This structure stores them in one group both arrays.
- *  HAL adapts his own skill to match the level of skill of the human player
- *  This is done by keeping several sets of variables for HAL's AI.
+ *  Bot adapts his own skill to match the level of skill of the human player
+ *  This is done by keeping several sets of variables for Bot's AI.
  *  cond is a divisor of the field length
- *  Because HAL plays the side x = 0 The greater the divisor the closer the ball is to him
- *  val is a multiplier that will make HAL move faster or slower between two frames
- *  If the value of n == 0 HAL will not move
- *  Therefore placing all zeroes in HAL will render him immobile at the center
+ *  Because Bot plays the side x = 0 The greater the divisor the closer the ball is to him
+ *  val is a multiplier that will make Bot move faster or slower between two frames
+ *  If the value of n == 0 Bot will not move
+ *  Therefore placing all zeroes in Bot will render him immobile at the center
  *
  */
 typedef struct BotControlArray {
-	//first array represents where in the field HAL will start to move
+	//first array represents where in the field Bot will start to move
 	int cond[botArrays_c];
-	//This array is a multiplier to determine how much HAL should move
-	//setting an entry to zero will prevent HAL from moving
+	//This array is a multiplier to determine how much Bot should move
+	//setting an entry to zero will prevent Bot from moving
 	float val[botArrays_c];
 	int paddlespeed;
 } BotControlArray;
@@ -82,51 +82,13 @@ BotControlArray busBotArray[pro_c + 1] = {
 		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED },
 		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, 40 } };
 
-static int lrtBotPlayingLevel = pro_c;
+int lrtBotPlayingLevel = pro_c;
 static BotControlArray *lrtBotPtr = &(lrtBotArray[lrtBotPlayingLevel]);
 
-static int busBotPlayingLevel = pro_c;
+int busBotPlayingLevel = pro_c;
 static BotControlArray *busBotPtr = &(busBotArray[busBotPlayingLevel]);
 
 //======= EXTERNAL FUNCTION DECLARATION=====//
-bool recordResult(char *p);
-
-//======= FUNCTION DECLARATIONS =====
-static bool checkCollisionLeftRight(GameData *gamePtr);
-static bool checkCollisionTopAndBottom(GameData *gamePtr);
-static bool checkBallCollisionWithObjects(GameData *gamePtr);
-static bool displayScore(GameData *gamePtr);
-static bool drawTextAndWaitBegin(GameData *gamePtr);
-static bool drawTextAndWaitRoundWin(GameData *gamePtr);
-static bool gameMainLoop(GameData *gamePtr);
-static bool loadAudio(GamePlayer *gamePtr);
-static bool loadAudioWinner(GameData *gamePtr);
-static bool loadBitmap(GameBasicBlock *g, char* fname);
-static bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
-static bool loadFont(GameData *gamePtr, int size);
-static bool loadPlayerBitmap(GamePlayer *p, char* fname);
-static bool pauseGame(GameData *gamePtr);
-static bool pressAnyKeyToBeginGame(GameData *gamePtr);
-static bool printRoundWinner(GameData *gamePtr);
-static bool processKeyPressEvent(GameData *gamePtr);
-static bool updateBallPosition(GameData *gamePtr);
-static int drawTextOnScreen(GameData *gamePtr, char *text, int x, int y, int size);
-static int signOfNumber(int value);
-static void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int);
-static void lrtBotControl(GameData *gamePtr, uint botNumber);
-static void drawBitmap(GameBasicBlock *g);
-static void drawBitmapSection(GameBasicBlock *g);
-static void drawObjects(GameData *gamePtr);
-static void exitGame(GameData *gamePtr);
-static void initBrickLayout(GameData*gamePtr);
-static void movePlayers(GameData *gamePtr);
-static void playSound(ALLEGRO_SAMPLE *s);
-static void setBackgroundColor(ALLEGRO_COLOR color);
-static void setInitialObjectPositions(GameData *gamePtr);
-static void startTimers(GameData *gamePtr);
-static void stopTimers(GameData *gamePtr);
-static void setBrickInfo(GameData* p);
-
 
 
 /**
@@ -135,7 +97,7 @@ static void setBrickInfo(GameData* p);
  @date    Nov 25, 2019
  @mname   readLayoutFile
  @details
- \n
+    reads the brick layout from a file\n
  --------------------------------------------------------------------------
  */
 bool readFile(GameData* g, char* fileName) {
@@ -188,7 +150,7 @@ bool readFile(GameData* g, char* fileName) {
  @date    Nov 25, 2019
  @mname   writeFile
  @details
- \n
+   writes the brick layout to a file\n
  --------------------------------------------------------------------------
  */
 bool writeFile(GameData* g) {
@@ -229,10 +191,10 @@ bool writeFile(GameData* g) {
  @date    Nov 18, 2019
  @mname   initBrickLAyout
  @details
- \n
+   initializes the brick layout\n
  --------------------------------------------------------------------------
  */
-static void initBrickLayout(GameData*gamePtr) {
+void  initBrickLayout(GameData*gamePtr) {
 
 	gamePtr->remainingCars = 0;
 
@@ -325,10 +287,10 @@ static void initBrickLayout(GameData*gamePtr) {
  @date    Nov 24, 2019
  @mname   setBrickInfo
  @details
- \n
+   \n
  --------------------------------------------------------------------------
  */
-static void setBrickInfo(GameData* p) {
+void  setBrickInfo(GameData* p) {
 	for (int i = 0; i < MAXBRICKROWS; i++) {
 		for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
 			if(p->bricks[i][j].indestructible == false) {
@@ -355,10 +317,12 @@ static void setBrickInfo(GameData* p) {
  @date    Nov 19, 2019
  @mname   setPointsPerCarSmashed
  @details
- \n
+   set an amount of points for each car smashed
+   this will change based on the number of cars that
+   are still present on screen\n
  --------------------------------------------------------------------------
  */
-static void setPointsPerSmash(GameData*gamePtr) {
+void  setPointsPerSmash(GameData*gamePtr) {
 
 	if(gamePtr->remainingCars<= level6_c){
 		gamePtr->scorePointsPerSmash = 10;
@@ -377,10 +341,10 @@ static void setPointsPerSmash(GameData*gamePtr) {
  @date    Nov 19, 2019
  @mname   isPointInObject
  @details
- \n
+  check if a point of the ball is in another object\n
  --------------------------------------------------------------------------
  */
-static bool isPointInObject(GameBasicBlock* b, int x, int y){
+bool isPointInObject(GameBasicBlock* b, int x, int y){
 
 	if((x>=b->xposition)
 			&& (x <= (b->xposition+b->width))
@@ -399,10 +363,12 @@ static bool isPointInObject(GameBasicBlock* b, int x, int y){
  @date    Nov 19, 2019
  @mname   areObjectsColliding
  @details
-  side returns the side of the object hit by the ball\n
+  check if the ball is colliding with another objects
+  the side parameter will return the side of the collision
+  this side refers to the object not the ball\n
  --------------------------------------------------------------------------
  */
-static bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSIDE& side){
+bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSIDE& side){
 
 	bool result = isPointInObject(obj,ball->xposition,ball->yposition);
 	result = result || isPointInObject(obj, ball->xposition+ball->width, ball->yposition);
@@ -487,10 +453,11 @@ static bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLI
  @date    Nov 19, 2019
  @mname   ballBrickCollision
  @details
- \n
+   this function returns true if the ball has collided with a brick
+   and false otherwise\n
  --------------------------------------------------------------------------
  */
-static bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
+bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 
 	FENTRY();
 	TRACE();
@@ -557,12 +524,12 @@ static bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   SetBackgroundColor
+ @mname   setBackgroundColor
  @details
- \n
+   this function sets the background color for the display\n
  --------------------------------------------------------------------------
  */
-static void setBackgroundColor(ALLEGRO_COLOR color) {
+void  setBackgroundColor(ALLEGRO_COLOR color) {
 	FENTRY();
 	TRACE();
 	al_clear_to_color(color);
@@ -575,10 +542,10 @@ static void setBackgroundColor(ALLEGRO_COLOR color) {
  @date    Nov 28, 2019
  @mname   LoadPlayerBitmap
  @details
- \n
+   this function loads a bitmap for the player from a file\n
  --------------------------------------------------------------------------
  */
-static bool loadPlayerBitmap(GamePlayer *p, char* fname) {
+bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 	FENTRY();
 	TRACE();
 	if ((p->ge.bmap = al_load_bitmap(fname)) == NULL) {
@@ -602,7 +569,7 @@ static bool loadPlayerBitmap(GamePlayer *p, char* fname) {
  return true if ok false otherwise\n
  --------------------------------------------------------------------------
  */
-static bool loadBitmap(GameBasicBlock *g, char* fname) {
+bool loadBitmap(GameBasicBlock *g, char* fname) {
 	FENTRY();
 	TRACE();
 	if ((g->bmap = al_load_bitmap(fname)) == NULL) {
@@ -627,7 +594,7 @@ static bool loadBitmap(GameBasicBlock *g, char* fname) {
  return true if ok false otherwise\n
  --------------------------------------------------------------------------
  */
-static bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
+bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
 	FENTRY();
 	TRACE();
 	g->bmap = b;
@@ -647,7 +614,7 @@ static bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
  \n
  --------------------------------------------------------------------------
  */
-static bool loadAudio(GamePlayer *gamePtr) {
+bool loadAudio(GamePlayer *gamePtr) {
 	FENTRY();
 	TRACE();
 	gamePtr->sample = al_load_sample(gamePtr->audioFileName);
@@ -668,7 +635,7 @@ static bool loadAudio(GamePlayer *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-static bool loadAudioWinner(GameData *gamePtr) {
+bool loadAudioWinner(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 	gamePtr->winsample = al_load_sample(gamePtr->winSoundFile);
@@ -686,10 +653,11 @@ static bool loadAudioWinner(GameData *gamePtr) {
  @date    Nov 27, 2019
  @mname   LoadFont
  @details
- \n
+   this function will load fonts for the text used to print
+   the various graphics\n
  --------------------------------------------------------------------------
  */
-static bool loadFont(GameData *gamePtr, int size) {
+bool loadFont(GameData *gamePtr, int size) {
 
 	FENTRY();
 	TRACE();
@@ -727,7 +695,7 @@ static bool loadFont(GameData *gamePtr, int size) {
  After a round win the round winner gets the serve.\n
  --------------------------------------------------------------------------
  */
-static void setInitialObjectPositions(GameData *gamePtr) {
+void  setInitialObjectPositions(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -814,7 +782,7 @@ static void setInitialObjectPositions(GameData *gamePtr) {
  Wait for P or ESC to be pressed again\n
  --------------------------------------------------------------------------
  */
-static bool pauseGame(GameData *gamePtr) {
+bool pauseGame(GameData *gamePtr) {
 
 	//To pause the game we need to stop the timers
 	FENTRY();
@@ -864,7 +832,7 @@ static bool pauseGame(GameData *gamePtr) {
  When a key is pushed down a boolean is set to keep the keep down as it is pressed\n
  --------------------------------------------------------------------------
  */
-static bool processKeyPressEvent(GameData *gamePtr) {
+bool processKeyPressEvent(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -951,7 +919,7 @@ static bool processKeyPressEvent(GameData *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-static bool pressAnyKeyToBeginGame(GameData *gamePtr) {
+bool pressAnyKeyToBeginGame(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -992,7 +960,7 @@ static bool pressAnyKeyToBeginGame(GameData *gamePtr) {
  This function calculates the new positions of the paddles after the keys are pressed\n
  --------------------------------------------------------------------------
  */
-static void movePlayers(GameData *gamePtr) {
+void  movePlayers(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1033,7 +1001,7 @@ static void movePlayers(GameData *gamePtr) {
  Different text sizes are used for different messages \n
  --------------------------------------------------------------------------
  */
-static int drawTextOnScreen(GameData *gamePtr, char *text, int x, int y, int size) {
+int drawTextOnScreen(GameData *gamePtr, char *text, int x, int y, int size) {
 	FENTRY();
 	TRACE();
 	al_draw_text(gamePtr->font[size], gamePtr->fcolor, x, y, ALLEGRO_ALIGN_CENTRE, text);
@@ -1062,7 +1030,7 @@ static int drawTextOnScreen(GameData *gamePtr, char *text, int x, int y, int siz
  This function displays the first screen that the user views in the game\n
  --------------------------------------------------------------------------
  */
-static bool drawTextAndWaitBegin(GameData *gamePtr) {
+bool drawTextAndWaitBegin(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1112,7 +1080,7 @@ static bool drawTextAndWaitBegin(GameData *gamePtr) {
  We do this by adding a value to the y coordinate of the message\n
  --------------------------------------------------------------------------
  */
-static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
+bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1146,12 +1114,10 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 				gamePtr->display.width / 2, next + 100, regularFont_c);
 
 		playSound(gamePtr->winsample);
-		sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]",
+		sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
 				(gamePtr->gameMode ? "Arcade" : "Human"), gamePtr->player[1].name,
-				gamePtr->player[1].score, gamePtr->player[0].name, gamePtr->player[0].score);
+				gamePtr->player[0].name);
 		recordResult(textBuffer);
-		gamePtr->player[1].score = 0;
-		gamePtr->player[0].score = 0;
 		gamePtr->bcolor = gamePtr->initcolor;
 		initBrickLayout(gamePtr);
 		setBrickInfo(gamePtr);
@@ -1194,7 +1160,7 @@ static bool drawTextAndWaitRoundWin(GameData *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-static bool displayScore(GameData *gamePtr) {
+bool displayScore(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1223,7 +1189,7 @@ static bool displayScore(GameData *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-static void drawBitmap(GameBasicBlock *g) {
+void  drawBitmap(GameBasicBlock *g) {
 	FENTRY();
 	TRACE();
 	al_draw_bitmap(g->bmap, g->xposition, g->yposition, 0);
@@ -1241,7 +1207,7 @@ static void drawBitmap(GameBasicBlock *g) {
  It is used to change the length of the pallete depending on the game level.\n
  --------------------------------------------------------------------------
  */
-static void drawBitmapSection(GameBasicBlock *g) {
+void  drawBitmapSection(GameBasicBlock *g) {
 	FENTRY();
 	TRACE();
 	al_draw_bitmap_region(g->bmap, 0, 0, g->width, g->height, g->xposition,
@@ -1259,7 +1225,7 @@ static void drawBitmapSection(GameBasicBlock *g) {
  Has to be called every time we want to refresh the display during gameplay\n
  --------------------------------------------------------------------------
  */
-static void drawObjects(GameData *gamePtr) {
+void  drawObjects(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1287,7 +1253,7 @@ static void drawObjects(GameData *gamePtr) {
  true if there is a collision with top or bottom\n
  --------------------------------------------------------------------------
  */
-static bool checkCollisionLeftRight(GameData *gamePtr) {
+bool checkCollisionLeftRight(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1318,14 +1284,13 @@ static bool checkCollisionLeftRight(GameData *gamePtr) {
  Checks if the ball hits either player's side of the field and grants a roundwin\n
  --------------------------------------------------------------------------
  */
-static bool checkCollisionTopAndBottom(GameData *gamePtr) {
+bool checkCollisionTopAndBottom(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
 	if ((gamePtr->ball.yposition >= (gamePtr->display.height - gamePtr->ball.height))
 			&& (gamePtr->ball.yspeed > 0)) {
 		gamePtr->player[1].carsSmashed += gamePtr->penalty;
-		//gamePtr->player[1].totalpoints++;
 		gamePtr->roundWinner = &(gamePtr->player[1]);
 		FEXIT();
 		return true;
@@ -1333,7 +1298,6 @@ static bool checkCollisionTopAndBottom(GameData *gamePtr) {
 	} else if ((gamePtr->ball.yposition <= 0) && (gamePtr->ball.yspeed < 0)) {
 		TRACE();
 		gamePtr->player[0].carsSmashed += gamePtr->penalty;
-		//gamePtr->player[0].totalpoints++;
 		gamePtr->roundWinner = &(gamePtr->player[0]);
 		FEXIT();
 		return true;
@@ -1350,7 +1314,7 @@ static bool checkCollisionTopAndBottom(GameData *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-static void playSound(ALLEGRO_SAMPLE *s) {
+void  playSound(ALLEGRO_SAMPLE *s) {
 	FENTRY();
 	TRACE();
 	if (s)
@@ -1367,7 +1331,7 @@ static void playSound(ALLEGRO_SAMPLE *s) {
  Stops all game timers \n
  --------------------------------------------------------------------------
  */
-static void stopTimers(GameData *gamePtr) {
+void  stopTimers(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1387,7 +1351,7 @@ static void stopTimers(GameData *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-static void startTimers(GameData *gamePtr) {
+void  startTimers(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1409,7 +1373,7 @@ static void startTimers(GameData *gamePtr) {
  Then we wait for user input to restart the game\n
  --------------------------------------------------------------------------
  */
-static bool printRoundWinner(GameData *gamePtr) {
+bool printRoundWinner(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1436,7 +1400,7 @@ static bool printRoundWinner(GameData *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-static int signOfNumber(int value) {
+int signOfNumber(int value) {
 
 	if (value >= 0) {
 		return 1;
@@ -1454,10 +1418,10 @@ static int signOfNumber(int value) {
  pallete.
  The pallete height is divided into vone_c zones
  Depending on which zone makes contact the ball will react in a different way
- This is to increase the unpredictability of the game and make it more fun and challenging\n
+ This is to increase the unpredictability of the game and make it more fun and cBotlenging\n
  --------------------------------------------------------------------------
  */
-static void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
+void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 		int maxballspeed) {
 
 	FENTRY();
@@ -1504,7 +1468,7 @@ static void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
  That condition is a valid collision \n
  --------------------------------------------------------------------------
  */
-static bool checkBallCollisionWithObjects(GameData *gamePtr) {
+bool checkBallCollisionWithObjects(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 
@@ -1564,7 +1528,7 @@ static bool checkBallCollisionWithObjects(GameData *gamePtr) {
  edges of the field\n
  --------------------------------------------------------------------------
  */
-static bool updateBallPosition(GameData *gamePtr) {
+bool updateBallPosition(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 
@@ -1595,7 +1559,7 @@ static bool updateBallPosition(GameData *gamePtr) {
  This function controls the LRT bot.\n
  --------------------------------------------------------------------------
  */
-static void lrtBotControl(GameData *gamePtr) {
+void  lrtBotControl(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1662,7 +1626,7 @@ static void lrtBotControl(GameData *gamePtr) {
   This function controls the bus Bot\n
  --------------------------------------------------------------------------
  */
-static void busBotControl(GameData *gamePtr) {
+void  busBotControl(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1730,13 +1694,13 @@ static void busBotControl(GameData *gamePtr) {
  usually this loop is called a game loop
  The loop processes events from p->eventqueue.
  Events come from the two game timers (one is for screen refresh,
- the other is for HAL AI) as well as keyboard and mouse events.
+ the other is for Bot AI) as well as keyboard and mouse events.
  The loop waits for an event to be fired and then processes the event
  If the event is of the type refresh display, all objects are written to a display buffer
  Then that buffer is shown on the screen. \n
  --------------------------------------------------------------------------
  */
-static bool gameMainLoop(GameData *gamePtr) {
+bool gameMainLoop(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1747,7 +1711,7 @@ static bool gameMainLoop(GameData *gamePtr) {
 
 	playSound(gamePtr->startsample);
 	//We are waiting for an event from on one of the sources that are linked to the event queue
-	//The frame-timer, keyboard, mouse, and HAL timer if in arcade mode
+	//The frame-timer, keyboard, mouse, and bot timer if in arcade mode
 	//This function blocks until an event is recieved
 	//Therefore if the timers would not be started, this function would return only on a keyboard or mouse event
 	while (true) {
@@ -1786,7 +1750,7 @@ static bool gameMainLoop(GameData *gamePtr) {
 			//we need to run the bot logic
 			if (gamePtr->gameMode != human_c && gamePtr->ev.type == ALLEGRO_EVENT_TIMER
 					&& gamePtr->ev.timer.source == gamePtr->botTimer) {
-				//if we are in arcade mode and the timer event belongs to the hal timer then
+				//if we are in arcade mode and the timer event belongs to the Bot timer then
 				// we have to run the bot control logic
 				lrtBotControl(gamePtr);
 				if(gamePtr->gameMode == fullbot_c)
@@ -1828,7 +1792,7 @@ static bool gameMainLoop(GameData *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-static void exitGame(GameData *gamePtr) {
+void  exitGame(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 	al_rest(0.0);
@@ -2077,7 +2041,7 @@ bool initializeGameData(int argc, char **argv) {
  @details
  returns 1 if init ok, 0 otherwise
  This function does the following:
- 1. Initialises all allegro resources
+ 1. Initializes all allegro resources
  2. Loads all game resources (fonts, bitmaps, sounds)
  --------------------------------------------------------------------------
  */
