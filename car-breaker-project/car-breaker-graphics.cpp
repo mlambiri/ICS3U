@@ -86,7 +86,6 @@ static BotControlArray *lrtBotPtr = &(lrtBotArray[lrtBotPlayingLevel]);
 int busBotPlayingLevel = pro_c;
 static BotControlArray *busBotPtr = &(busBotArray[busBotPlayingLevel]);
 
-
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
@@ -333,8 +332,17 @@ void  setBrickInfo(GameData* p) {
 	} //end-of-for
 
 	if(p->carArea.width > p->display.width) {
-		p->maxColumns = p->display.width / p->bricks[0][0].width;
+		int c1 = p->display.width / p->bricks[0][0].width;
+		for (int i = c1; i < p->maxColumns; i++ ) {
+			for (int j = 0; j < p->maxRows; j++ ) {
+				if((p->bricks[j][i].onScreen == true) && (p->bricks[j][i].indestructible == false)) {
+					p->remainingCars--;
+				}
+				p->bricks[j][i].onScreen = false;
+			} //end-of-for
+		} //end-of-for
 		p->carArea.width  = p->display.width;
+		p->maxColumns = c1;
 	}
 	FEXIT();
 	return;
@@ -546,18 +554,18 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 		switch(side){
 		case top_c:
 			gamePtr->ball.yspeed *= -1;
-			gamePtr->ball.xspeed += rand() %3 - 1;
+			gamePtr->ball.xspeed +=  rand() % 3 - 1;
 			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition - gamePtr->ball.height;
 			break;
 		case bottom_c:
 			gamePtr->ball.yspeed *= -1;
-			gamePtr->ball.xspeed += rand() %3 - 1;
+			gamePtr->ball.xspeed += rand() %3 -1;
 			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition + gamePtr->bricks[i][j].height;
 			break;
 		case left_c:
 			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition - gamePtr->ball.width;
 			if(gamePtr->ball.xspeed == 0) {
-				gamePtr->ball.xspeed = rand() %3 - 1;
+				gamePtr->ball.xspeed = rand() %3 -2;
 			}
 			gamePtr->ball.xspeed *= -1;
 			break;
@@ -576,6 +584,8 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 		if(gamePtr->bricks[i][j].indestructible == false) {
 			gamePtr->bricks[i][j].onScreen = false;
 			gamePtr->remainingCars--;
+			if(gamePtr->turn)
+				gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
 			setPointsPerSmash(gamePtr);
 		}
 		if(gamePtr->remainingCars < level5_c ) {
@@ -584,9 +594,6 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 			gamePtr->bcolor = &(gamePtr->bcolorarray[blue_c]);
 		}
 
-		if(gamePtr->bricks[i][j].indestructible == false && gamePtr->turn) {
-			gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
-		}
 		FEXIT();
 		return true;
 	}
@@ -1183,14 +1190,14 @@ bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 			sprintf(textBuffer, "%s Wins The Game!!", ptr->name);
 		}
 		int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2,
-				gamePtr->display.height / 4, largeFont_c);
+				gamePtr->carArea.yposition - 3*gamePtr->fontsize, largeFont_c);
 		sprintf(textBuffer, "Score: %s %d %s %d", gamePtr->player[1].name, gamePtr->player[1].carsSmashed,
 				gamePtr->player[0].name, gamePtr->player[0].carsSmashed);
 		next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2, next,
 				regularFont_c);
 
 		drawTextOnScreen(gamePtr, (char*) "Press a key to begin or ESC to exit",
-				gamePtr->display.width / 2, next + 100, regularFont_c);
+				gamePtr->display.width / 2, gamePtr->carArea.yposition+gamePtr->carArea.height, regularFont_c);
 
 		playSound(gamePtr->winsample);
 		if(gamePtr->gameMode == fullbot_c) {
@@ -1526,7 +1533,7 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 
 	int zones_c = 8 - playerPtr->paddleSize;
 	if (playerPtr->paddleSize == maxPaddleSize_c) {
-		ball->xspeed += rand()%2;
+		ball->xspeed += signOfNumber(ball->xspeed)*rand()%2;
 	} else {
 		int zonelength = playerPtr->ge.width / zones_c;
 		int zonenum = (ball->xposition - playerPtr->ge.xposition) / zonelength;
@@ -1537,7 +1544,7 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 			zonenum = zones_c - 1;
 		} //end-of-if(zonenum > zones_c -1)
 
-		ball->xspeed += rand()%2;
+		ball->xspeed += signOfNumber(ball->xspeed)*rand()%2;
 	}
 
 	playSound(playerPtr->sample);
