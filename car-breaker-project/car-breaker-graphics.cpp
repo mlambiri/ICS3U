@@ -1669,8 +1669,25 @@ bool updateBallPosition(GameData *gamePtr) {
 		FEXIT();
 		return true;
 	}
-	gamePtr->ball.xposition = gamePtr->ball.xposition + gamePtr->ball.xspeed;
-	gamePtr->ball.yposition = gamePtr->ball.yposition + gamePtr->ball.yspeed;
+
+	if(isBallInRegion(&(gamePtr->ball), &(gamePtr->carArea)) == true) {
+		if(abs(gamePtr->ball.xspeed) > gamePtr->bricks[0][0].width) {
+			gamePtr->ball.xposition = gamePtr->ball.xposition + signOfNumber(gamePtr->ball.xspeed)*gamePtr->bricks[0][0].width;
+		}
+		else {
+			gamePtr->ball.xposition = gamePtr->ball.xposition + gamePtr->ball.xspeed;
+		}
+		if(abs(gamePtr->ball.yspeed) > gamePtr->bricks[0][0].height) {
+			gamePtr->ball.yposition = gamePtr->ball.yposition + signOfNumber(gamePtr->ball.yspeed)*gamePtr->bricks[0][0].height;
+		}
+		else {
+			gamePtr->ball.yposition = gamePtr->ball.yposition + gamePtr->ball.yspeed;
+		}
+	}
+	else {
+		gamePtr->ball.xposition = gamePtr->ball.xposition + gamePtr->ball.xspeed;
+		gamePtr->ball.yposition = gamePtr->ball.yposition + gamePtr->ball.yspeed;
+	}
 
 	if (checkBallCollisionWithObjects(gamePtr) == false) {
 		if (checkCollisionTopAndBottom(gamePtr) == true) {
