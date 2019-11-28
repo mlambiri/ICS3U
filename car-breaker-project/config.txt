@@ -20,6 +20,12 @@ gamemode = auto
 
 year = 2100
 
+#define maximum number of car rows; max is 6
+maxrows = 8
+#define maximum number of car columns; max is 20
+maxcolumns = 30
+
+
 #fontfile = mexcellent3d.ttf
 #fontfile = pirulen.ttf
 fontfile =  fofbb_reg.ttf

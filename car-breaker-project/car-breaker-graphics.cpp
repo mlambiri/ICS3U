@@ -6,15 +6,13 @@
 // Description : car breaker game
 //============================================================================
 
-#include "car-breaker-graphics.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 
 #include "game-debug.h"
-
+#include "car-breaker-graphics.h"
 
 static const int minballspeed_c = 3;
 static const int maxballspeed_c = minballspeed_c + 2;
@@ -88,8 +86,6 @@ static BotControlArray *lrtBotPtr = &(lrtBotArray[lrtBotPlayingLevel]);
 int busBotPlayingLevel = pro_c;
 static BotControlArray *busBotPtr = &(busBotArray[busBotPlayingLevel]);
 
-//======= EXTERNAL FUNCTION DECLARATION=====//
-
 
 /**
  ---------------------------------------------------------------------------
@@ -102,14 +98,18 @@ static BotControlArray *busBotPtr = &(busBotArray[busBotPlayingLevel]);
  */
 bool readFile(GameData* g, char* fileName) {
 
+	FENTRY();
+	TRACE();
 	char text[MAXBUFFER];
 
 	FILE* fptr = NULL;
 	if (fileName == NULL) {
+		FEXIT();
 		return false;
 	} else {
 		fptr = fopen(fileName, "r");
 		if (fptr == NULL) {
+			FEXIT();
 			return false;
 		} //end-of-if(fptr == NULL)
 	}
@@ -118,7 +118,7 @@ bool readFile(GameData* g, char* fileName) {
 	int i = 0;
 
 	while(fgets(buffer, MAXBUFFER, fptr)) {
-		for (int j = 0; j < MAXBRICKCOLUMNS; j++ ) {
+		for (int j = 0; j < g->maxColumns; j++ ) {
 			if(buffer[j] == 0) return false;
 			switch(buffer[j]) {
 			case 'x':
@@ -130,16 +130,18 @@ bool readFile(GameData* g, char* fileName) {
 				g->layout[i][j] = buffer[j];
 				break;
 			default:
+				FEXIT();
 				return false;
 			}
 		} //end-of-for
 		i++;
-		if(i>=MAXBRICKROWS) break;
+		if(i>= g->maxRows) break;
 	}
 
-	if(i < MAXBRICKROWS) return false;
+	if(i < g->maxRows) return false;
 
 	fclose(fptr);
+	FEXIT();
 	return true;
 }
 
@@ -155,20 +157,24 @@ bool readFile(GameData* g, char* fileName) {
  */
 bool writeFile(GameData* g) {
 
+	FENTRY();
+	TRACE();
 	char text[MAXBUFFER];
 
 	FILE* fptr = NULL;
 	if (g->outLayout[0] == 0) {
+		FEXIT();
 		return false;
 	} else {
 		fptr = fopen( g->outLayout, "w");
 		if (fptr == NULL) {
+			FEXIT();
 			return false;
 		} //end-of-if(fptr == NULL)
 	}
 
-	for (int i = 0; i < MAXBRICKROWS; i++ ) {
-		for (int j = 0; j < MAXBRICKCOLUMNS; j++ ) {
+	for (int i = 0; i < g->maxRows; i++ ) {
+		for (int j = 0; j < g->maxColumns; j++ ) {
 			if( g->bricks[i][j].onScreen == false) {
 				fprintf(fptr, "x");
 			}else if(g->bricks[i][j].indestructible == false) {
@@ -181,6 +187,7 @@ bool writeFile(GameData* g) {
 	} //end-of-for
 
 	fclose(fptr);
+	FEXIT();
 	return true;
 }
 
@@ -196,13 +203,15 @@ bool writeFile(GameData* g) {
  */
 void  initBrickLayout(GameData*gamePtr) {
 
+	FENTRY();
+	TRACE();
 	gamePtr->remainingCars = 0;
 
 	if(gamePtr->validLayout == true) {
 		// use it once
 		gamePtr->validLayout = false;
-		for(int i = 0; i < MAXBRICKROWS; i++) {
-			for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
+		for(int i = 0; i < gamePtr->maxRows; i++) {
+			for (int j = 0; j < gamePtr->maxColumns; j++) {
 				switch(gamePtr->layout[i][j]) {
 				case 'x':
 				case 'X':
@@ -230,10 +239,10 @@ void  initBrickLayout(GameData*gamePtr) {
 
 		int year = (gamePtr->year > 2080)?2080:gamePtr->year;
 		uint rNumber = (year > 2020)? (2100- year )/10:10;
-		uint maxCars = MAXBRICKCOLUMNS*MAXBRICKROWS;
+		uint maxCars = gamePtr->maxRows * gamePtr->maxColumns;
 
 		if(year > 2020) {
-			maxCars -= (2080-year)*MAXBRICKCOLUMNS*MAXBRICKROWS/160;
+			maxCars -= (2080-year)*maxCars/160;
 		}
 
 
@@ -243,8 +252,8 @@ void  initBrickLayout(GameData*gamePtr) {
 
 		int totalCount = 0;
 
-		for(int i = 0; i < MAXBRICKROWS; i++) {
-			for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
+		for(int i = 0; i < gamePtr->maxRows; i++) {
+			for (int j = 0; j < gamePtr->maxColumns; j++) {
 				gamePtr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
 				if(gamePtr->bricks[i][j].onScreen == true ) {
 					// ecars are 'indestructible'
@@ -252,7 +261,7 @@ void  initBrickLayout(GameData*gamePtr) {
 					// but also less cars on road
 					totalCount++;
 					if(gamePtr->year >= 2000) {
-						if(i == MAXBRICKROWS - 1) {
+						if(i == gamePtr->maxRows - 1) {
 							if(topCount-- > 0) {
 								gamePtr->remainingCars++;
 								continue;
@@ -279,6 +288,8 @@ void  initBrickLayout(GameData*gamePtr) {
 		} //end-of-for
 	}
 	gamePtr->gameNumber++;
+
+	FEXIT();
 }
 
 /**
@@ -291,8 +302,17 @@ void  initBrickLayout(GameData*gamePtr) {
  --------------------------------------------------------------------------
  */
 void  setBrickInfo(GameData* p) {
-	for (int i = 0; i < MAXBRICKROWS; i++) {
-		for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
+	FENTRY();
+	TRACE();
+
+	p->carArea.xspeed = 0;
+	p->carArea.yspeed = 0;
+	p->carArea.onScreen = false;
+	p->carArea.width = 0;
+	p->carArea.height = 0;
+
+	for (int i = 0; i < p->maxRows; i++) {
+		for (int j = 0; j < p->maxColumns; j++) {
 			if(p->bricks[i][j].indestructible == false) {
 				if (setBitmap(&(p->bricks[i][j]), p->gasBitmap) == false) {
 					FEXIT();
@@ -305,10 +325,19 @@ void  setBrickInfo(GameData* p) {
 					return;
 				}
 			}
+			p->carArea.width += p->bricks[i][j].width;
 			p->bricks[i][j].xspeed = 0;
 			p->bricks[i][j].yspeed = 0;
 		} //end-of-for
+		p->carArea.height += p->bricks[i][0].height;
 	} //end-of-for
+
+	if(p->carArea.width > p->display.width) {
+		p->maxColumns = p->display.width / p->bricks[0][0].width;
+		p->carArea.width  = p->display.width;
+	}
+	FEXIT();
+	return;
 }
 
 /**
@@ -323,7 +352,8 @@ void  setBrickInfo(GameData* p) {
  --------------------------------------------------------------------------
  */
 void  setPointsPerSmash(GameData*gamePtr) {
-
+	FENTRY();
+	TRACE();
 	if(gamePtr->remainingCars<= level6_c){
 		gamePtr->scorePointsPerSmash = 10;
 	}else if (gamePtr->remainingCars< level5_c) {
@@ -333,6 +363,8 @@ void  setPointsPerSmash(GameData*gamePtr) {
 	}else {
 		gamePtr->scorePointsPerSmash = 1;
 	}
+
+	FEXIT();
 }
 
 /**
@@ -345,16 +377,47 @@ void  setPointsPerSmash(GameData*gamePtr) {
  --------------------------------------------------------------------------
  */
 bool isPointInObject(GameBasicBlock* b, int x, int y){
-
+	FENTRY();
+	TRACE();
 	if((x>=b->xposition)
 			&& (x <= (b->xposition+b->width))
 			&&(y>=b->yposition)
 			&& (y<=(b->yposition+b->height))) {
+		FEXIT();
 		return true;
 	}
 	else {
+		FEXIT();
 		return false;
 	}
+}
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 19, 2019
+ @mname   isBallInArea
+ @details
+   check if the ball is in a particular rectangle
+ --------------------------------------------------------------------------
+ */
+bool isBallInRegion(GameBasicBlock* ball, GameBasicBlock* obj){
+
+	FENTRY();
+	TRACE();
+	bool result = isPointInObject(obj,ball->xposition,ball->yposition);
+	result = result || isPointInObject(obj, ball->xposition+ball->width, ball->yposition);
+	result = result || isPointInObject(obj,ball->xposition, ball->yposition+ball->height);
+	result = result || isPointInObject(obj, ball->xposition+ball->width, ball->yposition+ball->height);
+
+	if(result == false) {
+		FEXIT();
+		return false;
+	}
+
+	FEXIT();
+	return true;
+
 }
 
 /**
@@ -370,12 +433,17 @@ bool isPointInObject(GameBasicBlock* b, int x, int y){
  */
 bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSIDE& side){
 
+	FENTRY();
+	TRACE();
 	bool result = isPointInObject(obj,ball->xposition,ball->yposition);
 	result = result || isPointInObject(obj, ball->xposition+ball->width, ball->yposition);
 	result = result || isPointInObject(obj,ball->xposition, ball->yposition+ball->height);
 	result = result || isPointInObject(obj, ball->xposition+ball->width, ball->yposition+ball->height);
 
-	if(result == false) return false;
+	if(result == false) {
+		FEXIT();
+		return false;
+	}
 
 	float ballXCenter = ball->xposition + (float) ball->width/2;
 	float ballYCenter = ball->yposition + (float) ball->height/2;
@@ -385,21 +453,25 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
 
 	if(ball->xposition == (obj->xposition+obj->width)) {
 		side = right_c;
+		FEXIT();
 		return true;
 	}
 
 	if((ball->xposition + ball->width) == obj->xposition) {
 		side = left_c;
+		FEXIT();
 		return true;
 	}
 
 	if(ball->yposition == (obj->yposition+obj->height)) {
 		side = bottom_c;
+		FEXIT();
 		return true;
 	}
 
 	if((ball->yposition + ball->height) == obj->yposition) {
 		side = top_c;
+		FEXIT();
 		return true;
 	}
 
@@ -444,6 +516,7 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
 			else side = right_c;
 		}
 	}
+	FEXIT();
 	return true;
 }
 
@@ -554,7 +627,7 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 		return false;
 	}
 	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize))
-                        																/ maxPaddleSize_c;
+                        																				/ maxPaddleSize_c;
 	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
 	return true;
@@ -755,19 +828,23 @@ void  setInitialObjectPositions(GameData *gamePtr) {
 		gamePtr->startsample = gamePtr->player[0].sample;
 	}
 
-	int ypos = (gamePtr->display.height - gamePtr->bricks[0][0].height*MAXBRICKROWS)/2;
-	for (int i = 0; i < MAXBRICKROWS; i++) {
-		int xpos = (gamePtr->display.width - gamePtr->bricks[0][0].width*MAXBRICKCOLUMNS)/2;
+	int ypos = (gamePtr->display.height - gamePtr->bricks[0][0].height*gamePtr->maxRows)/2;
+	//printf("Max Rows = %d, Max Columns = %d", gamePtr->maxRows, gamePtr->maxColumns);
+	for (int i = 0; i < gamePtr->maxRows; i++) {
+		int xpos = (gamePtr->display.width - gamePtr->bricks[0][0].width*gamePtr->maxColumns)/2;
 		if(xpos < 0) {
 			xpos = 0;
 		}
-		for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
+		for (int j = 0; j < gamePtr->maxColumns; j++) {
 			gamePtr->bricks[i][j].yposition = ypos;
 			gamePtr->bricks[i][j].xposition = xpos;
 			xpos += gamePtr->bricks[i][j].width;
 		} //end-of-for
 		ypos += gamePtr->bricks[i][0].height;
 	} //end-of-for
+
+	gamePtr->carArea.xposition = gamePtr->bricks[0][0].xposition;
+	gamePtr->carArea.yposition = gamePtr->bricks[0][0].yposition;
 
 	FEXIT();
 
@@ -850,7 +927,7 @@ bool processKeyPressEvent(GameData *gamePtr) {
 				gamePtr->player[0].keyPress[1] = true;
 			else
 				gamePtr->player[0].keyPress[1] = false;
-				gamePtr->player[0].keyPress[0] = false;
+			gamePtr->player[0].keyPress[0] = false;
 			break;
 		case ALLEGRO_KEY_Q:
 			if (gamePtr->gameMode == human_c)
@@ -1127,10 +1204,10 @@ bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 				gamePtr->player[1].name, gamePtr->player[1].carsSmashed, gamePtr->player[0].name,
 				gamePtr->player[0].carsSmashed);
 		int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2,
-				gamePtr->display.height / 4, regularFont_c);
+				gamePtr->carArea.yposition - gamePtr->fontsize, regularFont_c);
 		char buffer[100];
 		sprintf(buffer, "Press a key to begin Round %d of %d or ESC to exit", ++gamePtr->roundNumber, gamePtr->maxscore);
-		drawTextOnScreen(gamePtr, buffer, gamePtr->display.width / 2, gamePtr->display.height / 2+ 100, regularFont_c);
+		drawTextOnScreen(gamePtr, buffer, gamePtr->display.width / 2, gamePtr->carArea.yposition+gamePtr->carArea.height, regularFont_c);
 		//DEBUG(" =======\n");
 	}
 
@@ -1233,8 +1310,8 @@ void  drawObjects(GameData *gamePtr) {
 	drawBitmapSection(&(gamePtr->player[0].ge));
 	drawBitmapSection(&(gamePtr->player[1].ge));
 	drawBitmap(&(gamePtr->ball));
-	for (int i = 0; i < MAXBRICKROWS; i++) {
-		for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
+	for (int i = 0; i < gamePtr->maxRows; i++) {
+		for (int j = 0; j < gamePtr->maxColumns; j++) {
 			if (gamePtr->bricks[i][j].onScreen == true) {
 				drawBitmap(&(gamePtr->bricks[i][j]));
 			}//end-of-if
@@ -1489,9 +1566,47 @@ bool checkBallCollisionWithObjects(GameData *gamePtr) {
 		return true;
 	}
 
+	if(isBallInRegion(&(gamePtr->ball), &(gamePtr->carArea)) == false) {
+		FEXIT();
+		return false;
+	}
+
+
+#if 1
+	int xdistance = gamePtr->ball.xposition - gamePtr->bricks[0][0].xposition;
+	int ydistance = gamePtr->ball.yposition - gamePtr->bricks[0][0].yposition ;
+	int row = 0;
+	int column = 0;
+
+	if( xdistance > 0) {
+		column = xdistance / gamePtr->bricks[0][0].width;
+		if(column > gamePtr->maxColumns) column = gamePtr->maxColumns;
+	}
+	if( ydistance > 0) {
+		row = ydistance / gamePtr->bricks[0][0].height;
+		if(row > gamePtr->maxRows) row = gamePtr->maxRows;
+	}
+
+	int minRow = (row-2)<0?0:row-2;
+	int maxRow = (row+3) >gamePtr->maxRows?gamePtr->maxRows:row+3;
+	int minColumn = (column-2)<0?0:column-2;
+	int maxColumn = (column+3) >gamePtr->maxColumns?gamePtr->maxColumns:column+3;
+
+	//printf("%d %d %d %d\n", minRow, maxRow, minColumn, maxColumn);
+	for (int i = minRow; i < maxRow; i++) {
+		for (int j = minColumn; j < maxColumn; j++) {
+			if(isBallBrickCollision(gamePtr, i, j)) {
+				FEXIT();
+				return true;
+			}
+		} //end-of-for
+	} //end-of-for
+
+#else
+
 	if(gamePtr->ball.yspeed <= 0) {
-		for (int i = MAXBRICKROWS-1; i >=0; i--) {
-			for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
+		for (int i = gamePtr->maxRows-1; i >=0; i--) {
+			for (int j = 0; j < gamePtr->maxColumns; j++) {
 				if(isBallBrickCollision(gamePtr, i, j)) {
 					FEXIT();
 					return true;
@@ -1500,8 +1615,8 @@ bool checkBallCollisionWithObjects(GameData *gamePtr) {
 		} //end-of-for
 	}
 	else if(gamePtr->ball.yspeed > 0) {
-		for (int i = 0; i < MAXBRICKROWS; i++) {
-			for (int j = 0; j < MAXBRICKCOLUMNS; j++) {
+		for (int i = 0; i < gamePtr->maxRows; i++) {
+			for (int j = 0; j < gamePtr->maxColumns; j++) {
 				if(isBallBrickCollision(gamePtr, i, j)) {
 					FEXIT();
 					return true;
@@ -1509,6 +1624,7 @@ bool checkBallCollisionWithObjects(GameData *gamePtr) {
 			} //end-of-for
 		} //end-of-for
 	}
+#endif
 
 	FEXIT();
 	return false;
@@ -1854,6 +1970,9 @@ bool initializeGameData(int argc, char **argv) {
 	p->inLayout[0] = 0;
 	p->outLayout[0] = 0;
 
+	p->maxRows = MAXBRICKROWS;
+	p->maxColumns = MAXBRICKCOLUMNS;
+
 	p->gameNumber = 1;
 	p->roundNumber = 1;
 	p->bcolor = &(p->bcolorarray[yellow_c]);
@@ -1885,7 +2004,21 @@ bool initializeGameData(int argc, char **argv) {
 			// pre 2000 there are no electric cars
 			if (++param < argc)
 				p->year = atoi(argv[param]);
-		} else if (strcmp(argv[param], "fontsize") == 0) {
+		} else if (strcmp(argv[param], "maxrows") == 0) {
+			//the number of rows of cars, max is MAXBRICKROWS
+			if (++param < argc) {
+				p->maxRows = atoi(argv[param]);
+				if(p->maxRows > MAXBRICKROWS)
+					p->maxRows = MAXBRICKROWS;
+			}
+		}else if (strcmp(argv[param], "maxcolumns") == 0) {
+			//the number of rows of cars, max is MAXBRICKCOLUMNS
+			if (++param < argc) {
+				p->maxColumns = atoi(argv[param]);
+				if(p->maxColumns > MAXBRICKCOLUMNS)
+					p->maxColumns = MAXBRICKCOLUMNS;
+			}
+		}  else if (strcmp(argv[param], "fontsize") == 0) {
 			//font size
 			if (++param < argc)
 				p->fontsize = atoi(argv[param]);
@@ -2068,33 +2201,33 @@ bool initializeGraphics() {
 	al_init_acodec_addon();
 	//al_reserve_samples(2);
 
-	TRACE();
+	//TRACE();
 	//tries to load font file
 	if (loadFont(p, smallFont_c) == false) {
 		FEXIT();
 		return false;
 	} //end-of-if(LoadFont(p, smallFont_c) == false)
 
-	TRACE();
+	//TRACE();
 	if (loadFont(p, regularFont_c) == false) {
 		FEXIT();
 		return false;
 	} //end-of-if(LoadFont(p, regularFont_c) == false)
 
-	TRACE();
+	//TRACE();
 	if (loadFont(p, largeFont_c) == false) {
 		FEXIT();
 		return false;
 	} //end-of-if(LoadFont(p, largeFont_c) == false)
 
-	TRACE();
+	//TRACE();
 	if ((p->display.display = al_create_display(p->display.width,
 			p->display.height)) == NULL) {
 		ERROR("Cannot init display");FEXIT();
 		return false;
 	}
 
-	TRACE();
+	//TRACE();
 	p->bcolorarray[yellow_c] = al_map_rgb(255, 255, 0);
 	p->bcolorarray[blue_c] = al_map_rgb(200, 200, 255);
 	p->bcolorarray[grey_c] = al_map_rgb(180, 180, 180);

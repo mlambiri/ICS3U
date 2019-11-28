@@ -31,8 +31,8 @@ typedef unsigned int uint;
 #define MAXFONTS 3
 #define MAXBITMAPS 2
 
-#define MAXBRICKROWS 6
-#define MAXBRICKCOLUMNS 20
+#define MAXBRICKROWS 10
+#define MAXBRICKCOLUMNS 30
 
 #define SCREEN_W  1600
 #define SCREEN_H  1200
@@ -204,6 +204,10 @@ typedef struct GameData {
 
     char inLayout[MAXNAME];
     char outLayout[MAXNAME];
+
+    int maxRows;
+    int maxColumns;
+    GameBasicBlock carArea;
 
 } GameData;
 
