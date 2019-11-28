@@ -546,22 +546,24 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 		switch(side){
 		case top_c:
 			gamePtr->ball.yspeed *= -1;
+			gamePtr->ball.xspeed += rand() %3 - 1;
 			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition - gamePtr->ball.height;
 			break;
 		case bottom_c:
 			gamePtr->ball.yspeed *= -1;
+			gamePtr->ball.xspeed += rand() %3 - 1;
 			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition + gamePtr->bricks[i][j].height;
 			break;
 		case left_c:
 			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition - gamePtr->ball.width;
 			if(gamePtr->ball.xspeed == 0) {
-				gamePtr->ball.xspeed = 2;
+				gamePtr->ball.xspeed = rand() %3 - 1;
 			}
 			gamePtr->ball.xspeed *= -1;
 			break;
 		case right_c:
 			if(gamePtr->ball.xspeed == 0) {
-				gamePtr->ball.xspeed = -2;
+				gamePtr->ball.xspeed = rand() %3 - 2;
 			}
 			gamePtr->ball.xspeed *= -1;
 			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition + gamePtr->bricks[i][j].width;
@@ -1191,6 +1193,20 @@ bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 				gamePtr->display.width / 2, next + 100, regularFont_c);
 
 		playSound(gamePtr->winsample);
+		if(gamePtr->gameMode == fullbot_c) {
+			sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
+							"Full Auto", gamePtr->player[1].name,
+							gamePtr->player[0].name);
+		}
+		else if (gamePtr->gameMode == arcade_c) {
+			sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
+							"Arcade", gamePtr->player[1].name,
+							gamePtr->player[0].name);
+		} else {
+			sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
+							"Human", gamePtr->player[1].name,
+							gamePtr->player[0].name);
+		}
 		sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
 				(gamePtr->gameMode ? "Arcade" : "Human"), gamePtr->player[1].name,
 				gamePtr->player[0].name);
@@ -1587,10 +1603,11 @@ bool checkBallCollisionWithObjects(GameData *gamePtr) {
 		if(row > gamePtr->maxRows) row = gamePtr->maxRows;
 	}
 
-	int minRow = (row-2)<0?0:row-2;
-	int maxRow = (row+3) >gamePtr->maxRows?gamePtr->maxRows:row+3;
-	int minColumn = (column-2)<0?0:column-2;
-	int maxColumn = (column+3) >gamePtr->maxColumns?gamePtr->maxColumns:column+3;
+	const int d_c = 3;
+	int minRow = (row-d_c)<0?0:row-d_c;
+	int maxRow = (row+d_c) >gamePtr->maxRows?gamePtr->maxRows:row+d_c;
+	int minColumn = (column-d_c)<0?0:column-d_c;
+	int maxColumn = (column+d_c) >gamePtr->maxColumns?gamePtr->maxColumns:column+d_c;
 
 	//printf("%d %d %d %d\n", minRow, maxRow, minColumn, maxColumn);
 	for (int i = minRow; i < maxRow; i++) {
