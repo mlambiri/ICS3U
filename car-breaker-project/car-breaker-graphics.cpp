@@ -586,6 +586,8 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 			gamePtr->remainingCars--;
 			if(gamePtr->turn)
 				gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
+			else
+				printf("xxxx\n");
 			setPointsPerSmash(gamePtr);
 		}
 		if(gamePtr->remainingCars < level5_c ) {
@@ -1138,7 +1140,7 @@ bool drawTextAndWaitBegin(GameData *gamePtr) {
 				gamePtr->display.height / 2, regularFont_c);
 	}
 	char buffer[100];
-	sprintf(buffer, "First to %d Wins!", gamePtr->maxscore);
+	sprintf(buffer, "Most points after %d rounds wins!", gamePtr->maxscore);
 	next = drawTextOnScreen(gamePtr, buffer, gamePtr->display.width / 2, next, regularFont_c);
 	next = drawTextOnScreen(gamePtr, (char*) "Press a key to begin", gamePtr->display.width / 2,
 			next, regularFont_c);
@@ -2017,6 +2019,8 @@ bool initializeGameData(int argc, char **argv) {
 	p->gameNumber = 1;
 	p->roundNumber = 1;
 	p->bcolor = &(p->bcolorarray[yellow_c]);
+
+	p->scorePointsPerSmash = 1;
 
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself
