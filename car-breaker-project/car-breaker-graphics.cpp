@@ -44,7 +44,7 @@ static GameData carBreaker = {
 
 /*
  * @author   mlambiri
- * @date     Jun 2, 2019
+ * @date     Dec 1, 2019
  *  Bot needs two arrays of values to decide when and how fast to move
  *  This structure stores them in one group both arrays.
  *  Bot adapts his own skill to match the level of skill of the human player
@@ -750,7 +750,7 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 		return false;
 	}
 	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize))
-                        																																												/ maxPaddleSize_c;
+                        																																														/ maxPaddleSize_c;
 	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
 	return true;
@@ -1684,7 +1684,7 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 17, 2019
- @mname   checkBallCollisionWithObjects
+ @mname   checkBallCollisionWithPlayers
  @details
  true if there is a collision false otherwise
  Player one is the *bottom* edge
@@ -1692,7 +1692,7 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 
  --------------------------------------------------------------------------
  */
-bool checkBallCollisionWithObjects(GameData *gamePtr) {
+bool checkBallCollisionWithPlayers(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 
@@ -1714,83 +1714,9 @@ bool checkBallCollisionWithObjects(GameData *gamePtr) {
 		return true;
 	}
 
-	//check if the ball is in the car region
-	//otherwise no point in trying to check for car collisions
-	if(isBallInRegion(&(gamePtr->ball), &(gamePtr->carArea)) == false) {
-		FEXIT();
-		return false;
-	}
-
-	// find car collisions if they exist
-	if(gamePtr->cAlgoSelector == true) {
-		// this collision detection tries to calculate where in which row and column
-		// the ball is
-		// we can then check only a rectangle around that point
-		// it reduced the number of checks
-		int xdistance = gamePtr->ball.xposition - gamePtr->bricks[0][0].xposition;
-		int ydistance = gamePtr->ball.yposition - gamePtr->bricks[0][0].yposition ;
-		int row = 0;
-		int column = 0;
-
-		if( xdistance > 0) {
-			column = xdistance / gamePtr->bricks[0][0].width;
-			if(column > gamePtr->maxColumns) column = gamePtr->maxColumns;
-		}
-		if( ydistance > 0) {
-			row = ydistance / gamePtr->bricks[0][0].height;
-			if(row > gamePtr->maxRows) row = gamePtr->maxRows;
-		}
-
-		const int d_c = 3;
-		int minRow = (row-d_c)<0?0:row-d_c;
-		int maxRow = (row+d_c) >gamePtr->maxRows?gamePtr->maxRows:row+d_c;
-		int minColumn = (column-d_c)<0?0:column-d_c;
-		int maxColumn = (column+d_c) >gamePtr->maxColumns?gamePtr->maxColumns:column+d_c;
-
-		//printf("%d %d %d %d\n", minRow, maxRow, minColumn, maxColumn);
-		for (int i = minRow; i < maxRow; i++) {
-			for (int j = minColumn; j < maxColumn; j++) {
-				if(isBallBrickCollision(gamePtr, i, j)) {
-					FEXIT();
-					return true;
-				}
-			} //end-of-for
-		} //end-of-for
-
-	} else {
-
-		// this collision detection checks all rows and columns
-		// it is simple and effective as it checks all cars one by one
-		// if the speed is 'negative' (ie the ball moves from the bottom towards top)
-		// then we can start checking from (maxRows, maxColumns)
-		// this will detect the collisions faster
-		if(gamePtr->ball.yspeed <= 0) {
-			for (int i = gamePtr->maxRows-1; i >=0; i--) {
-				for (int j = 0; j < gamePtr->maxColumns; j++) {
-					if(isBallBrickCollision(gamePtr, i, j)) {
-						FEXIT();
-						return true;
-					}
-				} //end-of-for
-			} //end-of-for
-		}
-		else if(gamePtr->ball.yspeed > 0) {
-			// if the speed is 'positive' (ie ball moves from top to bottom)
-			// we can to the check from (0,0) to (maxRow, maxColumn)
-			for (int i = 0; i < gamePtr->maxRows; i++) {
-				for (int j = 0; j < gamePtr->maxColumns; j++) {
-					if(isBallBrickCollision(gamePtr, i, j)) {
-						FEXIT();
-						return true;
-					}
-				} //end-of-for
-			} //end-of-for
-		}
-	}
-
 	FEXIT();
 	return false;
-} // end-of-function CheckPaletteCollision
+} // end-of-function checkCollisionWithPlayers
 
 uint max(uint a, uint b) {
 	if(a>b) return a;
@@ -1849,6 +1775,37 @@ bool updateBallPosition(GameData *gamePtr) {
 				gamePtr->ball.yprevposition = gamePtr->ball.yposition;
 				gamePtr->ball.yposition += gamePtr->ball.yspeed;
 			}
+
+			// this collision detection checks all rows and columns
+			// it is simple and effective as it checks all cars one by one
+			// if the speed is 'negative' (ie the ball moves from the bottom towards top)
+			// then we can start checking from (maxRows, maxColumns)
+			// this will detect the collisions faster
+			bool done = false;
+			if(gamePtr->ball.yspeed <= 0) {
+				for (int i = gamePtr->maxRows-1; i >=0; i--) {
+					for (int j = 0; j < gamePtr->maxColumns; j++) {
+						if(isBallBrickCollision(gamePtr, i, j)) {
+							done = true;
+							break;
+						}
+					} //end-of-for
+					if(done) break;
+				} //end-of-for
+			}
+			else if(gamePtr->ball.yspeed > 0) {
+				// if the speed is 'positive' (ie ball moves from top to bottom)
+				// we can to the check from (0,0) to (maxRow, maxColumn)
+				for (int i = 0; i < gamePtr->maxRows; i++) {
+					for (int j = 0; j < gamePtr->maxColumns; j++) {
+						if(isBallBrickCollision(gamePtr, i, j)) {
+							done = true;
+							break;
+						}
+					} //end-of-for
+					if(done) break;
+				} //end-of-for
+			}
 		}
 		else {
 			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
@@ -1896,6 +1853,26 @@ bool updateBallPosition(GameData *gamePtr) {
 				gamePtr->ball.yprevposition = gamePtr->ball.yposition;
 				gamePtr->ball.xposition = xn;
 				gamePtr->ball.yposition = yn;
+				int xdistance = gamePtr->ball.xposition - gamePtr->bricks[0][0].xposition;
+				int ydistance = gamePtr->ball.yposition - gamePtr->bricks[0][0].yposition ;
+
+				const int d_c = 3;
+				int minRow = (row-d_c)<0?0:row-d_c;
+				int maxRow = (row+d_c) >gamePtr->maxRows?gamePtr->maxRows:row+d_c;
+				int minColumn = (column-d_c)<0?0:column-d_c;
+				int maxColumn = (column+d_c) >gamePtr->maxColumns?gamePtr->maxColumns:column+d_c;
+
+				bool done = false;
+				//printf("%d %d %d %d\n", minRow, maxRow, minColumn, maxColumn);
+				for (int i = minRow; i < maxRow; i++) {
+					for (int j = minColumn; j < maxColumn; j++) {
+						if(isBallBrickCollision(gamePtr, i, j)) {
+							done = true;
+							break;
+						}
+					} //end-of-for
+					if(done) break;
+				} //end-of-for
 				//printf("pos  xn = %d, yn = %d w=%d h=%d xo=%d, yo=%d\n", xn ,yn, gamePtr->bricks[0][0].width, gamePtr->bricks[0][0].height, gamePtr->bricks[0][0].xposition, gamePtr->bricks[0][0].yposition);
 				//printf("coll  row = %d, col = %d\n", row ,column);
 				break;
@@ -1908,10 +1885,9 @@ bool updateBallPosition(GameData *gamePtr) {
 			gamePtr->ball.xposition +=  gamePtr->ball.xspeed;
 			gamePtr->ball.yposition += gamePtr->ball.yspeed;
 		}
-
 	}
 
-	if (checkBallCollisionWithObjects(gamePtr) == false) {
+	if (checkBallCollisionWithPlayers(gamePtr) == false) {
 		if (checkCollisionTopAndBottom(gamePtr) == true) {
 			FEXIT();
 			return true;

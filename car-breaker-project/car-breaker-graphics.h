@@ -222,7 +222,7 @@ typedef struct GameData {
 //======= FUNCTION DECLARATIONS =====
 bool checkCollisionLeftRight(GameData *gamePtr);
 bool checkCollisionTopAndBottom(GameData *gamePtr);
-bool checkBallCollisionWithObjects(GameData *gamePtr);
+bool checkBallCollisionWithPlayers(GameData *gamePtr);
 bool displayScore(GameData *gamePtr);
 bool drawTextAndWaitBegin(GameData *gamePtr);
 bool drawTextAndWaitRoundWin(GameData *gamePtr);
