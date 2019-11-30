@@ -750,7 +750,7 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 		return false;
 	}
 	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize))
-                        																																										/ maxPaddleSize_c;
+                        																																												/ maxPaddleSize_c;
 	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
 	return true;
@@ -1687,13 +1687,9 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
  @mname   checkBallCollisionWithObjects
  @details
  true if there is a collision false otherwise
- This function checks if the ball touches the play edge of the pallet
  Player one is the *bottom* edge
  Player two it is the *top* edge.
 
- We are using inequalities because we update the positions in non-multiples of the field
- length and width because of that it is possible that the ball and pallete Nov slightly superpose
- That condition is a valid collision \n
  --------------------------------------------------------------------------
  */
 bool checkBallCollisionWithObjects(GameData *gamePtr) {
@@ -1726,60 +1722,71 @@ bool checkBallCollisionWithObjects(GameData *gamePtr) {
 	}
 
 	// find car collisions if they exist
-#if 1
-	int xdistance = gamePtr->ball.xposition - gamePtr->bricks[0][0].xposition;
-	int ydistance = gamePtr->ball.yposition - gamePtr->bricks[0][0].yposition ;
-	int row = 0;
-	int column = 0;
+	if(gamePtr->cAlgoSelector == true) {
+		// this collision detection tries to calculate where in which row and column
+		// the ball is
+		// we can then check only a rectangle around that point
+		// it reduced the number of checks
+		int xdistance = gamePtr->ball.xposition - gamePtr->bricks[0][0].xposition;
+		int ydistance = gamePtr->ball.yposition - gamePtr->bricks[0][0].yposition ;
+		int row = 0;
+		int column = 0;
 
-	if( xdistance > 0) {
-		column = xdistance / gamePtr->bricks[0][0].width;
-		if(column > gamePtr->maxColumns) column = gamePtr->maxColumns;
-	}
-	if( ydistance > 0) {
-		row = ydistance / gamePtr->bricks[0][0].height;
-		if(row > gamePtr->maxRows) row = gamePtr->maxRows;
-	}
+		if( xdistance > 0) {
+			column = xdistance / gamePtr->bricks[0][0].width;
+			if(column > gamePtr->maxColumns) column = gamePtr->maxColumns;
+		}
+		if( ydistance > 0) {
+			row = ydistance / gamePtr->bricks[0][0].height;
+			if(row > gamePtr->maxRows) row = gamePtr->maxRows;
+		}
 
-	const int d_c = 3;
-	int minRow = (row-d_c)<0?0:row-d_c;
-	int maxRow = (row+d_c) >gamePtr->maxRows?gamePtr->maxRows:row+d_c;
-	int minColumn = (column-d_c)<0?0:column-d_c;
-	int maxColumn = (column+d_c) >gamePtr->maxColumns?gamePtr->maxColumns:column+d_c;
+		const int d_c = 3;
+		int minRow = (row-d_c)<0?0:row-d_c;
+		int maxRow = (row+d_c) >gamePtr->maxRows?gamePtr->maxRows:row+d_c;
+		int minColumn = (column-d_c)<0?0:column-d_c;
+		int maxColumn = (column+d_c) >gamePtr->maxColumns?gamePtr->maxColumns:column+d_c;
 
-	//printf("%d %d %d %d\n", minRow, maxRow, minColumn, maxColumn);
-	for (int i = minRow; i < maxRow; i++) {
-		for (int j = minColumn; j < maxColumn; j++) {
-			if(isBallBrickCollision(gamePtr, i, j)) {
-				FEXIT();
-				return true;
-			}
-		} //end-of-for
-	} //end-of-for
-
-#else
-
-	if(gamePtr->ball.yspeed <= 0) {
-		for (int i = gamePtr->maxRows-1; i >=0; i--) {
-			for (int j = 0; j < gamePtr->maxColumns; j++) {
+		//printf("%d %d %d %d\n", minRow, maxRow, minColumn, maxColumn);
+		for (int i = minRow; i < maxRow; i++) {
+			for (int j = minColumn; j < maxColumn; j++) {
 				if(isBallBrickCollision(gamePtr, i, j)) {
 					FEXIT();
 					return true;
 				}
 			} //end-of-for
 		} //end-of-for
-	}
-	else if(gamePtr->ball.yspeed > 0) {
-		for (int i = 0; i < gamePtr->maxRows; i++) {
-			for (int j = 0; j < gamePtr->maxColumns; j++) {
-				if(isBallBrickCollision(gamePtr, i, j)) {
-					FEXIT();
-					return true;
-				}
+
+	} else {
+
+		// this collision detection checks all rows and columns
+		// it is simple and effective as it checks all cars one by one
+		// if the speed is 'negative' (ie the ball moves from the bottom towards top)
+		// then we can start checking from (maxRows, maxColumns)
+		// this will detect the collisions faster
+		if(gamePtr->ball.yspeed <= 0) {
+			for (int i = gamePtr->maxRows-1; i >=0; i--) {
+				for (int j = 0; j < gamePtr->maxColumns; j++) {
+					if(isBallBrickCollision(gamePtr, i, j)) {
+						FEXIT();
+						return true;
+					}
+				} //end-of-for
 			} //end-of-for
-		} //end-of-for
+		}
+		else if(gamePtr->ball.yspeed > 0) {
+			// if the speed is 'positive' (ie ball moves from top to bottom)
+			// we can to the check from (0,0) to (maxRow, maxColumn)
+			for (int i = 0; i < gamePtr->maxRows; i++) {
+				for (int j = 0; j < gamePtr->maxColumns; j++) {
+					if(isBallBrickCollision(gamePtr, i, j)) {
+						FEXIT();
+						return true;
+					}
+				} //end-of-for
+			} //end-of-for
+		}
 	}
-#endif
 
 	FEXIT();
 	return false;
@@ -1796,12 +1803,12 @@ uint max(uint a, uint b) {
  @date    Nov 22, 2019
  @mname   UpdateBallPosition
  @details
- return true if round is finished
- This function checks if there is a collision between the ball and the pallet
- If that is not the case, than it checks if there is a collision with the left and right field edges
- This signifies a round win
- If none of the conditions above happen, we need to check a collision with the top and bottom
- edges of the field\n
+ return true if no more gas cars remain to be smashed
+ This function checks if there is a collision between the ball and an object
+  as well as for collisions with the top and bottom of the 'field'
+  Because x and y speeds can be larger than the size of the car
+  we can have a 'tunnelling' effect (described as 'bullet through
+  paper' at page YYY in the Game Architecture book.\n
  --------------------------------------------------------------------------
  */
 bool updateBallPosition(GameData *gamePtr) {
@@ -1814,6 +1821,11 @@ bool updateBallPosition(GameData *gamePtr) {
 	}
 
 
+	// there are 2 algorithms coded
+	// i could not get rid of the tunnelling effect with either of them
+	// it happens in some cases in both but the conditions are
+	// different. the algo selection is done through the
+	// configuration file using the 'calgo' variable
 	if(gamePtr->cAlgoSelector == false) {
 		GameBasicBlock tmpBall = gamePtr->ball;
 
@@ -2060,7 +2072,7 @@ void  busBotControl(GameData *gamePtr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   GameLoop
+ @mname   GameMainLoop
  @details
  Two dimensional games process events and screen updates in a continuous loop
  usually this loop is called a game loop
@@ -2200,15 +2212,15 @@ void  exitGame(GameData *gamePtr) {
  --------------------------------------------------------------------------
  */
 bool initializeGameData(int argc, char **argv) {
-	//sets the default player 1 and player 2 names
+
 	FENTRY();
 	TRACE();
 	GameData *p = &carBreaker;
 
 	srand(time(0));
 
-	strcpy(p->player[0].name, "Player1");
-	strcpy(p->player[1].name, "Player2");
+	strcpy(p->player[0].name, "Bus");
+	strcpy(p->player[1].name, "LRT");
 	strcpy(p->fontFileName, FONTNAME);
 	strcpy(p->player[0].audioFileName, P1SOUND);
 	strcpy(p->player[1].audioFileName, P2SOUND);
