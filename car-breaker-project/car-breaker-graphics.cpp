@@ -453,45 +453,51 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
 		return false;
 	}
 
-	float ballXCenter = ball->xposition + (float) ball->width/2;
-	float ballYCenter = ball->yposition + (float) ball->height/2;
+	float ballXCenter = ball->xprevposition + (float) ball->width/2;
+	float ballYCenter = ball->yprevposition + (float) ball->height/2;
 
 	float objXCenter = obj->xposition + (float) obj->width/2;
 	float objYCenter = obj->yposition + (float) obj->height/2;
 
-	if(ball->xposition == (obj->xposition+obj->width)) {
+	if(ball->xprevposition == (obj->xposition+obj->width)) {
 		side = right_c;
 		FEXIT();
 		return true;
 	}
 
-	if((ball->xposition + ball->width) == obj->xposition) {
+	if((ball->xprevposition + ball->width) == obj->xposition) {
 		side = left_c;
 		FEXIT();
 		return true;
 	}
 
-	if(ball->yposition == (obj->yposition+obj->height)) {
+	if(ball->yprevposition == (obj->yposition+obj->height)) {
 		side = bottom_c;
 		FEXIT();
 		return true;
 	}
 
-	if((ball->yposition + ball->height) == obj->yposition) {
+	if((ball->yprevposition + ball->height) == obj->yposition) {
 		side = top_c;
 		FEXIT();
 		return true;
 	}
+#if 0
+	if(ball->xspeed > 0 && ball->xposition < obj->xposition) {
+		// (top, left) (bottom, left)
+	}
+	if(ball->xspeed < 0 && (ball->xposition + ball->width) > (obj->xposition + ball->width)) {
+		// (top, right) (bottom, right)
+	}
+	if(ball->yspeed > 0 && ball->yposition < obj->yposition) {
+		// (top, right), (top, left)
+	}
+	if(ball->yspeed < 0 && (ball->yposition + ball->height) > (obj->xposition + ball->height)) {
+		// (bottom, right), (bottom, left)
+	}
 
-
+#else
 	float o1a = atan((float)obj->width/(float)obj->height);
-
-	//	if((ball-> yspeed > 0) && (ballYCenter < objYCenter)) {
-	//		side = top_c;
-	//	}
-	//	if((ball-> yspeed < 0) && (ballYCenter > objYCenter)) {
-	//		side = bottom_c;
-	//	}
 
 	// above left
 	if(ballYCenter < objYCenter) {
@@ -524,6 +530,7 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
 			else side = right_c;
 		}
 	}
+#endif
 	FEXIT();
 	return true;
 }
@@ -554,12 +561,12 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 		switch(side){
 		case top_c:
 			gamePtr->ball.yspeed *= -1;
-			gamePtr->ball.xspeed +=  rand() % 3 - 1;
+			gamePtr->ball.xspeed += rand() % 2;
 			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition - gamePtr->ball.height;
 			break;
 		case bottom_c:
 			gamePtr->ball.yspeed *= -1;
-			gamePtr->ball.xspeed += rand() %3 -1;
+			gamePtr->ball.xspeed += rand() % 2;
 			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition + gamePtr->bricks[i][j].height;
 			break;
 		case left_c:
@@ -586,8 +593,6 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 			gamePtr->remainingCars--;
 			if(gamePtr->turn)
 				gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
-			else
-				printf("xxxx\n");
 			setPointsPerSmash(gamePtr);
 		}
 		if(gamePtr->remainingCars < level5_c ) {
@@ -828,10 +833,14 @@ void  setInitialObjectPositions(GameData *gamePtr) {
 	gamePtr->player[1].ge.yposition = 0;
 	gamePtr->player[1].ge.xspeed = 0;
 
-	if (gamePtr->ball.yspeed > 0)
+	if (gamePtr->ball.yspeed > 0) {
+		gamePtr->ball.yprevposition = gamePtr->ball.yposition;
 		gamePtr->ball.yposition = gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height;
-	else
+	}else {
+		gamePtr->ball.yprevposition = gamePtr->ball.yposition;
 		gamePtr->ball.yposition = gamePtr->player[0].ge.yposition - gamePtr->ball.height;
+	}
+	gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 	gamePtr->ball.xposition = gamePtr->display.width / 2 - (gamePtr->ball.width / 2);
 	if (gamePtr->ball.yspeed > 0) {
 		gamePtr->startsample = gamePtr->player[1].sample;
@@ -1280,6 +1289,10 @@ bool displayScore(GameData *gamePtr) {
 			gamePtr->scorePointsPerSmash);
 	next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width -100,
 			next, smallFont_c);
+	sprintf(textBuffer, "%d Points Penalty for LB",
+			gamePtr->penalty);
+	next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width -100,
+			next, smallFont_c);
 }
 
 /**
@@ -1575,6 +1588,7 @@ bool checkBallCollisionWithObjects(GameData *gamePtr) {
 	TRACE();
 
 	COLLISIONSIDE side;
+	// check collision with player 1
 	if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->player[0].ge), side)) {
 		gamePtr->ball.yposition = gamePtr->player[0].ge.yposition - gamePtr->ball.height;
 		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[0]), gamePtr->maxballspeed);
@@ -1582,7 +1596,7 @@ bool checkBallCollisionWithObjects(GameData *gamePtr) {
 		FEXIT();
 		return true;
 	}
-
+	//check collision with player 2
 	else if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->player[1].ge), side)) {
 		gamePtr->ball.yposition = gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height;
 		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[1]), gamePtr->maxballspeed);
@@ -1591,12 +1605,14 @@ bool checkBallCollisionWithObjects(GameData *gamePtr) {
 		return true;
 	}
 
+	//check if the ball is in the car region
+	//otherwise no point in trying to check for car collisions
 	if(isBallInRegion(&(gamePtr->ball), &(gamePtr->carArea)) == false) {
 		FEXIT();
 		return false;
 	}
 
-
+	// find car collisions if they exist
 #if 1
 	int xdistance = gamePtr->ball.xposition - gamePtr->bricks[0][0].xposition;
 	int ydistance = gamePtr->ball.yposition - gamePtr->bricks[0][0].yposition ;
@@ -1679,23 +1695,34 @@ bool updateBallPosition(GameData *gamePtr) {
 		return true;
 	}
 
-	if(isBallInRegion(&(gamePtr->ball), &(gamePtr->carArea)) == true) {
-		if(abs(gamePtr->ball.xspeed) > gamePtr->bricks[0][0].width) {
-			gamePtr->ball.xposition = gamePtr->ball.xposition + signOfNumber(gamePtr->ball.xspeed)*gamePtr->bricks[0][0].width;
+	GameBasicBlock tmpBall = gamePtr->ball;
+
+	tmpBall.xposition = gamePtr->ball.xposition + gamePtr->ball.xspeed;
+	tmpBall.yposition = gamePtr->ball.yposition + gamePtr->ball.yspeed;
+
+	if(isBallInRegion(&tmpBall, &(gamePtr->carArea)) == true) {
+		if(abs(gamePtr->ball.xspeed) >= gamePtr->bricks[0][0].width) {
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
+			gamePtr->ball.xposition += signOfNumber(gamePtr->ball.xspeed)*(gamePtr->bricks[0][0].width-1);
 		}
 		else {
-			gamePtr->ball.xposition = gamePtr->ball.xposition + gamePtr->ball.xspeed;
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
+			gamePtr->ball.xposition += gamePtr->ball.xspeed;
 		}
-		if(abs(gamePtr->ball.yspeed) > gamePtr->bricks[0][0].height) {
-			gamePtr->ball.yposition = gamePtr->ball.yposition + signOfNumber(gamePtr->ball.yspeed)*gamePtr->bricks[0][0].height;
+		if(abs(gamePtr->ball.yspeed) >= gamePtr->bricks[0][0].height) {
+			gamePtr->ball.yprevposition = gamePtr->ball.yposition;
+			gamePtr->ball.yposition += signOfNumber(gamePtr->ball.yspeed)*(gamePtr->bricks[0][0].height-1);
 		}
 		else {
-			gamePtr->ball.yposition = gamePtr->ball.yposition + gamePtr->ball.yspeed;
+			gamePtr->ball.yprevposition = gamePtr->ball.yposition;
+			gamePtr->ball.yposition += gamePtr->ball.yspeed;
 		}
 	}
 	else {
-		gamePtr->ball.xposition = gamePtr->ball.xposition + gamePtr->ball.xspeed;
-		gamePtr->ball.yposition = gamePtr->ball.yposition + gamePtr->ball.yspeed;
+		gamePtr->ball.xprevposition = gamePtr->ball.xposition;
+		gamePtr->ball.yprevposition = gamePtr->ball.yposition;
+		gamePtr->ball.xposition +=  gamePtr->ball.xspeed;
+		gamePtr->ball.yposition += gamePtr->ball.yspeed;
 	}
 
 	if (checkBallCollisionWithObjects(gamePtr) == false) {
@@ -1753,14 +1780,18 @@ void  lrtBotControl(GameData *gamePtr) {
 	float f = gamePtr->player[botNumber].paddleSpeed * mult;
 	if (gamePtr->ball.xspeed > 0) {
 		if (gamePtr->ball.xposition > (gamePtr->player[botNumber].ge.xposition + gamePtr->player[botNumber].ge.width)) {
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 			gamePtr->player[botNumber].ge.xposition += (int) f;
 		} else if (gamePtr->ball.xposition < gamePtr->player[botNumber].ge.xposition) {
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 			gamePtr->player[botNumber].ge.xposition -= (int) f;
 		}
 	} else {
 		if (gamePtr->ball.xposition < gamePtr->player[botNumber].ge.xposition) {
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 			gamePtr->player[botNumber].ge.xposition -= (int) f;
 		} else if (gamePtr->ball.xposition  > (gamePtr->player[botNumber].ge.xposition + gamePtr->player[botNumber].ge.width)) {
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 			gamePtr->player[botNumber].ge.xposition += (int) f;
 		}
 	}
@@ -1820,24 +1851,32 @@ void  busBotControl(GameData *gamePtr) {
 	float f = gamePtr->player[botNumber].paddleSpeed * mult;
 	if (gamePtr->ball.xspeed > 0) {
 		if (gamePtr->ball.xposition > (gamePtr->player[botNumber].ge.xposition + gamePtr->player[botNumber].ge.width)) {
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 			gamePtr->player[botNumber].ge.xposition += (int) f;
 		} else if (gamePtr->ball.xposition < gamePtr->player[botNumber].ge.xposition) {
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 			gamePtr->player[botNumber].ge.xposition -= (int) f;
 		}
 	} else {
 		if (gamePtr->ball.xposition < gamePtr->player[botNumber].ge.xposition) {
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 			gamePtr->player[botNumber].ge.xposition -= (int) f;
 		} else if (gamePtr->ball.xposition  > (gamePtr->player[botNumber].ge.xposition + gamePtr->player[botNumber].ge.width)) {
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 			gamePtr->player[botNumber].ge.xposition += (int) f;
 		}
 	}
 
 	//end of display to the left
-	if (gamePtr->player[botNumber].ge.xposition < 0)
+	if (gamePtr->player[botNumber].ge.xposition < 0) {
+		gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 		gamePtr->player[botNumber].ge.xposition = 0;
+	}
 	//end of display to the right
-	if (gamePtr->player[botNumber].ge.xposition >= (gamePtr->display.width - gamePtr->player[botNumber].ge.width))
+	if (gamePtr->player[botNumber].ge.xposition >= (gamePtr->display.width - gamePtr->player[botNumber].ge.width)) {
+		gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 		gamePtr->player[botNumber].ge.xposition = (gamePtr->display.width - gamePtr->player[botNumber].ge.width);
+	}
 
 	FEXIT();
 } // end-of-function botControl

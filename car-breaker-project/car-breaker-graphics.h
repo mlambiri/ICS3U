@@ -46,13 +46,13 @@ typedef unsigned int uint;
 #define POINTSFORLOSTBALL 5
 
 enum FONTSIZES {
-    smallFont_c = 0, regularFont_c = 1, largeFont_c = 2
+	smallFont_c = 0, regularFont_c = 1, largeFont_c = 2
 };
 enum COLOURS {
-    yellow_c = 0, blue_c = 1, white_c = 2, green_c = 3, grey_c = 4, maxColors_c
+	yellow_c = 0, blue_c = 1, white_c = 2, green_c = 3, grey_c = 4, maxColors_c
 };
 enum BOTPLAYINGABILITY {
-    novice_c = 0, intermediate_c, expert_c, pro_c
+	novice_c = 0, intermediate_c, expert_c, pro_c
 };
 
 enum SCREENCOLORCHANGE {
@@ -94,15 +94,17 @@ enum COLLISIONSIDE {
   ---------------------------------------------------------------------------
  */
 typedef struct GameBasicBlock {
-    bool onScreen;
-    bool indestructible;
-    int xposition;
-    int yposition;
-    int width;
-    int height;
-    int xspeed;
-    int yspeed;
-    ALLEGRO_BITMAP* bmap;
+	bool onScreen;
+	bool indestructible;
+	int xposition;
+	int yposition;
+	int xprevposition;
+	int yprevposition;
+	int width;
+	int height;
+	int xspeed;
+	int yspeed;
+	ALLEGRO_BITMAP* bmap;
 }GameBasicBlock;
 
 /**
@@ -117,15 +119,15 @@ typedef struct GameBasicBlock {
   ---------------------------------------------------------------------------
  */
 typedef struct GamePlayer {
-    uint games;
-    uint carsSmashed;
-    GameBasicBlock ge;
-    char name[MAXNAME];
-    char audioFileName[MAXNAME];
-    ALLEGRO_SAMPLE *sample;
-    bool keyPress[2];
-    int paddleSpeed;
-    int paddleSize;
+	uint games;
+	uint carsSmashed;
+	GameBasicBlock ge;
+	char name[MAXNAME];
+	char audioFileName[MAXNAME];
+	ALLEGRO_SAMPLE *sample;
+	bool keyPress[2];
+	int paddleSpeed;
+	int paddleSize;
 }GamePlayer;
 
 /**
@@ -139,9 +141,9 @@ typedef struct GamePlayer {
   ---------------------------------------------------------------------------
  */
 typedef struct GameDisplay {
-    int width;
-    int height;
-    ALLEGRO_DISPLAY *display;
+	int width;
+	int height;
+	ALLEGRO_DISPLAY *display;
 } GameDisplay;
 
 
@@ -156,63 +158,63 @@ typedef struct GameDisplay {
   ---------------------------------------------------------------------------
  */
 typedef struct GameData {
-    GamePlayer player[2];
-    GameBasicBlock   ball;
-    GameDisplay display;
-    GAMEMODE   gameMode;
-    int    maxballspeed;
-    GamePlayer* roundWinner;
-    int    fontsize;
-    uint maxscore;
-    char fontFileName[MAXNAME];
-    char winSoundFile[MAXNAME];
-    float  fps;
+	GamePlayer player[2];
+	GameBasicBlock   ball;
+	GameDisplay display;
+	GAMEMODE   gameMode;
+	int    maxballspeed;
+	GamePlayer* roundWinner;
+	int    fontsize;
+	uint maxscore;
+	char fontFileName[MAXNAME];
+	char winSoundFile[MAXNAME];
+	float  fps;
 
-    ALLEGRO_EVENT ev;
-    ALLEGRO_EVENT_QUEUE *eventqueue;
-    ALLEGRO_TIMER *timer;
-    ALLEGRO_TIMER *botTimer;
-    ALLEGRO_FONT *font[MAXFONTS];
-    ALLEGRO_COLOR bcolorarray[maxColors_c];
-    ALLEGRO_COLOR* bcolor;
-    ALLEGRO_COLOR fcolor;
-    ALLEGRO_SAMPLE *startsample;
-    ALLEGRO_SAMPLE *winsample;
+	ALLEGRO_EVENT ev;
+	ALLEGRO_EVENT_QUEUE *eventqueue;
+	ALLEGRO_TIMER *timer;
+	ALLEGRO_TIMER *botTimer;
+	ALLEGRO_FONT *font[MAXFONTS];
+	ALLEGRO_COLOR bcolorarray[maxColors_c];
+	ALLEGRO_COLOR* bcolor;
+	ALLEGRO_COLOR fcolor;
+	ALLEGRO_SAMPLE *startsample;
+	ALLEGRO_SAMPLE *winsample;
 
-    GameBasicBlock bricks[MAXBRICKROWS][MAXBRICKCOLUMNS];
-    uint gameNumber;
-    GamePlayer* turn;
-    uint roundNumber;
-    uint remainingCars;
-    ALLEGRO_COLOR* initcolor;
-    uint scorePointsPerSmash;
+	GameBasicBlock bricks[MAXBRICKROWS][MAXBRICKCOLUMNS];
+	uint gameNumber;
+	GamePlayer* turn;
+	uint roundNumber;
+	uint remainingCars;
+	ALLEGRO_COLOR* initcolor;
+	uint scorePointsPerSmash;
 
-    char p1BitmapName[MAXNAME];
-    char p2BitmapName[MAXNAME];
-    char ballBitmapName[MAXNAME];
-    char gasBitmapName[MAXNAME];
-    char ecarBitmapName[MAXNAME];
+	char p1BitmapName[MAXNAME];
+	char p2BitmapName[MAXNAME];
+	char ballBitmapName[MAXNAME];
+	char gasBitmapName[MAXNAME];
+	char ecarBitmapName[MAXNAME];
 
-    ALLEGRO_BITMAP* gasBitmap;
-    ALLEGRO_BITMAP* ecarBitmap;
+	ALLEGRO_BITMAP* gasBitmap;
+	ALLEGRO_BITMAP* ecarBitmap;
 
-    int year;
+	int year;
 
-    char layout[MAXBRICKROWS][MAXBRICKCOLUMNS];
-    bool validLayout;
-    int penalty;
+	char layout[MAXBRICKROWS][MAXBRICKCOLUMNS];
+	bool validLayout;
+	int penalty;
 
-    char inLayout[MAXNAME];
-    char outLayout[MAXNAME];
+	char inLayout[MAXNAME];
+	char outLayout[MAXNAME];
 
-    int maxRows;
-    int maxColumns;
-    GameBasicBlock carArea;
+	int maxRows;
+	int maxColumns;
+	GameBasicBlock carArea;
 
 } GameData;
 
 
-#define INITGBB {true, true, 0, 0, 0, 0, 0, 0, NULL}
+#define INITGBB {true, true, 0, 0, 0,0, 0, 0, 0, 0, NULL}
 #define INITPLAYER {  0, 0, INITGBB, {0}, {0}, NULL, {false, false}, 0}
 #define INITDISPLAY {SCREEN_W, SCREEN_H, NULL}
 
