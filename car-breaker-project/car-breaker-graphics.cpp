@@ -19,6 +19,7 @@ static const int maxballspeed_c = minballspeed_c + 2;
 static const uint maxPaddleSize_c = 7;
 static const uint maxdiff_c = 4;
 static const uint botArrays_c = 5;
+static const int ballSpeedIncrease_c = 3;
 
 static const char P1FNAME[] = "player1.png";
 static const char P2FNAME[] = "player2.png";
@@ -274,13 +275,26 @@ void  initBrickLayout(GameData*gamePtr) {
 							topCount++;
 						}
 					}
-					else {
-						//					if(i>=1) {
-						//						if(gamePtr->bricks[i-1][j].indestructible == true) {
-						//							gamePtr->bricks[i][j].indestructible = false;
-						//							gamePtr->remainingCars++;
-						//						}
-						//					}
+				}
+			} //end-of-for
+		} //end-of-for
+
+		for(int i = 1; i < gamePtr->maxRows-1; i++) {
+			for (int j = 1; j < gamePtr->maxColumns-1; j++) {
+				if(gamePtr->bricks[i][j].indestructible  == false) {
+					// do not allow gas cars to be surrounded by ecars
+					// in that case the cars cannot be smashed
+					// check if the gas car is surrounded and if it is, make it an ecar
+					if((gamePtr->bricks[i-1][j].indestructible == true)
+							&& (gamePtr->bricks[i][j-1].indestructible == true)
+							&& (gamePtr->bricks[i][j+1].indestructible == true)
+							&& (gamePtr->bricks[i+1][j].indestructible == true)
+					){
+						gamePtr->bricks[i][j].indestructible = true;
+						if(gamePtr->bricks[i][j].onScreen == true)
+							gamePtr->remainingCars--;
+						else
+							gamePtr->bricks[i][j].onScreen = true;
 					}
 				}
 			} //end-of-for
@@ -374,6 +388,47 @@ void  setPointsPerSmash(GameData*gamePtr) {
 
 	FEXIT();
 }
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 30, 2019
+ @mname   fastBall
+ @details
+   increase one component of the ball speed
+   very useful when we get into an infinite ricochet loop\n
+ --------------------------------------------------------------------------
+ */
+void fastBall(GameData* g) {
+	if(abs(g->ball.xspeed) < abs(g->ball.yspeed)) {
+		g->ball.xspeed += signOfNumber(g->ball.xspeed)*ballSpeedIncrease_c;
+	}
+	else {
+		g->ball.yspeed += signOfNumber(g->ball.yspeed)*ballSpeedIncrease_c;
+	}
+}
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 30, 2019
+ @mname   slowBall
+ @details
+    decrease the largest component of speed
+    very useful to get out of infinite ricochet loops\n
+ --------------------------------------------------------------------------
+ */
+void slowBall(GameData* g) {
+	if(abs(g->ball.xspeed) > abs(g->ball.yspeed)) {
+		g->ball.xspeed -= signOfNumber(g->ball.xspeed)*ballSpeedIncrease_c;
+	}
+	else {
+		g->ball.yspeed -= signOfNumber(g->ball.yspeed)*ballSpeedIncrease_c;
+	}
+}
+
 
 /**
  ---------------------------------------------------------------------------
@@ -643,7 +698,7 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 		return false;
 	}
 	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize))
-                        																				/ maxPaddleSize_c;
+                        																																								/ maxPaddleSize_c;
 	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
 	return true;
@@ -969,6 +1024,12 @@ bool processKeyPressEvent(GameData *gamePtr) {
 				return false;
 			}
 			break;
+		case ALLEGRO_KEY_F:
+			fastBall(gamePtr);
+			break;
+		case ALLEGRO_KEY_S:
+			slowBall(gamePtr);
+			break;
 		case ALLEGRO_KEY_ESCAPE:
 			//exit game
 			FEXIT();
@@ -1213,17 +1274,17 @@ bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 		playSound(gamePtr->winsample);
 		if(gamePtr->gameMode == fullbot_c) {
 			sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
-							"Full Auto", gamePtr->player[1].name,
-							gamePtr->player[0].name);
+					"Full Auto", gamePtr->player[1].name,
+					gamePtr->player[0].name);
 		}
 		else if (gamePtr->gameMode == arcade_c) {
 			sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
-							"Arcade", gamePtr->player[1].name,
-							gamePtr->player[0].name);
+					"Arcade", gamePtr->player[1].name,
+					gamePtr->player[0].name);
 		} else {
 			sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
-							"Human", gamePtr->player[1].name,
-							gamePtr->player[0].name);
+					"Human", gamePtr->player[1].name,
+					gamePtr->player[0].name);
 		}
 		sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
 				(gamePtr->gameMode ? "Arcade" : "Human"), gamePtr->player[1].name,

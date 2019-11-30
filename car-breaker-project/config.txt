@@ -50,7 +50,7 @@ penalty = 5
 # possible values yellow, blue, white, green, q
 colourscheme = q
 
-p1paddleSpeed = 40
+p1paddleSpeed = 30
 p2paddleSpeed = 20
 
 winSound = applause6.wav

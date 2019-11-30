@@ -13,3 +13,5 @@
 2019-11-29 18:35:52  [Mode: Arcade] [Score: LRT Bus] 
 2019-11-29 19:40:35  [Mode: Arcade] [Score: LRT Bus] 
 2019-11-29 19:48:46  [Mode: Arcade] [Score: LRT Bus] 
+2019-11-30 09:11:21  [Mode: Arcade] [Score: LRT Bus] 
+2019-11-30 09:22:18  [Mode: Arcade] [Score: LRT Bus] 
