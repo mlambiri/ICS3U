@@ -1783,6 +1783,11 @@ uint max(uint a, uint b) {
 	else return b;
 }
 
+uint min(uint a, uint b) {
+	if(a>b) return b;
+	else return a;
+}
+
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
@@ -1820,21 +1825,17 @@ bool updateBallPosition(GameData *gamePtr) {
 
 		if(isBallInRegion(&tmpBall, &(gamePtr->carArea)) == true) {
 			if(abs(gamePtr->ball.xspeed) >= gamePtr->bricks[0][0].width) {
-				gamePtr->ball.xprevposition = gamePtr->ball.xposition;
-				gamePtr->ball.xposition += signOfNumber(gamePtr->ball.xspeed)*(gamePtr->bricks[0][0].width-1);
+				gamePtr->ball.xspeed = signOfNumber(gamePtr->ball.xspeed)*gamePtr->maxXSpeed;
 			}
-			else {
-				gamePtr->ball.xprevposition = gamePtr->ball.xposition;
-				gamePtr->ball.xposition += gamePtr->ball.xspeed;
-			}
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
+			gamePtr->ball.xposition += gamePtr->ball.xspeed;
+
 			if(abs(gamePtr->ball.yspeed) >= gamePtr->bricks[0][0].height) {
-				gamePtr->ball.yprevposition = gamePtr->ball.yposition;
-				gamePtr->ball.yposition += signOfNumber(gamePtr->ball.yspeed)*(gamePtr->bricks[0][0].height-1);
+				gamePtr->ball.yspeed += signOfNumber(gamePtr->ball.yspeed)*gamePtr->maxYSpeed;
 			}
-			else {
-				gamePtr->ball.yprevposition = gamePtr->ball.yposition;
-				gamePtr->ball.yposition += gamePtr->ball.yspeed;
-			}
+			gamePtr->ball.yprevposition = gamePtr->ball.yposition;
+			gamePtr->ball.yposition += gamePtr->ball.yspeed;
+
 
 			// this collision detection checks all rows and columns
 			// it is simple and effective as it checks all cars one by one
@@ -1868,6 +1869,12 @@ bool updateBallPosition(GameData *gamePtr) {
 			}
 		}
 		else {
+			if(abs(gamePtr->ball.xspeed) >= gamePtr->bricks[0][0].width) {
+				gamePtr->ball.xspeed = signOfNumber(gamePtr->ball.xspeed)*gamePtr->maxXSpeed;
+			}
+			if(abs(gamePtr->ball.yspeed) >= gamePtr->bricks[0][0].height) {
+				gamePtr->ball.yspeed += signOfNumber(gamePtr->ball.yspeed)*gamePtr->maxYSpeed;
+			}
 			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 			gamePtr->ball.yprevposition = gamePtr->ball.yposition;
 			gamePtr->ball.xposition +=  gamePtr->ball.xspeed;
@@ -1944,6 +1951,12 @@ bool updateBallPosition(GameData *gamePtr) {
 				if(collision) {
 					//printf("**  xn = %d, yn = %d w=%d h=%d xo=%d, yo=%d\n", gamePtr->ball.xposition , gamePtr->ball.yposition, gamePtr->bricks[0][0].width, gamePtr->bricks[0][0].height, gamePtr->bricks[0][0].xposition, gamePtr->bricks[0][0].yposition);
 					//printf("**  coll  row = %d, col = %d\n", row ,column);
+					if(abs(gamePtr->ball.xspeed) >= gamePtr->bricks[0][0].width) {
+						gamePtr->ball.xspeed = signOfNumber(gamePtr->ball.xspeed)*gamePtr->maxXSpeed;
+					}
+					if(abs(gamePtr->ball.yspeed) >= gamePtr->bricks[0][0].height) {
+						gamePtr->ball.yspeed += signOfNumber(gamePtr->ball.yspeed)*gamePtr->maxYSpeed;
+					}
 					gamePtr->ball.xposition +=  gamePtr->ball.xspeed;
 					gamePtr->ball.yposition += gamePtr->ball.yspeed;
 					break;
@@ -1952,6 +1965,12 @@ bool updateBallPosition(GameData *gamePtr) {
 		} //end-of-for
 
 		if(collision == false) {
+			if(abs(gamePtr->ball.xspeed) >= gamePtr->bricks[0][0].width) {
+				gamePtr->ball.xspeed = signOfNumber(gamePtr->ball.xspeed)*gamePtr->maxXSpeed;
+			}
+			if(abs(gamePtr->ball.yspeed) >= gamePtr->bricks[0][0].height) {
+				gamePtr->ball.yspeed += signOfNumber(gamePtr->ball.yspeed)*gamePtr->maxYSpeed;
+			}
 			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 			gamePtr->ball.yprevposition = gamePtr->ball.yposition;
 			gamePtr->ball.xposition +=  gamePtr->ball.xspeed;
@@ -2607,6 +2626,9 @@ bool initializeGraphics() {
 	loadAudio(&(p->player[0]));
 	loadAudio(&(p->player[1]));
 	loadAudioWinner(p);
+
+	p->maxXSpeed = p->bricks[0][0].width - 5;
+	p->maxYSpeed = p->bricks[0][0].height - 5;
 
 	setInitialObjectPositions(p);
 
