@@ -401,12 +401,8 @@ void  setPointsPerSmash(GameData*gamePtr) {
  --------------------------------------------------------------------------
  */
 void fastBall(GameData* g) {
-	if(abs(g->ball.xspeed) < abs(g->ball.yspeed)) {
-		g->ball.xspeed += signOfNumber(g->ball.xspeed)*ballSpeedIncrease_c;
-	}
-	else {
-		g->ball.yspeed += signOfNumber(g->ball.yspeed)*ballSpeedIncrease_c;
-	}
+	g->maxXSpeed += 2;
+	g->maxYSpeed += 2;
 }
 
 
@@ -421,12 +417,8 @@ void fastBall(GameData* g) {
  --------------------------------------------------------------------------
  */
 void slowBall(GameData* g) {
-	if(abs(g->ball.xspeed) > abs(g->ball.yspeed)) {
-		g->ball.xspeed -= signOfNumber(g->ball.xspeed)*ballSpeedIncrease_c;
-	}
-	else {
-		g->ball.yspeed -= signOfNumber(g->ball.yspeed)*ballSpeedIncrease_c;
-	}
+	g->maxXSpeed -= 2;
+	g->maxYSpeed -= 2;
 }
 
 
@@ -670,6 +662,13 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 
 	if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->bricks[i][j]), side)) {
 
+		if(gamePtr->ball.yspeed == 0) {
+			gamePtr->ball.yspeed = rand() %3 -2;
+		}
+		if(gamePtr->ball.xspeed == 0) {
+			gamePtr->ball.xspeed = rand() %3 -2;
+		}
+
 		switch(side){
 		case top_c:
 			gamePtr->ball.yspeed *= -1;
@@ -685,16 +684,10 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 			break;
 		case left_c:
 			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition - gamePtr->ball.width;
-			if(gamePtr->ball.xspeed == 0) {
-				gamePtr->ball.xspeed = rand() %3 -2;
-			}
 			gamePtr->ball.xspeed *= -1;
 			//printf("left\n");
 			break;
 		case right_c:
-			if(gamePtr->ball.xspeed == 0) {
-				gamePtr->ball.xspeed = rand() %3 - 2;
-			}
 			gamePtr->ball.xspeed *= -1;
 			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition + gamePtr->bricks[i][j].width;
 			//printf("right\n");
@@ -753,15 +746,35 @@ bool isBallBrickCollisionPossible(GameData* gamePtr, GameBasicBlock* tmpBall, in
 		switch(side){
 		case top_c:
 			tmpBall->yposition = gamePtr->bricks[i][j].yposition - tmpBall->height;
+			if(tmpBall->yspeed < 0) {
+				FEXIT();
+				return false;
+			}
+			//printf("p-top\n");
 			break;
 		case bottom_c:
 			tmpBall->yposition = gamePtr->bricks[i][j].yposition + gamePtr->bricks[i][j].height;
+			if(tmpBall->yspeed > 0) {
+				FEXIT();
+				return false;
+			}
+			//printf("p-bottom\n");
 			break;
 		case left_c:
 			tmpBall->xposition = gamePtr->bricks[i][j].xposition - tmpBall->width;
+			if(tmpBall->xspeed < 0) {
+				FEXIT();
+				return false;
+			}
+			//printf("p-left\n");
 			break;
 		case right_c:
 			tmpBall->xposition = gamePtr->bricks[i][j].xposition + gamePtr->bricks[i][j].width;
+			if(tmpBall->xspeed > 0) {
+				FEXIT();
+				return false;
+			}
+			//printf("p-right\n");
 			break;
 		default:
 			break;
@@ -810,7 +823,7 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 		return false;
 	}
 	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize))
-                        																																														/ maxPaddleSize_c;
+                        																																																/ maxPaddleSize_c;
 	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
 	return true;
@@ -1778,11 +1791,33 @@ bool checkBallCollisionWithPlayers(GameData *gamePtr) {
 	return false;
 } // end-of-function checkCollisionWithPlayers
 
+/**
+  --------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Nov. 30, 2019
+   @name    max
+   @param   uint, uint
+   @return  uint
+   @details
+	\n
+  -------------------------------------------------------------------------
+ */
 uint max(uint a, uint b) {
 	if(a>b) return a;
 	else return b;
 }
 
+/**
+  --------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Nov. 30, 2019
+   @name    min
+   @param   a, b
+   @return  int
+   @details
+	\n
+  -------------------------------------------------------------------------
+ */
 uint min(uint a, uint b) {
 	if(a>b) return b;
 	else return a;
@@ -1824,13 +1859,13 @@ bool updateBallPosition(GameData *gamePtr) {
 		tmpBall.yposition = gamePtr->ball.yposition + gamePtr->ball.yspeed;
 
 		if(isBallInRegion(&tmpBall, &(gamePtr->carArea)) == true) {
-			if(abs(gamePtr->ball.xspeed) >= gamePtr->bricks[0][0].width) {
+			if(abs(gamePtr->ball.xspeed) > gamePtr->maxXSpeed) {
 				gamePtr->ball.xspeed = signOfNumber(gamePtr->ball.xspeed)*gamePtr->maxXSpeed;
 			}
 			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
 			gamePtr->ball.xposition += gamePtr->ball.xspeed;
 
-			if(abs(gamePtr->ball.yspeed) >= gamePtr->bricks[0][0].height) {
+			if(abs(gamePtr->ball.yspeed) > gamePtr->maxYSpeed) {
 				gamePtr->ball.yspeed += signOfNumber(gamePtr->ball.yspeed)*gamePtr->maxYSpeed;
 			}
 			gamePtr->ball.yprevposition = gamePtr->ball.yposition;
@@ -1869,10 +1904,10 @@ bool updateBallPosition(GameData *gamePtr) {
 			}
 		}
 		else {
-			if(abs(gamePtr->ball.xspeed) >= gamePtr->bricks[0][0].width) {
+			if(abs(gamePtr->ball.xspeed) > gamePtr->maxXSpeed) {
 				gamePtr->ball.xspeed = signOfNumber(gamePtr->ball.xspeed)*gamePtr->maxXSpeed;
 			}
-			if(abs(gamePtr->ball.yspeed) >= gamePtr->bricks[0][0].height) {
+			if(abs(gamePtr->ball.yspeed) > gamePtr->maxYSpeed) {
 				gamePtr->ball.yspeed += signOfNumber(gamePtr->ball.yspeed)*gamePtr->maxYSpeed;
 			}
 			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
@@ -1926,6 +1961,8 @@ bool updateBallPosition(GameData *gamePtr) {
 				for (int j = minColumn; j < maxColumn; j++) {
 					if(isBallBrickCollisionPossible(gamePtr, &tmpBall, i, j)) {
 						possible = true;
+						row = i;
+						column = j;
 						break;
 					}
 				} //end-of-for
@@ -1938,37 +1975,28 @@ bool updateBallPosition(GameData *gamePtr) {
 				gamePtr->ball.xposition = tmpBall.xposition;
 				gamePtr->ball.yposition = tmpBall.yposition;
 
-				//printf("%d %d %d %d\n", minRow, maxRow, minColumn, maxColumn);
-				for (int i = minRow; i < maxRow; i++) {
-					for (int j = minColumn; j < maxColumn; j++) {
-						if(isBallBrickCollision(gamePtr, i, j)) {
-							collision = true;
-							break;
-						}
-					} //end-of-for
-					if(collision) break;
-				} //end-of-for
-				if(collision) {
+				if(isBallBrickCollision(gamePtr, row, column)) {
+					collision = true;
 					//printf("**  xn = %d, yn = %d w=%d h=%d xo=%d, yo=%d\n", gamePtr->ball.xposition , gamePtr->ball.yposition, gamePtr->bricks[0][0].width, gamePtr->bricks[0][0].height, gamePtr->bricks[0][0].xposition, gamePtr->bricks[0][0].yposition);
 					//printf("**  coll  row = %d, col = %d\n", row ,column);
-					if(abs(gamePtr->ball.xspeed) >= gamePtr->bricks[0][0].width) {
+					if(abs(gamePtr->ball.xspeed) > gamePtr->maxXSpeed) {
 						gamePtr->ball.xspeed = signOfNumber(gamePtr->ball.xspeed)*gamePtr->maxXSpeed;
 					}
-					if(abs(gamePtr->ball.yspeed) >= gamePtr->bricks[0][0].height) {
+					if(abs(gamePtr->ball.yspeed) >= gamePtr->maxYSpeed) {
 						gamePtr->ball.yspeed += signOfNumber(gamePtr->ball.yspeed)*gamePtr->maxYSpeed;
 					}
-					gamePtr->ball.xposition +=  gamePtr->ball.xspeed;
-					gamePtr->ball.yposition += gamePtr->ball.yspeed;
+					//gamePtr->ball.xposition = gamePtr->ball.xprevposition +  gamePtr->ball.xspeed;
+					//gamePtr->ball.yposition = gamePtr->ball.yprevposition + gamePtr->ball.yspeed;
 					break;
 				}
 			}
 		} //end-of-for
 
 		if(collision == false) {
-			if(abs(gamePtr->ball.xspeed) >= gamePtr->bricks[0][0].width) {
+			if(abs(gamePtr->ball.xspeed) > gamePtr->maxXSpeed) {
 				gamePtr->ball.xspeed = signOfNumber(gamePtr->ball.xspeed)*gamePtr->maxXSpeed;
 			}
-			if(abs(gamePtr->ball.yspeed) >= gamePtr->bricks[0][0].height) {
+			if(abs(gamePtr->ball.yspeed) > gamePtr->maxYSpeed) {
 				gamePtr->ball.yspeed += signOfNumber(gamePtr->ball.yspeed)*gamePtr->maxYSpeed;
 			}
 			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
@@ -2627,8 +2655,8 @@ bool initializeGraphics() {
 	loadAudio(&(p->player[1]));
 	loadAudioWinner(p);
 
-	p->maxXSpeed = p->bricks[0][0].width - 5;
-	p->maxYSpeed = p->bricks[0][0].height - 5;
+	p->maxXSpeed = p->bricks[0][0].width /4;
+	p->maxYSpeed = p->bricks[0][0].height/4;
 
 	setInitialObjectPositions(p);
 
