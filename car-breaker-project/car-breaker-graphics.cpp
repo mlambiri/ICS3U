@@ -455,6 +455,58 @@ bool isPointInObject(GameBasicBlock* b, int x, int y){
 	}
 }
 
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 30, 2019
+ @mname   isPointInAnyCar
+ @details
+  return false if the point denoted by coordinates (x,y) is
+  not in any car.
+  row and column parameters will return the coordinate
+  of the car in case the point is in one of them\n
+ --------------------------------------------------------------------------
+ */
+bool isPointInAnyCar(GameData* g,  int x, int y, int&row, int&column){
+	FENTRY();
+	TRACE();
+
+	// check if the point is in the car region
+	GameBasicBlock* obj = &(g->carArea);
+	bool result = isPointInObject(obj,x, y);
+
+	if(result == false) {
+		// not in car area, we can return
+		FEXIT();
+		return false;
+	}
+
+	column = (x - g->bricks[0][0].xposition) / g->bricks[0][0].width;
+	row = (y - g->bricks[0][0].yposition) / g->bricks[0][0].height;
+
+	if(row >= g->maxRows) {
+		FEXIT();
+		return false;
+	}
+
+	if(column >= g->maxColumns) {
+		FEXIT();
+		return false;
+	}
+
+	if(g->bricks[row][column].onScreen == false) {
+		// this is an empty space on screen
+		FEXIT();
+		return false;
+	}
+	else {
+		FEXIT();
+		return true;
+	}
+}
+
+
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
@@ -698,7 +750,7 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 		return false;
 	}
 	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize))
-                        																																								/ maxPaddleSize_c;
+                        																																										/ maxPaddleSize_c;
 	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
 	return true;
@@ -1733,6 +1785,11 @@ bool checkBallCollisionWithObjects(GameData *gamePtr) {
 	return false;
 } // end-of-function CheckPaletteCollision
 
+uint max(uint a, uint b) {
+	if(a>b) return a;
+	else return b;
+}
+
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
@@ -1756,34 +1813,90 @@ bool updateBallPosition(GameData *gamePtr) {
 		return true;
 	}
 
-	GameBasicBlock tmpBall = gamePtr->ball;
 
-	tmpBall.xposition = gamePtr->ball.xposition + gamePtr->ball.xspeed;
-	tmpBall.yposition = gamePtr->ball.yposition + gamePtr->ball.yspeed;
+	if(gamePtr->cAlgoSelector == false) {
+		GameBasicBlock tmpBall = gamePtr->ball;
 
-	if(isBallInRegion(&tmpBall, &(gamePtr->carArea)) == true) {
-		if(abs(gamePtr->ball.xspeed) >= gamePtr->bricks[0][0].width) {
-			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
-			gamePtr->ball.xposition += signOfNumber(gamePtr->ball.xspeed)*(gamePtr->bricks[0][0].width-1);
+		tmpBall.xposition = gamePtr->ball.xposition + gamePtr->ball.xspeed;
+		tmpBall.yposition = gamePtr->ball.yposition + gamePtr->ball.yspeed;
+
+		if(isBallInRegion(&tmpBall, &(gamePtr->carArea)) == true) {
+			if(abs(gamePtr->ball.xspeed) >= gamePtr->bricks[0][0].width) {
+				gamePtr->ball.xprevposition = gamePtr->ball.xposition;
+				gamePtr->ball.xposition += signOfNumber(gamePtr->ball.xspeed)*(gamePtr->bricks[0][0].width-1);
+			}
+			else {
+				gamePtr->ball.xprevposition = gamePtr->ball.xposition;
+				gamePtr->ball.xposition += gamePtr->ball.xspeed;
+			}
+			if(abs(gamePtr->ball.yspeed) >= gamePtr->bricks[0][0].height) {
+				gamePtr->ball.yprevposition = gamePtr->ball.yposition;
+				gamePtr->ball.yposition += signOfNumber(gamePtr->ball.yspeed)*(gamePtr->bricks[0][0].height-1);
+			}
+			else {
+				gamePtr->ball.yprevposition = gamePtr->ball.yposition;
+				gamePtr->ball.yposition += gamePtr->ball.yspeed;
+			}
 		}
 		else {
 			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
-			gamePtr->ball.xposition += gamePtr->ball.xspeed;
-		}
-		if(abs(gamePtr->ball.yspeed) >= gamePtr->bricks[0][0].height) {
 			gamePtr->ball.yprevposition = gamePtr->ball.yposition;
-			gamePtr->ball.yposition += signOfNumber(gamePtr->ball.yspeed)*(gamePtr->bricks[0][0].height-1);
-		}
-		else {
-			gamePtr->ball.yprevposition = gamePtr->ball.yposition;
+			gamePtr->ball.xposition +=  gamePtr->ball.xspeed;
 			gamePtr->ball.yposition += gamePtr->ball.yspeed;
 		}
 	}
 	else {
-		gamePtr->ball.xprevposition = gamePtr->ball.xposition;
-		gamePtr->ball.yprevposition = gamePtr->ball.yposition;
-		gamePtr->ball.xposition +=  gamePtr->ball.xspeed;
-		gamePtr->ball.yposition += gamePtr->ball.yspeed;
+		uint maxxyspeed = max(abs(gamePtr->ball.xspeed), abs(gamePtr->ball.yspeed));
+		float xplus = (float) gamePtr->ball.xspeed / maxxyspeed;
+		float yplus = (float)  gamePtr->ball.yspeed / maxxyspeed;
+		bool collision = false;
+		int xo = gamePtr->ball.xposition;
+		int yo = gamePtr->ball.yposition ;
+		if(gamePtr->ball.xspeed > 0 && gamePtr->ball.yspeed > 0) {
+			xo = gamePtr->ball.xposition + gamePtr->ball.width;
+			yo = gamePtr->ball.yposition + gamePtr->ball.height;
+		}
+		if(gamePtr->ball.xspeed > 0 && gamePtr->ball.yspeed < 0) {
+			xo = gamePtr->ball.xposition + gamePtr->ball.width;
+			yo = gamePtr->ball.yposition;
+		}
+
+		if(gamePtr->ball.xspeed < 0 && gamePtr->ball.yspeed > 0) {
+			xo = gamePtr->ball.xposition ;
+			yo = gamePtr->ball.yposition + gamePtr->ball.height;
+		}
+		//printf("%d\n", maxxyspeed);
+		for (int i = 0; i < maxxyspeed; i++ ) {
+			float xf = xo + i*xplus;
+			float yf = yo + i*yplus;
+			int xn = (int)xf;
+			int yn = (int)yf;
+
+			if(xn < 0) xn = 0;
+			if(xn > gamePtr->display.width) xn = gamePtr->display.width;
+			if(yn < 0) yn = 0;
+			if(yn > gamePtr->display.height) yn = gamePtr->display.height;
+			int row, column;
+
+			if(isPointInAnyCar(gamePtr, (int)xn, (int)yn, row, column) == true) {
+				collision = true;
+				gamePtr->ball.xprevposition = gamePtr->ball.xposition;
+				gamePtr->ball.yprevposition = gamePtr->ball.yposition;
+				gamePtr->ball.xposition = xn;
+				gamePtr->ball.yposition = yn;
+				//printf("pos  xn = %d, yn = %d w=%d h=%d xo=%d, yo=%d\n", xn ,yn, gamePtr->bricks[0][0].width, gamePtr->bricks[0][0].height, gamePtr->bricks[0][0].xposition, gamePtr->bricks[0][0].yposition);
+				//printf("coll  row = %d, col = %d\n", row ,column);
+				break;
+			}
+		} //end-of-for
+
+		if(collision == false) {
+			gamePtr->ball.xprevposition = gamePtr->ball.xposition;
+			gamePtr->ball.yprevposition = gamePtr->ball.yposition;
+			gamePtr->ball.xposition +=  gamePtr->ball.xspeed;
+			gamePtr->ball.yposition += gamePtr->ball.yspeed;
+		}
+
 	}
 
 	if (checkBallCollisionWithObjects(gamePtr) == false) {
@@ -2121,6 +2234,7 @@ bool initializeGameData(int argc, char **argv) {
 	p->bcolor = &(p->bcolorarray[yellow_c]);
 
 	p->scorePointsPerSmash = 1;
+	p->cAlgoSelector = false;
 
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself
@@ -2144,6 +2258,10 @@ bool initializeGameData(int argc, char **argv) {
 			//display height
 			if (++param < argc)
 				p->display.height = atoi(argv[param]);
+		}else if (strcmp(argv[param], "calgo") == 0) {
+			//display height
+			if (++param < argc)
+				p->cAlgoSelector = (bool) atoi(argv[param]);
 		}else if (strcmp(argv[param], "year") == 0) {
 			//the year of play
 			// pre 2000 there are no electric cars

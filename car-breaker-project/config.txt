@@ -46,6 +46,10 @@ outfile = testout.txt
 # points penalty for losing the ball
 penalty = 5
 
+#collision algorithm number to use 
+# 0 or 1 
+calgo = 1
+
 
 # possible values yellow, blue, white, green, q
 colourscheme = q

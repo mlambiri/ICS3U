@@ -210,6 +210,7 @@ typedef struct GameData {
 	int maxRows;
 	int maxColumns;
 	GameBasicBlock carArea;
+	bool cAlgoSelector;
 
 } GameData;
 
