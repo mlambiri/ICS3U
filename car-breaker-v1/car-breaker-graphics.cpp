@@ -1233,13 +1233,14 @@ bool checkCollisionTopAndBottom(GameData *gamePtr) {
 	TRACE();
 	if ((gamePtr->ball.yposition >= (gamePtr->display.height - gamePtr->ball.height))
 			&& (gamePtr->ball.yspeed > 0)) {
+		DEBUG("I hit the bottom line\n");
 		gamePtr->player[1].carsSmashed += gamePtr->penalty;
 		gamePtr->roundWinner = &(gamePtr->player[1]);
 		FEXIT();
 		return true;
 
 	} else if ((gamePtr->ball.yposition <= 0) && (gamePtr->ball.yspeed < 0)) {
-		TRACE();
+		DEBUG("I hit the top line\n");
 		gamePtr->player[0].carsSmashed += gamePtr->penalty;
 		gamePtr->roundWinner = &(gamePtr->player[0]);
 		FEXIT();
