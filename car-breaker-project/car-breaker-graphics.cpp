@@ -14,8 +14,8 @@
 #include "game-debug.h"
 #include "car-breaker-graphics.h"
 
-static const int minballspeed_c = 3;
-static const int maxballspeed_c = minballspeed_c + 2;
+static const int minballspeed_c = 2;
+static const int maxballspeed_c = 7;
 static const uint maxPaddleSize_c = 7;
 static const uint maxdiff_c = 4;
 static const uint botArrays_c = 5;
@@ -963,7 +963,7 @@ void  setInitialObjectPositions(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 	gamePtr->ball.yspeed = minballspeed_c
-			+ rand() % (gamePtr->maxballspeed - minballspeed_c);
+			+ rand() % 3;
 	if (gamePtr->roundWinner) {
 		gamePtr->turn = gamePtr->roundWinner;
 		if (gamePtr->roundWinner == &(gamePtr->player[0])) {
@@ -2394,9 +2394,14 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 		} else if (strcmp(argv[param], "maxballspeed") == 0) {
 			// maximum number of pixels the ball will move between frames
 			if (++param < argc) {
-				p->maxballspeed = atoi(argv[param]);
-				if (p->maxballspeed <= maxballspeed_c)
-					p->maxballspeed = maxballspeed_c;
+				int maxballspeed = atoi(argv[param]);
+				if(maxballspeed <= 0)
+					maxballspeed = minballspeed_c;
+				if (maxballspeed >= maxballspeed_c)
+					maxballspeed = maxballspeed_c;
+				p->maxXSpeed = maxballspeed;
+				p->maxYSpeed = maxballspeed;
+				p->maxballspeed = maxballspeed;
 			}
 		} else if (strcmp(argv[param], "p1name") == 0) {
 			//player1 name
@@ -2656,8 +2661,8 @@ bool initializeGraphics(GameData *p) {
 	loadAudio(&(p->player[1]));
 	loadAudioWinner(p);
 
-	p->maxXSpeed = p->bricks[0][0].width /4;
-	p->maxYSpeed = p->bricks[0][0].height/4;
+	p->maxXSpeed = maxballspeed_c;
+	p->maxYSpeed = maxballspeed_c;
 
 	setInitialObjectPositions(p);
 

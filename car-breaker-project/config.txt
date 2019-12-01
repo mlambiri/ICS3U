@@ -13,7 +13,11 @@ p2name = LRT
 # number of rounds to play before a winner is declared
 # a round ends when the ball exits through the top/bottom lines
 maxrounds = 5
-maxballspeed =  1
+
+#maximum number of pixels the ball advances in one direction 
+#per frame [2, 7]
+
+maxballspeed =  4
 
 # gamemode is one of: human, arcade, auto
 gamemode = auto
@@ -71,5 +75,5 @@ winSound = applause6.wav
 p1level = 5
 p2level = 2
 
-#frames per second min 5 max 240
+#frames per second min 5 max 120
 fps = 60
