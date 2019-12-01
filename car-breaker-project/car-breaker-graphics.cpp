@@ -20,6 +20,7 @@ static const uint maxPaddleSize_c = 7;
 static const uint maxdiff_c = 4;
 static const uint botArrays_c = 5;
 static const int ballSpeedIncrease_c = 3;
+static const int initPaddleSpeed_c = 20;
 
 static const char P1FNAME[] = "player1.png";
 static const char P2FNAME[] = "player2.png";
@@ -338,12 +339,18 @@ void  setBrickInfo(GameData* p) {
 					return;
 				}
 			}
-			p->carArea.width += p->bricks[i][j].width;
 			p->bricks[i][j].xspeed = 0;
 			p->bricks[i][j].yspeed = 0;
 		} //end-of-for
-		p->carArea.height += p->bricks[i][0].height;
 	} //end-of-for
+
+	for (int j = 0; j < p->maxColumns; j++) {
+		p->carArea.width += p->bricks[0][j].width;
+	}
+	for (int i = 0; i < p->maxRows; i++) {
+		p->carArea.height += p->bricks[i][0].height;
+	}
+
 
 	if(p->carArea.width > p->display.width) {
 		int c1 = p->display.width / p->bricks[0][0].width;
@@ -586,21 +593,7 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
 		FEXIT();
 		return true;
 	}
-#if 0
-	if(ball->xspeed > 0 && ball->xposition < obj->xposition) {
-		// (top, left) (bottom, left)
-	}
-	if(ball->xspeed < 0 && (ball->xposition + ball->width) > (obj->xposition + ball->width)) {
-		// (top, right) (bottom, right)
-	}
-	if(ball->yspeed > 0 && ball->yposition < obj->yposition) {
-		// (top, right), (top, left)
-	}
-	if(ball->yspeed < 0 && (ball->yposition + ball->height) > (obj->xposition + ball->height)) {
-		// (bottom, right), (bottom, left)
-	}
 
-#else
 	float o1a = atan((float)obj->width/(float)obj->height);
 
 	// above left
@@ -634,7 +627,7 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
 			else side = right_c;
 		}
 	}
-#endif
+
 	FEXIT();
 	return true;
 }
@@ -823,7 +816,7 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 		return false;
 	}
 	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize))
-                        																																																/ maxPaddleSize_c;
+                        																																																		/ maxPaddleSize_c;
 	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
 	return true;
@@ -1109,7 +1102,7 @@ bool pauseGame(GameData *gamePtr) {
  When a key is pushed down a boolean is set to keep the keep down as it is pressed\n
  --------------------------------------------------------------------------
  */
-bool processKeyPressEvent(GameData *gamePtr) {
+bool isKeyPressEvent(GameData *gamePtr) {
 
 	FENTRY();
 	TRACE();
@@ -1141,7 +1134,7 @@ bool processKeyPressEvent(GameData *gamePtr) {
 				gamePtr->player[1].keyPress[1] = true;
 			else
 				gamePtr->player[1].keyPress[1] = false;
-			gamePtr->player[0].keyPress[0] = false;
+			gamePtr->player[1].keyPress[0] = false;
 			break;
 		case ALLEGRO_KEY_P:
 			if (pauseGame(gamePtr) == false) {
@@ -1335,7 +1328,7 @@ bool drawTextAndWaitBegin(GameData *gamePtr) {
 				gamePtr->display.height / 2, regularFont_c);
 	}
 	char buffer[100];
-	sprintf(buffer, "Most points after %d rounds wins!", gamePtr->maxscore);
+	sprintf(buffer, "Most points after %d rounds wins!", gamePtr->maxRounds);
 	next = drawTextOnScreen(gamePtr, buffer, gamePtr->display.width / 2, next, regularFont_c);
 	next = drawTextOnScreen(gamePtr, (char*) "Press a key to begin", gamePtr->display.width / 2,
 			next, regularFont_c);
@@ -1368,7 +1361,7 @@ bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 	char textBuffer[MAXBUFFER];
-	if ((gamePtr->roundNumber == gamePtr->maxscore) || (gamePtr->remainingCars == 0)){
+	if ((gamePtr->roundNumber == gamePtr->maxRounds) || (gamePtr->remainingCars == 0)){
 		gamePtr->roundNumber = 1;
 		GamePlayer* ptr;
 		if(gamePtr->player[0].carsSmashed > gamePtr->player[1].carsSmashed) {
@@ -1426,7 +1419,7 @@ bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 		int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2,
 				gamePtr->carArea.yposition - gamePtr->fontsize, regularFont_c);
 		char buffer[100];
-		sprintf(buffer, "Press a key to begin Round %d of %d or ESC to exit", ++gamePtr->roundNumber, gamePtr->maxscore);
+		sprintf(buffer, "Press a key to begin Round %d of %d or ESC to exit", ++gamePtr->roundNumber, gamePtr->maxRounds);
 		drawTextOnScreen(gamePtr, buffer, gamePtr->display.width / 2, gamePtr->carArea.yposition+gamePtr->carArea.height, regularFont_c);
 		//DEBUG(" =======\n");
 	}
@@ -2236,7 +2229,7 @@ bool gameMainLoop(GameData *gamePtr) {
 					busBotControl(gamePtr);
 			} else {
 				//check if escape key has been pressed
-				if (processKeyPressEvent(gamePtr) == false) {
+				if (isKeyPressEvent(gamePtr) == false) {
 					//user has ended game
 					FEXIT();
 					return false;
@@ -2341,6 +2334,8 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 
 	p->scorePointsPerSmash = 1;
 	p->cAlgoSelector = false;
+	p->player[0].paddleSpeed = initPaddleSpeed_c;
+	p->player[1].paddleSpeed = initPaddleSpeed_c;
 
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself
@@ -2406,10 +2401,10 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			//player2 name
 			if (++param < argc)
 				strcpy(p->player[1].name, argv[param]);
-		} else if (strcmp(argv[param], "maxscore") == 0) {
+		} else if (strcmp(argv[param], "maxrounds") == 0) {
 			//maxscore
 			if (++param < argc)
-				p->maxscore = atoi(argv[param]);
+				p->maxRounds = atoi(argv[param]);
 		} else if (strcmp(argv[param], "fontfile") == 0) {
 			//font file name
 			if (++param < argc)
@@ -2461,19 +2456,11 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			//player 1 paddle speed
 			if (++param < argc) {
 				p->player[0].paddleSpeed = atoi(argv[param]);
-				busBotArray[0].paddlespeed = p->player[1].paddleSpeed / 2;
-				busBotArray[1].paddlespeed = p->player[1].paddleSpeed;
-				busBotArray[2].paddlespeed = (3 * p->player[1].paddleSpeed) / 2;
-				busBotArray[3].paddlespeed = p->player[1].paddleSpeed * 2;
 			}
 		} else if (strcmp(argv[param], "p2paddleSpeed") == 0) {
 			//player 2 paddle speed
 			if (++param < argc) {
 				p->player[1].paddleSpeed = atoi(argv[param]);
-				lrtBotArray[0].paddlespeed = p->player[1].paddleSpeed / 2;
-				lrtBotArray[1].paddlespeed = p->player[1].paddleSpeed;
-				lrtBotArray[2].paddlespeed = (3 * p->player[1].paddleSpeed) / 2;
-				lrtBotArray[3].paddlespeed = p->player[1].paddleSpeed * 2;
 			}
 		} else if (strcmp(argv[param], "p1level") == 0) {
 			//level (controls the paddle size)
@@ -2529,6 +2516,16 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			}
 		}
 	} //end-of-for
+
+	busBotArray[0].paddlespeed = p->player[1].paddleSpeed / 2;
+	busBotArray[1].paddlespeed = p->player[1].paddleSpeed;
+	busBotArray[2].paddlespeed = (3 * p->player[1].paddleSpeed) / 2;
+	busBotArray[3].paddlespeed = p->player[1].paddleSpeed * 2;
+
+	lrtBotArray[0].paddlespeed = p->player[1].paddleSpeed / 2;
+	lrtBotArray[1].paddlespeed = p->player[1].paddleSpeed;
+	lrtBotArray[2].paddlespeed = (3 * p->player[1].paddleSpeed) / 2;
+	lrtBotArray[3].paddlespeed = p->player[1].paddleSpeed * 2;
 
 	initBrickLayout(p);
 	FEXIT();
@@ -2599,7 +2596,7 @@ bool initializeGraphics(GameData *p) {
 	p->bcolorarray[yellow_c] = al_map_rgb(255, 255, 0);
 	p->bcolorarray[blue_c] = al_map_rgb(200, 200, 255);
 	p->bcolorarray[grey_c] = al_map_rgb(180, 180, 180);
-	p->bcolorarray[white_c] = al_map_rgb(0, 0, 0);
+	p->bcolorarray[white_c] = al_map_rgb(255, 255, 255);
 	p->bcolorarray[green_c] = al_map_rgb(0, 180, 0);
 
 	p->fcolor = al_map_rgb(0, 100, 0);

@@ -1,5 +1,5 @@
->> g++ -c  -o car-breaker-main.o car-breaker-main.cpp
->> g++ -o car-breaker car-breaker-main.o -L/usr/local/lib -lallegro -lallegro_main -lallegro_image -lallegro_primitives -lallegro_font -lallegro_ttf
+>> g++ -c  -o car-breaker.o car-breaker.cpp
+>> g++ -o car-breaker car-breaker.o -L/usr/local/lib -lallegro -lallegro_main -lallegro_image -lallegro_primitives -lallegro_font -lallegro_ttf
 
 gcc -o car-breaker car-breaker-main.o -L/usr/local/lib -lallegro -lallegro_main -lallegro_image -lallegro_primitives -lallegro_font -lallegro_ttf -lallegro_audio -lallegro_acodec
 
@@ -10,5 +10,5 @@ run cmd
 at prompd do
 cd c:\mlambiri\myprogram\
 
-c:\mlambiri\myprogram\> mingw_w32.exe -c  -o car-breaker-main.o car-breaker-main.cpp
-c:\mlambiri\myprogram\> mingw_w32.exe -o car-breaker.exe car-breaker-main.o -Lc:\alegrodir\libpath\ -lallegro -lallegro_main -lallegro_image -lallegro_primitives -lallegro_font -lallegro_ttf
+c:\mlambiri\myprogram\> mingw_w32.exe -c  -o car-breaker.o car-breaker.cpp
+c:\mlambiri\myprogram\> mingw_w32.exe -o car-breaker.exe car-breaker.o -Lc:\alegrodir\libpath\ -lallegro -lallegro_main -lallegro_image -lallegro_primitives -lallegro_font -lallegro_ttf

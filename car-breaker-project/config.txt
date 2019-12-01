@@ -10,7 +10,7 @@ fontsize = 34
 p1name = Bus
 p2name = LRT
 
-maxscore = 5
+maxrounds = 5
 maxballspeed =  1
 
 # gamemode is one of: human, arcade, auto
@@ -20,15 +20,15 @@ gamemode = auto
 
 year = 2100
 
-#define maximum number of car rows; max is 6
+#define maximum number of car rows; max is 10
 maxrows = 8
-#define maximum number of car columns; max is 20
-maxcolumns = 30
+#define maximum number of car columns; max is 30
+maxcolumns = 10
 
 
-#fontfile = mexcellent3d.ttf
+fontfile = mexcellent3d.ttf
 #fontfile = pirulen.ttf
-fontfile =  fofbb_reg.ttf
+#fontfile =  fofbb_reg.ttf
 player1bmp = player1.png
 player2bmp = player2.png
 ballbmp = ball.png
@@ -59,11 +59,13 @@ p2paddleSpeed = 20
 
 winSound = applause6.wav
 
-#level sets the paddle size, it is between 1 and 7
-#level 1 is a paddle of 7 blocks while 
-#level 7 is a paddle of 1 block
+#this *substracts* from the paddle length
+# the paddle has 7 blocks
+#if level is set to x we will have 8-x
+# blocks in the screen for the players
+# player1 is Bus, player 2 is LRT
 p1level = 5
-p2level = 1
+p2level = 2
 
 #frames per second min 5 max 240
 fps = 60

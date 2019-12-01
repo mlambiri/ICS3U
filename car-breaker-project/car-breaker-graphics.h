@@ -1,7 +1,7 @@
 /*
  * car-breaker-graphics.h
  *
- *  Created on: Nov 17, 2019
+ *  Created on: Dec 1, 2019
  *      Author: mlambiri
  */
 
@@ -165,7 +165,7 @@ typedef struct GameData {
 	int    maxballspeed;
 	GamePlayer* roundWinner;
 	int    fontsize;
-	uint maxscore;
+	uint maxRounds;
 	char fontFileName[MAXNAME];
 	char winSoundFile[MAXNAME];
 	float  fps;
@@ -238,7 +238,7 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname);
 bool pauseGame(GameData *gamePtr);
 bool pressAnyKeyToBeginGame(GameData *gamePtr);
 bool printRoundWinner(GameData *gamePtr);
-bool processKeyPressEvent(GameData *gamePtr);
+bool isKeyPressEvent(GameData *gamePtr);
 bool updateBallPosition(GameData *gamePtr);
 int drawTextOnScreen(GameData *gamePtr, char *text, int x, int y, int size);
 int signOfNumber(int value);
