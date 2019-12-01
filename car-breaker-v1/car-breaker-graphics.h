@@ -165,7 +165,7 @@ typedef struct GameData {
 	int    maxballspeed;
 	GamePlayer* roundWinner;
 	int    fontsize;
-	uint maxscore;
+	uint maxRounds;
 	char fontFileName[MAXNAME];
 	char winSoundFile[MAXNAME];
 	float  fps;

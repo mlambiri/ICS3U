@@ -999,7 +999,7 @@ bool drawTextAndWaitBegin(GameData *gamePtr) {
 			gamePtr->display.height / 2, regularFont_c);
 
 	char buffer[100];
-	sprintf(buffer, "Most points after %d rounds wins!", gamePtr->maxscore);
+	sprintf(buffer, "Most points after %d rounds wins!", gamePtr->maxRounds);
 	next = drawTextOnScreen(gamePtr, buffer, gamePtr->display.width / 2, next, regularFont_c);
 	next = drawTextOnScreen(gamePtr, (char*) "Press a key to begin", gamePtr->display.width / 2,
 			next, regularFont_c);
@@ -1032,7 +1032,7 @@ bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 	FENTRY();
 	TRACE();
 	char textBuffer[MAXBUFFER];
-	if ((gamePtr->roundNumber == gamePtr->maxscore) || (gamePtr->remainingCars == 0)){
+	if ((gamePtr->roundNumber == gamePtr->maxRounds) || (gamePtr->remainingCars == 0)){
 		gamePtr->roundNumber = 1;
 		GamePlayer* ptr;
 		if(gamePtr->player[0].carsSmashed > gamePtr->player[1].carsSmashed) {
@@ -1076,7 +1076,7 @@ bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 		int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2,
 				gamePtr->carArea.yposition - gamePtr->fontsize, regularFont_c);
 		char buffer[100];
-		sprintf(buffer, "Press a key to begin Round %d of %d or ESC to exit", ++gamePtr->roundNumber, gamePtr->maxscore);
+		sprintf(buffer, "Press a key to begin Round %d of %d or ESC to exit", ++gamePtr->roundNumber, gamePtr->maxRounds);
 		drawTextOnScreen(gamePtr, buffer, gamePtr->display.width / 2, gamePtr->carArea.yposition+gamePtr->carArea.height, regularFont_c);
 		//DEBUG(" =======\n");
 	}
@@ -1779,10 +1779,10 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			//player2 name
 			if (++param < argc)
 				strcpy(p->player[1].name, argv[param]);
-		} else if (strcmp(argv[param], "maxscore") == 0) {
+		} else if (strcmp(argv[param], "maxrounds") == 0) {
 			//maxscore
 			if (++param < argc)
-				p->maxscore = atoi(argv[param]);
+				p->maxRounds = atoi(argv[param]);
 		} else if (strcmp(argv[param], "fontfile") == 0) {
 			//font file name
 			if (++param < argc)
@@ -1945,7 +1945,7 @@ bool initializeGraphics(GameData *p) {
 	p->bcolorarray[yellow_c] = al_map_rgb(255, 255, 0);
 	p->bcolorarray[blue_c] = al_map_rgb(200, 200, 255);
 	p->bcolorarray[grey_c] = al_map_rgb(180, 180, 180);
-	p->bcolorarray[white_c] = al_map_rgb(0, 0, 0);
+	p->bcolorarray[white_c] = al_map_rgb(255, 255, 255);
 	p->bcolorarray[green_c] = al_map_rgb(0, 180, 0);
 
 	p->fcolor = al_map_rgb(0, 100, 0);
