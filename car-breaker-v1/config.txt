@@ -1,0 +1,63 @@
+# this is a comment
+# no '"' characters are allowed
+
+#screenwidth sets the width of the screen, it is in pixels
+screenwidth = 900
+
+screenheight = 700
+fontsize = 34
+
+
+# the year parameter controls the mix of gas and electric
+# before 1999 there are no electric cars
+# after 2100 there are no gas cars
+year = 2050
+
+p1name = Bus
+p2name = LRT
+
+maxscore = 5
+maxballspeed =  1
+
+#define maximum number of car rows; max is 6
+maxrows = 4
+#define maximum number of car columns; max is 20
+maxcolumns = 20
+
+
+#fontfile = mexcellent3d.ttf
+#fontfile = pirulen.ttf
+fontfile =  fofbb_reg.ttf
+player1bmp = player1.png
+player2bmp = player2.png
+ballbmp = ball.png
+gascarbmp = gascar.png
+ecarbmp = ecar.png
+
+player1sound = cardoor.wav
+player2sound = cardoor.wav
+
+#input file name for car setup
+pattern = testout.txt
+#output file name for saving car setup
+outfile = testout.txt
+
+# points penalty for losing the ball
+penalty = 5
+
+# possible values yellow, blue, white, green, q
+colourscheme = q
+
+p1paddleSpeed = 30
+p2paddleSpeed = 20
+
+winSound = applause6.wav
+
+#level sets the paddle size, it is between 1 and 7
+#level 1 is a paddle of 7 blocks while 
+#level 7 is a paddle of 1 block
+p1level = 5
+p2level = 1
+
+#frames per second min 5 max 240
+fps = 60
