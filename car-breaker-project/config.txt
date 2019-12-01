@@ -10,6 +10,8 @@ fontsize = 34
 p1name = Bus
 p2name = LRT
 
+# number of rounds to play before a winner is declared
+# a round ends when the ball exits through the top/bottom lines
 maxrounds = 5
 maxballspeed =  1
 
@@ -23,7 +25,7 @@ year = 2100
 #define maximum number of car rows; max is 10
 maxrows = 8
 #define maximum number of car columns; max is 30
-maxcolumns = 10
+maxcolumns = 22
 
 
 fontfile = mexcellent3d.ttf
@@ -52,6 +54,7 @@ calgo = 1
 
 
 # possible values yellow, blue, white, green, q
+# q is grey
 colourscheme = q
 
 #number of pixels *per frame* to move the players when the key is pressed.

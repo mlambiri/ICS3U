@@ -1922,6 +1922,8 @@ bool updateBallPosition(GameData *gamePtr) {
 
 			float txf = tmpBall.xposition + i*xplus;
 			float tyf = tmpBall.yposition + i*yplus;
+			tmpBall.xprevposition = gamePtr->ball.xposition;
+			tmpBall.yprevposition = gamePtr->ball.yposition;
 			tmpBall.xposition = (int) txf ;
 			tmpBall.yposition = (int) tyf;
 
@@ -1954,6 +1956,8 @@ bool updateBallPosition(GameData *gamePtr) {
 			for (int i = minRow; i < maxRow; i++) {
 				for (int j = minColumn; j < maxColumn; j++) {
 					if(isBallBrickCollisionPossible(gamePtr, &tmpBall, i, j)) {
+						//printf("**  xn = %d, yn = %d \n", tmpBall.xposition , tmpBall.yposition);
+						//printf("**  coll  row = %d, col = %d\n", i ,j);
 						possible = true;
 						row = i;
 						column = j;
@@ -1971,7 +1975,7 @@ bool updateBallPosition(GameData *gamePtr) {
 
 				if(isBallBrickCollision(gamePtr, row, column)) {
 					collision = true;
-					//printf("**  xn = %d, yn = %d w=%d h=%d xo=%d, yo=%d\n", gamePtr->ball.xposition , gamePtr->ball.yposition, gamePtr->bricks[0][0].width, gamePtr->bricks[0][0].height, gamePtr->bricks[0][0].xposition, gamePtr->bricks[0][0].yposition);
+					//printf("**  xn = %d, yn = %d \n", gamePtr->ball.xposition , gamePtr->ball.yposition);
 					//printf("**  coll  row = %d, col = %d\n", row ,column);
 					if(abs(gamePtr->ball.xspeed) > gamePtr->maxXSpeed) {
 						gamePtr->ball.xspeed = signOfNumber(gamePtr->ball.xspeed)*gamePtr->maxXSpeed;
