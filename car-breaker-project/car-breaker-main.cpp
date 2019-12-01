@@ -5,7 +5,7 @@
  *      Author: mlambiri
  *
  *  this is based on the pong-main.cpp
- *  from dwlambiri
+ *  from dwlambiri: https://github.com/dwlambiri/ping-pong-grade10
  */
 #include <stdio.h>
 #include <string.h>
@@ -14,6 +14,7 @@
 #include "car-breaker-graphics.h"
 #include "game-debug.h"
 
+extern GameData carBreaker;
 
 //===== Public Data =====
 
@@ -21,8 +22,8 @@
 
 /**
   ---------------------------------------------------------------------------
-   @author  dwlambiri
-   @date    May 22, 2017
+   @author  mlambiri
+   @date    Dec 1, 2019
    @mname   Usage
    @details
 	  If CARDEBUG is defined the function prints the a message saying that this
@@ -117,16 +118,16 @@ main(int argc, char **argv) {
 	//printf("Adress of GameRun = %x \n", &GameRun);
 	//After the parameters are read from the file they are passed to the game
 	//configuration functions to change game variable values
-	if(initializeGameData(num, p) == false) return 0;
+	if(initializeGameData(&carBreaker, num, p) == false) return 0;
 
 	//We are initializing the game data structures
-	if(initializeGraphics() == false ) {
+	if(initializeGraphics(&carBreaker) == false ) {
 		//error initializing the game;
 		return 22;
 	}
 
 	//All that is left is to run the game
-	runGame();
+	runGame(&carBreaker);
 
 	return 0;
 } // end-of-function main

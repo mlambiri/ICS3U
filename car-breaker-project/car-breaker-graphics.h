@@ -259,9 +259,9 @@ void  setBrickInfo(GameData* p);
 bool recordResult(char *p);
 
 //=====================
-bool initializeGraphics();
-void runGame();
-bool initializeGameData(int argc, char **argv);
+bool initializeGraphics(GameData *p);
+void runGame(GameData *p);
+bool initializeGameData(GameData *p, int argc, char **argv);
 //============================
 
 

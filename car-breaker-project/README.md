@@ -7,19 +7,13 @@
 
 
 ## Useful Links
-I used these sites extensively to develop the game
+I used these sites to develop the game
 
 ### Game Development
- 
-[2D Game development using allegro](http://fixbyproximity.com/2d-game-development-course/)
 
-[Aarons Game Tutorials](http://www.aaroncox.net/tutorials/arcade/PaddleBattle.html)
+[Mr Creelman's Allegro tutorials] https://github.com/LisgarICS/ICS4U/tree/master/Allegro
 
-[More pong games](https://codereview.stackexchange.com/questions/125148/pong-like-game-in-c-and-allegro5)
-
-Book: Game Engine Architecture by Jason Gregory (Chapter 1, Sections 2.1, 7.1, 7.2, 9.1) 
- 
-### Allegro  5 Tutorials
+[Darius W Lambiri's pong game] https://github.com/dwlambiri/ping-pong-grade10 
 
 [Getting Started](https://wiki.allegro.cc/index.php?title=Getting_Started)
 
@@ -29,6 +23,9 @@ Book: Game Engine Architecture by Jason Gregory (Chapter 1, Sections 2.1, 7.1, 7
 
 [Audio](https://wiki.allegro.cc/index.php?title=Allegro_5_Tutorial/Addons/Audio)
 
+Book: Game Engine Architecture by Jason Gregory (Chapter 1, Sections 2.1, 7.1, 7.2, 9.1) 
+ 
+ 
 ### C and C++ Reference
 
 [Tutorial Point C Library Reference](https://www.tutorialspoint.com/c_standard_library/index.htm)
@@ -38,7 +35,7 @@ Book: Game Engine Architecture by Jason Gregory (Chapter 1, Sections 2.1, 7.1, 7
 
 ### Eclipse
 
-My favourite IDE is Ecplise. Without it's code completion feature I would have typed x10 more!!  
+My favourite IDE is Ecplise. Code completion rocks!
 
 [Eclipse](http://www.eclipse.org/)
  
@@ -49,11 +46,9 @@ I needed font and audio files. This is where I got them from:
  
 [Font file](http://www.1001fonts.com/retro-fonts.html)
  
-[Audio files 1](https://www.freesoundeffects.com/free-sounds/tennis-10112/)
+[Audio files](https://www.freesoundeffects.com/free-sounds/cars-10069/40/tot_sold/20/3/)
 
-[Audio files 2](https://www.freesoundeffects.com/free-sounds/applause-10033/)
-
-[Audio files 3](https://opengameart.org/content/3-ping-pong-sounds-8-bit-style)
+[Audio files 2](https://opengameart.org/content/3-ping-pong-sounds-8-bit-style)
  
 
 

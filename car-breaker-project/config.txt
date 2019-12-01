@@ -35,8 +35,8 @@ ballbmp = ball.png
 gascarbmp = gascar.png
 ecarbmp = ecar.png
 
-player1sound = p1sound.ogg
-player2sound = p2sound.ogg
+player1sound = cardoor.wav
+player2sound = cardoor.wav
 
 #input file name for car setup
 pattern = testout.txt

@@ -26,14 +26,14 @@ static const char P2FNAME[] = "player2.png";
 static const char BALLFNAME[] = "ball.png";
 static const char GASCARFNAME[] = "gascar.png";
 static const char ECARFNAME[] = "ecar.png";
-static const char P1SOUND[] = "p1sound.ogg";
-static const char P2SOUND[] = "p2sound.ogg";
+static const char P1SOUND[] = "cardoor.wav";
+static const char P2SOUND[] = "cardoor.wav";
 static const char FONTNAME[] = "pirulen.ttf";
 
 //========VARIABLE DECLARATIONS=====
 //declaring the main data variable of the game
 //usually passed to functions using a pointer
-static GameData carBreaker = {
+GameData carBreaker = {
 		{INITPLAYER, INITPLAYER},
 		INITGBB,
 		INITDISPLAY, human_c, maxballspeed_c, NULL, FONTSIZE, MAXROUNDS, { 0 }, { 0 },
@@ -2306,11 +2306,10 @@ void  exitGame(GameData *gamePtr) {
  Processing is done in the same style as the main command line arguments\n
  --------------------------------------------------------------------------
  */
-bool initializeGameData(int argc, char **argv) {
+bool initializeGameData(GameData *p, int argc, char **argv) {
 
 	FENTRY();
 	TRACE();
-	GameData *p = &carBreaker;
 
 	srand(time(0));
 
@@ -2548,10 +2547,9 @@ bool initializeGameData(int argc, char **argv) {
  2. Loads all game resources (fonts, bitmaps, sounds)
  --------------------------------------------------------------------------
  */
-bool initializeGraphics() {
+bool initializeGraphics(GameData *p) {
 	FENTRY();
 	TRACE();
-	GameData *p = &carBreaker;
 	//seed random number generator with time
 	srand (time(NULL));
 	//initiallises allegro libraries
@@ -2676,10 +2674,9 @@ bool initializeGraphics() {
  2. Calls the game loop
  --------------------------------------------------------------------------
  */
-void runGame() {
+void runGame(GameData *p) {
 	FENTRY();
 	TRACE();
-	GameData *p = &carBreaker;
 	setBackgroundColor(*(p->bcolor));
 	if (drawTextAndWaitBegin(p) == true) {
 		gameMainLoop(p);
