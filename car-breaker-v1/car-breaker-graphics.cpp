@@ -192,34 +192,6 @@ void  setBrickInfo(GameData* p) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Dec 3, 2019
- @mname   setPointsPerCarSmashed
- @details
-   set an amount of points for each car smashed
-   this will change based on the number of cars that
-   are still present on screen\n
- --------------------------------------------------------------------------
- */
-void  setPointsPerSmash(GameData*gamePtr) {
-	FENTRY();
-	TRACE();
-	if(gamePtr->remainingCars<= level6_c){
-		gamePtr->scorePointsPerSmash = 10;
-	}else if (gamePtr->remainingCars< level5_c) {
-		gamePtr->scorePointsPerSmash = 3;
-	}else if (gamePtr->remainingCars< level4_c) {
-		gamePtr->scorePointsPerSmash = 2;
-	}else {
-		gamePtr->scorePointsPerSmash = 1;
-	}
-
-	FEXIT();
-}
-
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
  @date    Nov 30, 2019
  @mname   fastBall
  @details
@@ -461,12 +433,6 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 			gamePtr->remainingCars--;
 			if(gamePtr->turn)
 				gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
-			setPointsPerSmash(gamePtr);
-		}
-		if(gamePtr->remainingCars < level5_c ) {
-			gamePtr->bcolor = &(gamePtr->bcolorarray[green_c]);
-		}else if(gamePtr->remainingCars < level4_c ) {
-			gamePtr->bcolor = &(gamePtr->bcolorarray[blue_c]);
 		}
 
 		FEXIT();
