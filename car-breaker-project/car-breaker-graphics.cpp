@@ -817,8 +817,7 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 		FEXIT();
 		return false;
 	}
-	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize))
-                        																																																		/ maxPaddleSize_c;
+	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize))/ maxPaddleSize_c;
 	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
 	return true;

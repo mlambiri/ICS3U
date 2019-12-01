@@ -54,6 +54,7 @@ calgo = 1
 # possible values yellow, blue, white, green, q
 colourscheme = q
 
+#number of pixels *per frame* to move the players when the key is pressed.
 p1paddleSpeed = 30
 p2paddleSpeed = 20
 
