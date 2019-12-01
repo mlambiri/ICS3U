@@ -115,7 +115,6 @@ main(int argc, char **argv) {
 	//Process the configuration file and extract all the game configuration
 	char** p = GetParameters(&num, configFileName);
 
-	//printf("Adress of GameRun = %x \n", &GameRun);
 	//After the parameters are read from the file they are passed to the game
 	//configuration functions to change game variable values
 	if(initializeGameData(&carBreaker, num, p) == false) return 0;
@@ -123,6 +122,7 @@ main(int argc, char **argv) {
 	//We are initializing the game data structures
 	if(initializeGraphics(&carBreaker) == false ) {
 		//error initializing the game;
+		ERROR("cannot initialize game engine");
 		return 22;
 	}
 

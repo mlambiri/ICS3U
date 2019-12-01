@@ -30,21 +30,23 @@ char* printCallDepth();
 //#define CARDEBUG
 
 #ifdef CARDEBUG
-#define DEBUG(s) if(debugon && debuglevel == debug_c) printf("Debug[%s %s:%4d] %s\n", printDebugTime(),__FILE__, __LINE__,s)
-#define DEBUG2(s,d) if(debugon && debuglevel == debug_c) printf("Debug[%s %s:%4d] %s %d\n", printDebugTime(), __FILE__, __LINE__,s, d)
-#define INFO(s) if(debugon && debuglevel <= info_c) printf("Info[%s %s:%4d] %s\n", printDebugTime(), __FILE__, __LINE__,s)
-#define WARN(s) if(debugon && debuglevel <= warn_c) printf("Warn[%s %s:%4d] %s\n", printDebugTime(), __FILE__, __LINE__,s)
-#define ERROR(s) if(debugon && debuglevel <= error_c) printf("Error[%s %s:%4d] %s\n", printDebugTime(), __FILE__, __LINE__,s)
+#define DEBUG(s) if(debugon && debuglevel == debug_c) printf("D[%s %s:%4d] %s\n", printDebugTime(),__FILE__, __LINE__,s)
+#define DEBUG2(s,d) if(debugon && debuglevel == debug_c) printf("D[%s %s:%4d] %s %d\n", printDebugTime(), __FILE__, __LINE__,s, d)
+#define INFO(s) if(debugon && debuglevel <= info_c) printf("I[%s %s:%4d] %s\n", printDebugTime(), __FILE__, __LINE__,s)
+#define WARN(s) if(debugon && debuglevel <= warn_c) printf("W[%s %s:%4d] %s\n", printDebugTime(), __FILE__, __LINE__,s)
+#define ERROR(s) printf("E[%s %s:%4d] %s\n", printDebugTime(), __FILE__, __LINE__,s)
+#define ERROR2(s1, s2) printf("E[%s %s:%4d] %s %s\n", printDebugTime(), __FILE__, __LINE__,s1, s2)
 #define FENTRY() functionEnter()
 #define FEXIT()   functionExit()
 
-#define TRACE() if(traceon) printf("Trace<%s: %s:%4d> %s%s;\n", printDebugTime(), __FILE__, __LINE__, printCallDepth(), __PRETTY_FUNCTION__)
+#define TRACE() if(traceon) printf("T<%s: %s:%4d> %s%s;\n", printDebugTime(), __FILE__, __LINE__, printCallDepth(), __PRETTY_FUNCTION__)
 #else
 #define DEBUG(s)
 #define DEBUG2(s,d)
 #define INFO(s)
 #define WARN(s)
-#define ERROR(s)
+#define ERROR(s) printf("E[%s ] %s\n", printDebugTime() ,s)
+#define ERROR2(s1, s2) printf("E[%s ] %s %s\n", printDebugTime(), s1, s2)
 #define TRACE()
 #define FENTRY()
 #define FEXIT()

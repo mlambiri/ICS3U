@@ -329,12 +329,14 @@ void  setBrickInfo(GameData* p) {
 		for (int j = 0; j < p->maxColumns; j++) {
 			if(p->bricks[i][j].indestructible == false) {
 				if (setBitmap(&(p->bricks[i][j]), p->gasBitmap) == false) {
+					ERROR("Cannot find the gas cars bitmapfile. Check the names!");
 					FEXIT();
 					return;
 				}
 			}
 			else {
 				if (setBitmap(&(p->bricks[i][j]), p->ecarBitmap) == false) {
+					ERROR("Cannot find the ecars cars bitmapfile. Check the names!");
 					FEXIT();
 					return;
 				}
@@ -667,26 +669,26 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 			gamePtr->ball.yspeed *= -1;
 			gamePtr->ball.xspeed += rand() % 2;
 			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition - gamePtr->ball.height;
-			//printf("top\n");
+			DEBUG("top");
 			break;
 		case bottom_c:
 			gamePtr->ball.yspeed *= -1;
 			gamePtr->ball.xspeed += rand() % 2;
 			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition + gamePtr->bricks[i][j].height;
-			//printf("bottom\n");
+			DEBUG("bottom");
 			break;
 		case left_c:
 			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition - gamePtr->ball.width;
 			gamePtr->ball.xspeed *= -1;
-			//printf("left\n");
+			DEBUG("left");
 			break;
 		case right_c:
 			gamePtr->ball.xspeed *= -1;
 			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition + gamePtr->bricks[i][j].width;
-			//printf("right\n");
+			DEBUG("right");
 			break;
 		default:
-			//printf("default\n");
+			DEBUG("default");
 			break;
 		}
 
@@ -743,7 +745,7 @@ bool isBallBrickCollisionPossible(GameData* gamePtr, GameBasicBlock* tmpBall, in
 				FEXIT();
 				return false;
 			}
-			//printf("p-top\n");
+			DEBUG("p-top");
 			break;
 		case bottom_c:
 			tmpBall->yposition = gamePtr->bricks[i][j].yposition + gamePtr->bricks[i][j].height;
@@ -751,7 +753,7 @@ bool isBallBrickCollisionPossible(GameData* gamePtr, GameBasicBlock* tmpBall, in
 				FEXIT();
 				return false;
 			}
-			//printf("p-bottom\n");
+			DEBUG("p-bottom");
 			break;
 		case left_c:
 			tmpBall->xposition = gamePtr->bricks[i][j].xposition - tmpBall->width;
@@ -759,7 +761,7 @@ bool isBallBrickCollisionPossible(GameData* gamePtr, GameBasicBlock* tmpBall, in
 				FEXIT();
 				return false;
 			}
-			//printf("p-left\n");
+			DEBUG("p-left");
 			break;
 		case right_c:
 			tmpBall->xposition = gamePtr->bricks[i][j].xposition + gamePtr->bricks[i][j].width;
@@ -767,7 +769,7 @@ bool isBallBrickCollisionPossible(GameData* gamePtr, GameBasicBlock* tmpBall, in
 				FEXIT();
 				return false;
 			}
-			//printf("p-right\n");
+			DEBUG("p-right");
 			break;
 		default:
 			break;
@@ -811,7 +813,7 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 	FENTRY();
 	TRACE();
 	if ((p->ge.bmap = al_load_bitmap(fname)) == NULL) {
-		printf("cannot load %s\n ", fname);
+		ERROR2("cannot load player bitmap", fname);
 		FEXIT();
 		return false;
 	}
@@ -835,7 +837,7 @@ bool loadBitmap(GameBasicBlock *g, char* fname) {
 	FENTRY();
 	TRACE();
 	if ((g->bmap = al_load_bitmap(fname)) == NULL) {
-		printf("cannot load %s\n ", fname);
+		ERROR2("cannot load bitmap", fname);
 		FEXIT();
 		return false;
 	}
@@ -881,7 +883,7 @@ bool loadAudio(GamePlayer *gamePtr) {
 	TRACE();
 	gamePtr->sample = al_load_sample(gamePtr->audioFileName);
 	if (gamePtr->sample == NULL) {
-		printf("Audio clip sample %s not loaded!\n", gamePtr->audioFileName);
+		ERROR2("Audio clip sample not loaded: ", gamePtr->audioFileName);
 		FEXIT();
 		return false;
 	}FEXIT();
@@ -902,7 +904,7 @@ bool loadAudioWinner(GameData *gamePtr) {
 	TRACE();
 	gamePtr->winsample = al_load_sample(gamePtr->winSoundFile);
 	if (gamePtr->winsample == NULL) {
-		printf("Audio clip sample %s not loaded!\n", gamePtr->winSoundFile);
+		ERROR2("Audio clip sample not loaded: ", gamePtr->winSoundFile);
 		FEXIT();
 		return false;
 	}FEXIT();
@@ -938,7 +940,7 @@ bool loadFont(GameData *gamePtr, int size) {
 
 	//error message if the font file is NULL
 	if (gamePtr->font[size] == NULL) {
-		printf("Could not load %s.\n", gamePtr->fontFileName);
+		ERROR2("Could not load: ", gamePtr->fontFileName);
 		FEXIT();
 		return false;
 	}FEXIT();
@@ -2566,29 +2568,30 @@ bool initializeGraphics(GameData *p) {
 	al_init_acodec_addon();
 	//al_reserve_samples(2);
 
-	//TRACE();
+
 	//tries to load font file
 	if (loadFont(p, smallFont_c) == false) {
 		FEXIT();
 		return false;
 	} //end-of-if(LoadFont(p, smallFont_c) == false)
 
-	//TRACE();
+
 	if (loadFont(p, regularFont_c) == false) {
 		FEXIT();
 		return false;
 	} //end-of-if(LoadFont(p, regularFont_c) == false)
 
-	//TRACE();
+
 	if (loadFont(p, largeFont_c) == false) {
 		FEXIT();
 		return false;
 	} //end-of-if(LoadFont(p, largeFont_c) == false)
 
-	//TRACE();
+
 	if ((p->display.display = al_create_display(p->display.width,
 			p->display.height)) == NULL) {
-		ERROR("Cannot init display");FEXIT();
+		ERROR("Cannot init display");
+		FEXIT();
 		return false;
 	}
 
@@ -2633,13 +2636,13 @@ bool initializeGraphics(GameData *p) {
 	}
 
 	if ((p->gasBitmap = al_load_bitmap(p->gasBitmapName)) == NULL) {
-		printf("cannot load %s\n ", p->gasBitmapName);
+		ERROR2("cannot load", p->gasBitmapName);
 		FEXIT();
 		return false;
 	}
 
 	if ((p->ecarBitmap = al_load_bitmap(p->ecarBitmapName)) == NULL) {
-		printf("cannot load %s\n ", p->ecarBitmapName);
+		ERROR2("cannot load", p->ecarBitmapName);
 		FEXIT();
 		return false;
 	}
