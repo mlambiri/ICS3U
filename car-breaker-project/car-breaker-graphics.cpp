@@ -115,9 +115,9 @@ displayHelp(GameData* g) {
 	al_set_target_backbuffer(g->helpDisplay.display );
 	al_clear_to_color(al_map_rgb(255,255,255));
 	int next = drawTextOnScreen(g, (char*) "Help Window", g->helpDisplay.width / 2,
-			g->helpDisplay.height / 4, largeFont_c);
+			g->helpDisplay.height / 4, smallFont_c);
 	drawTextOnScreen(g, (char*) "(c) mlambiri 2019", g->helpDisplay.width / 2, next,
-			smallFont_c);
+			smallFont_c/2);
 	al_flip_display();
 	al_set_target_backbuffer(g->display.display);
 
@@ -1227,17 +1227,8 @@ bool isKeyPressEvent(GameData *gamePtr) {
 			FEXIT();
 			return false;
 		}
-	} else if (gamePtr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-		if(gamePtr->ev.any.source == al_get_display_event_source(gamePtr->helpDisplay.display)) {
-			DEBUG("two");
-			al_destroy_display(gamePtr->helpDisplay.display);
-			gamePtr->helpDisplay.display = NULL;
-		} else {
-			DEBUG("two");
-			FEXIT();
-			return false;
-		}
-	}FEXIT();
+	}
+	FEXIT();
 	return true;
 } // end-of-function ProcessKeyPress
 
