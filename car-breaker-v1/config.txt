@@ -13,10 +13,6 @@ fontsize = 34
 # after 2100 there are no gas cars
 year = 1999
 
-p1name = Bus
-p2name = LRT
-
-
 # this controls how many rounds are played until a winner is declared
 maxrounds = 5
 
@@ -30,14 +26,14 @@ maxcolumns = 10
 fontfile = mexcellent3d.ttf
 #fontfile = pirulen.ttf
 #fontfile =  fofbb_reg.ttf
-player1bmp = player1.png
-player2bmp = player2.png
+busbmp = player1.png
+lrtbmp = player2.png
 ballbmp = ball.png
 gascarbmp = gascar.png
 ecarbmp = ecar.png
 
-player1sound = cardoor.wav
-player2sound = cardoor.wav
+bussound = cardoor.wav
+lrtsound = cardoor.wav
 
 # points penalty for losing the ball
 penalty = 5
@@ -52,9 +48,8 @@ winSound = applause6.wav
 # the paddle has 7 blocks
 #if level is set to x we will have 8-x
 # blocks in the screen for the players
-# player1 is Bus, player 2 is LRT
-p1level = 5
-p2level = 2
+buslevel = 5
+lrtlevel = 2
 
 #frames per second min 5 max 240
 fps = 60

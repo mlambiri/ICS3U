@@ -1738,15 +1738,7 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 				if (p->maxballspeed <= maxballspeed_c)
 					p->maxballspeed = maxballspeed_c;
 			}
-		} else if (strcmp(argv[param], "p1name") == 0) {
-			//player1 name
-			if (++param < argc)
-				strcpy(p->player[0].name, argv[param]);
-		} else if (strcmp(argv[param], "p2name") == 0) {
-			//player2 name
-			if (++param < argc)
-				strcpy(p->player[1].name, argv[param]);
-		} else if (strcmp(argv[param], "maxrounds") == 0) {
+		}  else if (strcmp(argv[param], "maxrounds") == 0) {
 			//maxscore
 			if (++param < argc)
 				p->maxRounds = atoi(argv[param]);
@@ -1758,11 +1750,11 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			//font file name
 			if (++param < argc)
 				strcpy(p->winSoundFile, argv[param]);
-		} else if (strcmp(argv[param], "player1bmp") == 0) {
+		} else if (strcmp(argv[param], "busbmp") == 0) {
 			//player 1 bitmap file name
 			if (++param < argc)
 				strcpy(p->p1BitmapName, argv[param]);
-		} else if (strcmp(argv[param], "player2bmp") == 0) {
+		} else if (strcmp(argv[param], "lrtbmp") == 0) {
 			//player 2 bitmap file name
 			if (++param < argc)
 				strcpy(p->p2BitmapName, argv[param]);
@@ -1778,22 +1770,22 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			//ecar bitmap file name
 			if (++param < argc)
 				strcpy(p->ecarBitmapName, argv[param]);
-		} else if (strcmp(argv[param], "player1sound") == 0) {
+		} else if (strcmp(argv[param], "bussound") == 0) {
 			//player 1 sound file name
 			if (++param < argc)
 				strcpy(p->player[0].audioFileName, argv[param]);
-		} else if (strcmp(argv[param], "player2sound") == 0) {
+		} else if (strcmp(argv[param], "lrtsound") == 0) {
 			//player 2 sound file name
 			if (++param < argc)
 				strcpy(p->player[1].audioFileName, argv[param]);
-		}   else if (strcmp(argv[param], "p1level") == 0) {
+		}   else if (strcmp(argv[param], "buslevel") == 0) {
 			//level (controls the paddle size)
 			if (++param < argc) {
 				p->player[0].paddleSize = atoi(argv[param]);
 				if (p->player[0].paddleSize > maxPaddleSize_c)
 					p->player[0].paddleSize = maxPaddleSize_c;
 			}
-		} else if (strcmp(argv[param], "p2level") == 0) {
+		} else if (strcmp(argv[param], "lrtlevel") == 0) {
 			//level (controls the paddle size)
 			if (++param < argc) {
 				p->player[1].paddleSize = atoi(argv[param]);
