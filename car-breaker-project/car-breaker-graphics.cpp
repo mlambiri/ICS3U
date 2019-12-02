@@ -89,6 +89,43 @@ int busBotPlayingLevel = pro_c;
 static BotControlArray *busBotPtr = &(busBotArray[busBotPlayingLevel]);
 
 /**
+  ---------------------------------------------------------------------------
+   @author  elambiri
+   @date    Dec. 1, 2019
+   @mname   displayHelp
+   @details
+	  \n
+  --------------------------------------------------------------------------
+ */
+void
+displayHelp(GameData* g) {
+
+	if(g->helpDisplay.display != NULL) {
+		return;
+	}
+	g->helpDisplay.width = 640;
+	g->helpDisplay.height = 480;
+	g->helpDisplay.display = al_create_display(g->helpDisplay.width, g->helpDisplay.height);
+	if(!g->helpDisplay.display ) {
+		ERROR("failed to create help display!");
+		return;
+	}
+
+	al_register_event_source(g->eventqueue, al_get_display_event_source(g->helpDisplay.display));
+	al_set_target_backbuffer(g->helpDisplay.display );
+	al_clear_to_color(al_map_rgb(255,255,255));
+	int next = drawTextOnScreen(g, (char*) "Help Window", g->helpDisplay.width / 2,
+			g->helpDisplay.height / 4, largeFont_c);
+	drawTextOnScreen(g, (char*) "(c) mlambiri 2019", g->helpDisplay.width / 2, next,
+			smallFont_c);
+	al_flip_display();
+	al_set_target_backbuffer(g->display.display);
+
+} // end-of-method displayHelp
+
+
+
+/**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 25, 2019
@@ -1084,8 +1121,15 @@ bool pauseGame(GameData *gamePtr) {
 		}
 		//close the display with the mouse
 		if (gamePtr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-			FEXIT();
-			return false;
+			if(gamePtr->ev.any.source == al_get_display_event_source(gamePtr->helpDisplay.display)) {
+				DEBUG("one");
+				al_destroy_display(gamePtr->helpDisplay.display);
+				gamePtr->helpDisplay.display = NULL;
+			} else {
+				DEBUG("one");
+				FEXIT();
+				return false;
+			}
 		}
 	}FEXIT();
 	return true;
@@ -1143,6 +1187,9 @@ bool isKeyPressEvent(GameData *gamePtr) {
 				return false;
 			}
 			break;
+		case ALLEGRO_KEY_H:
+			displayHelp(gamePtr);
+			break;
 		case ALLEGRO_KEY_F:
 			fastBall(gamePtr);
 			break;
@@ -1181,8 +1228,15 @@ bool isKeyPressEvent(GameData *gamePtr) {
 			return false;
 		}
 	} else if (gamePtr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-		FEXIT();
-		return false;
+		if(gamePtr->ev.any.source == al_get_display_event_source(gamePtr->helpDisplay.display)) {
+			DEBUG("two");
+			al_destroy_display(gamePtr->helpDisplay.display);
+			gamePtr->helpDisplay.display = NULL;
+		} else {
+			DEBUG("two");
+			FEXIT();
+			return false;
+		}
 	}FEXIT();
 	return true;
 } // end-of-function ProcessKeyPress
@@ -1221,8 +1275,15 @@ bool pressAnyKeyToBeginGame(GameData *gamePtr) {
 			}
 		}
 		if (gamePtr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-			FEXIT();
-			return false;
+			if(gamePtr->ev.any.source == al_get_display_event_source(gamePtr->helpDisplay.display)) {
+				DEBUG("three");
+				al_destroy_display(gamePtr->helpDisplay.display);
+				gamePtr->helpDisplay.display = NULL;
+			} else {
+				DEBUG("three");
+				FEXIT();
+				return false;
+			}
 		}
 	}FEXIT();
 	return true;
@@ -2195,8 +2256,15 @@ bool gameMainLoop(GameData *gamePtr) {
 		al_wait_for_event(gamePtr->eventqueue, &(gamePtr->ev));
 
 		if (gamePtr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-			FEXIT();
-			return false;
+			if(gamePtr->ev.any.source == al_get_display_event_source(gamePtr->helpDisplay.display)) {
+				DEBUG("four");
+				al_destroy_display(gamePtr->helpDisplay.display);
+				gamePtr->helpDisplay.display = NULL;
+			} else {
+				DEBUG("four");
+				FEXIT();
+				return false;
+			}
 		}
 		//If the round is won we need to stop the game for 1 second
 		//We do this by counting timer events without processing them which in effect
@@ -2223,7 +2291,6 @@ bool gameMainLoop(GameData *gamePtr) {
 				continue;
 		} else {
 			TRACE();
-
 			//we need to run the bot logic
 			if (gamePtr->gameMode != human_c && gamePtr->ev.type == ALLEGRO_EVENT_TIMER
 					&& gamePtr->ev.timer.source == gamePtr->botTimer) {
@@ -2341,6 +2408,8 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	p->cAlgoSelector = false;
 	p->player[0].paddleSpeed = initPaddleSpeed_c;
 	p->player[1].paddleSpeed = initPaddleSpeed_c;
+
+	p->helpDisplay.display = NULL;
 
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself

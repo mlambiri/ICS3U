@@ -54,7 +54,7 @@ penalty = 5
 
 #collision algorithm number to use 
 # 0 or 1 
-calgo = 1
+calgo = 0
 
 
 # possible values yellow, blue, white, green, q

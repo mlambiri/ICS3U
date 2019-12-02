@@ -213,6 +213,7 @@ typedef struct GameData {
 	bool cAlgoSelector;
 	uint maxXSpeed;
 	uint maxYSpeed;
+	GameDisplay helpDisplay;
 
 } GameData;
 
