@@ -51,17 +51,17 @@ GameData carBreaker = {
    initializes the brick layout\n
  --------------------------------------------------------------------------
  */
-void  initBrickLayout(GameData*gamePtr) {
+void  initBrickLayout(GameData*gptr) {
 
 	FENTRY();
 	TRACE();
-	gamePtr->remainingCars = 0;
+	gptr->remainingCars = 0;
 
 
 
-	int year = (gamePtr->year > 2080)?2080:gamePtr->year;
+	int year = (gptr->year > 2080)?2080:gptr->year;
 	uint rNumber = (year > 2020)? (2100- year )/10:10;
-	uint maxCars = gamePtr->maxRows * gamePtr->maxColumns;
+	uint maxCars = gptr->maxRows * gptr->maxColumns;
 
 	if(year > 2020) {
 		maxCars -= (2080-year)*maxCars/160;
@@ -74,25 +74,25 @@ void  initBrickLayout(GameData*gamePtr) {
 
 	int totalCount = 0;
 
-	for(int i = 0; i < gamePtr->maxRows; i++) {
-		for (int j = 0; j < gamePtr->maxColumns; j++) {
-			gamePtr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
-			if(gamePtr->bricks[i][j].onScreen == true ) {
+	for(int i = 0; i < gptr->maxRows; i++) {
+		for (int j = 0; j < gptr->maxColumns; j++) {
+			gptr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
+			if(gptr->bricks[i][j].onScreen == true ) {
 				// ecars are 'indestructible'
 				// as times goes by more are ecars
 				// but also less cars on road
 				totalCount++;
-				if(gamePtr->year >= 2000) {
-					if(i == gamePtr->maxRows - 1) {
+				if(gptr->year >= 2000) {
+					if(i == gptr->maxRows - 1) {
 						if(topCount-- > 0) {
-							gamePtr->remainingCars++;
+							gptr->remainingCars++;
 							continue;
 						}
 					}
-					gamePtr->bricks[i][j].indestructible = (totalCount % rNumber)?false:true;
+					gptr->bricks[i][j].indestructible = (totalCount % rNumber)?false:true;
 				}
-				if(gamePtr->bricks[i][j].indestructible  == false) {
-					gamePtr->remainingCars++;
+				if(gptr->bricks[i][j].indestructible  == false) {
+					gptr->remainingCars++;
 					if(i == 0) {
 						topCount++;
 					}
@@ -101,28 +101,28 @@ void  initBrickLayout(GameData*gamePtr) {
 		} //end-of-for
 	} //end-of-for
 
-	for(int i = 1; i < gamePtr->maxRows-1; i++) {
-		for (int j = 1; j < gamePtr->maxColumns-1; j++) {
-			if(gamePtr->bricks[i][j].indestructible  == false) {
+	for(int i = 1; i < gptr->maxRows-1; i++) {
+		for (int j = 1; j < gptr->maxColumns-1; j++) {
+			if(gptr->bricks[i][j].indestructible  == false) {
 				// do not allow gas cars to be surrounded by ecars
 				// in that case the cars cannot be smashed
 				// check if the gas car is surrounded and if it is, make it an ecar
-				if((gamePtr->bricks[i-1][j].indestructible == true)
-						&& (gamePtr->bricks[i][j-1].indestructible == true)
-						&& (gamePtr->bricks[i][j+1].indestructible == true)
-						&& (gamePtr->bricks[i+1][j].indestructible == true)
+				if((gptr->bricks[i-1][j].indestructible == true)
+						&& (gptr->bricks[i][j-1].indestructible == true)
+						&& (gptr->bricks[i][j+1].indestructible == true)
+						&& (gptr->bricks[i+1][j].indestructible == true)
 				){
-					gamePtr->bricks[i][j].indestructible = true;
-					if(gamePtr->bricks[i][j].onScreen == true)
-						gamePtr->remainingCars--;
+					gptr->bricks[i][j].indestructible = true;
+					if(gptr->bricks[i][j].onScreen == true)
+						gptr->remainingCars--;
 					else
-						gamePtr->bricks[i][j].onScreen = true;
+						gptr->bricks[i][j].onScreen = true;
 				}
 			}
 		} //end-of-for
 	} //end-of-for
 
-	gamePtr->gameNumber++;
+	gptr->gameNumber++;
 
 	FEXIT();
 }
@@ -140,8 +140,8 @@ void  setBrickInfo(GameData* p) {
 	FENTRY();
 	TRACE();
 
-	p->carArea.xspeed = 0;
-	p->carArea.yspeed = 0;
+	p->carArea.speed.x = 0;
+	p->carArea.speed.y = 0;
 	p->carArea.onScreen = false;
 	p->carArea.width = 0;
 	p->carArea.height = 0;
@@ -160,8 +160,8 @@ void  setBrickInfo(GameData* p) {
 					return;
 				}
 			}
-			p->bricks[i][j].xspeed = 0;
-			p->bricks[i][j].yspeed = 0;
+			p->bricks[i][j].speed.x = 0;
+			p->bricks[i][j].speed.y = 0;
 		} //end-of-for
 	} //end-of-for
 
@@ -200,8 +200,8 @@ void  setBrickInfo(GameData* p) {
  --------------------------------------------------------------------------
  */
 void fastBall(GameData* g) {
-	g->maxXSpeed += 2;
-	g->maxYSpeed += 2;
+	g->maxspeed.x += 2;
+	g->maxspeed.y += 2;
 }
 
 
@@ -216,8 +216,8 @@ void fastBall(GameData* g) {
  --------------------------------------------------------------------------
  */
 void slowBall(GameData* g) {
-	g->maxXSpeed -= 2;
-	g->maxYSpeed -= 2;
+	g->maxspeed.x -= 2;
+	g->maxspeed.y -= 2;
 }
 
 
@@ -233,10 +233,10 @@ void slowBall(GameData* g) {
 bool isPointInObject(GameBasicBlock* b, int x, int y){
 	FENTRY();
 	TRACE();
-	if((x>=b->xposition)
-			&& (x <= (b->xposition+b->width))
-			&&(y>=b->yposition)
-			&& (y<=(b->yposition+b->height))) {
+	if((x>=b->position.x)
+			&& (x <= (b->position.x+b->width))
+			&&(y>=b->position.y)
+			&& (y<=(b->position.y+b->height))) {
 		FEXIT();
 		return true;
 	}
@@ -261,10 +261,10 @@ bool isBallInRegion(GameBasicBlock* ball, GameBasicBlock* obj){
 
 	FENTRY();
 	TRACE();
-	bool result = isPointInObject(obj,ball->xposition,ball->yposition);
-	result = result || isPointInObject(obj, ball->xposition+ball->width, ball->yposition);
-	result = result || isPointInObject(obj,ball->xposition, ball->yposition+ball->height);
-	result = result || isPointInObject(obj, ball->xposition+ball->width, ball->yposition+ball->height);
+	bool result = isPointInObject(obj,ball->position.x,ball->position.y);
+	result = result || isPointInObject(obj, ball->position.x+ball->width, ball->position.y);
+	result = result || isPointInObject(obj,ball->position.x, ball->position.y+ball->height);
+	result = result || isPointInObject(obj, ball->position.x+ball->width, ball->position.y+ball->height);
 
 	if(result == false) {
 		FEXIT();
@@ -291,41 +291,41 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
 
 	FENTRY();
 	TRACE();
-	bool result = isPointInObject(obj,ball->xposition,ball->yposition);
-	result = result || isPointInObject(obj, ball->xposition+ball->width, ball->yposition);
-	result = result || isPointInObject(obj,ball->xposition, ball->yposition+ball->height);
-	result = result || isPointInObject(obj, ball->xposition+ball->width, ball->yposition+ball->height);
+	bool result = isPointInObject(obj,ball->position.x,ball->position.y);
+	result = result || isPointInObject(obj, ball->position.x+ball->width, ball->position.y);
+	result = result || isPointInObject(obj,ball->position.x, ball->position.y+ball->height);
+	result = result || isPointInObject(obj, ball->position.x+ball->width, ball->position.y+ball->height);
 
 	if(result == false) {
 		FEXIT();
 		return false;
 	}
 
-	float ballXCenter = ball->xprevposition + (float) ball->width/2;
-	float ballYCenter = ball->yprevposition + (float) ball->height/2;
+	float ballXCenter = ball->prevposition.x + (float) ball->width/2;
+	float ballYCenter = ball->prevposition.y + (float) ball->height/2;
 
-	float objXCenter = obj->xposition + (float) obj->width/2;
-	float objYCenter = obj->yposition + (float) obj->height/2;
+	float objXCenter = obj->position.x + (float) obj->width/2;
+	float objYCenter = obj->position.y + (float) obj->height/2;
 
-	if(ball->xprevposition == (obj->xposition+obj->width)) {
+	if(ball->prevposition.x == (obj->position.x+obj->width)) {
 		side = right_c;
 		FEXIT();
 		return true;
 	}
 
-	if((ball->xprevposition + ball->width) == obj->xposition) {
+	if((ball->prevposition.x + ball->width) == obj->position.x) {
 		side = left_c;
 		FEXIT();
 		return true;
 	}
 
-	if(ball->yprevposition == (obj->yposition+obj->height)) {
+	if(ball->prevposition.y == (obj->position.y+obj->height)) {
 		side = bottom_c;
 		FEXIT();
 		return true;
 	}
 
-	if((ball->yprevposition + ball->height) == obj->yposition) {
+	if((ball->prevposition.y + ball->height) == obj->position.y) {
 		side = top_c;
 		FEXIT();
 		return true;
@@ -379,47 +379,47 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
    and false otherwise\n
  --------------------------------------------------------------------------
  */
-bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
+bool isBallBrickCollision(GameData* gptr, int i, int j) {
 
 	FENTRY();
 	TRACE();
-	if (gamePtr->bricks[i][j].onScreen == false) {
+	if (gptr->bricks[i][j].onScreen == false) {
 		FEXIT();
 		return false;
 	}
 
 	COLLISIONSIDE side;
 
-	if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->bricks[i][j]), side)) {
+	if(areObjectsColliding(&(gptr->ball), &(gptr->bricks[i][j]), side)) {
 
-		if(gamePtr->ball.yspeed == 0) {
-			gamePtr->ball.yspeed = rand() %3 -2;
+		if(gptr->ball.speed.y == 0) {
+			gptr->ball.speed.y = rand() %3 -2;
 		}
-		if(gamePtr->ball.xspeed == 0) {
-			gamePtr->ball.xspeed = rand() %3 -2;
+		if(gptr->ball.speed.x == 0) {
+			gptr->ball.speed.x = rand() %3 -2;
 		}
 
 		switch(side){
 		case top_c:
-			gamePtr->ball.yspeed *= -1;
-			gamePtr->ball.xspeed += rand() % 2;
-			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition - gamePtr->ball.height;
+			gptr->ball.speed.y *= -1;
+			gptr->ball.speed.x += rand() % 2;
+			gptr->ball.position.y = gptr->bricks[i][j].position.y - gptr->ball.height;
 			//printf("top\n");
 			break;
 		case bottom_c:
-			gamePtr->ball.yspeed *= -1;
-			gamePtr->ball.xspeed += rand() % 2;
-			gamePtr->ball.yposition = gamePtr->bricks[i][j].yposition + gamePtr->bricks[i][j].height;
+			gptr->ball.speed.y *= -1;
+			gptr->ball.speed.x += rand() % 2;
+			gptr->ball.position.y = gptr->bricks[i][j].position.y + gptr->bricks[i][j].height;
 			//printf("bottom\n");
 			break;
 		case left_c:
-			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition - gamePtr->ball.width;
-			gamePtr->ball.xspeed *= -1;
+			gptr->ball.position.x = gptr->bricks[i][j].position.x - gptr->ball.width;
+			gptr->ball.speed.x *= -1;
 			//printf("left\n");
 			break;
 		case right_c:
-			gamePtr->ball.xspeed *= -1;
-			gamePtr->ball.xposition = gamePtr->bricks[i][j].xposition + gamePtr->bricks[i][j].width;
+			gptr->ball.speed.x *= -1;
+			gptr->ball.position.x = gptr->bricks[i][j].position.x + gptr->bricks[i][j].width;
 			//printf("right\n");
 			break;
 		default:
@@ -428,11 +428,11 @@ bool isBallBrickCollision(GameData* gamePtr, int i, int j) {
 		}
 
 
-		if(gamePtr->bricks[i][j].indestructible == false) {
-			gamePtr->bricks[i][j].onScreen = false;
-			gamePtr->remainingCars--;
-			if(gamePtr->turn)
-				gamePtr->turn->carsSmashed+= gamePtr->scorePointsPerSmash;
+		if(gptr->bricks[i][j].indestructible == false) {
+			gptr->bricks[i][j].onScreen = false;
+			gptr->remainingCars--;
+			if(gptr->turn)
+				gptr->turn->carsSmashed+= gptr->scorePointsPerSmash;
 		}
 
 		FEXIT();
@@ -537,12 +537,12 @@ bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
  \n
  --------------------------------------------------------------------------
  */
-bool loadAudio(GamePlayer *gamePtr) {
+bool loadAudio(GamePlayer *gptr) {
 	FENTRY();
 	TRACE();
-	gamePtr->sample = al_load_sample(gamePtr->audioFileName);
-	if (gamePtr->sample == NULL) {
-		printf("Audio clip sample %s not loaded!\n", gamePtr->audioFileName);
+	gptr->sample = al_load_sample(gptr->audioFileName);
+	if (gptr->sample == NULL) {
+		printf("Audio clip sample %s not loaded!\n", gptr->audioFileName);
 		FEXIT();
 		return false;
 	}FEXIT();
@@ -558,12 +558,12 @@ bool loadAudio(GamePlayer *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-bool loadAudioWinner(GameData *gamePtr) {
+bool loadAudioWinner(GameData *gptr) {
 	FENTRY();
 	TRACE();
-	gamePtr->winsample = al_load_sample(gamePtr->winSoundFile);
-	if (gamePtr->winsample == NULL) {
-		printf("Audio clip sample %s not loaded!\n", gamePtr->winSoundFile);
+	gptr->winsample = al_load_sample(gptr->winSoundFile);
+	if (gptr->winsample == NULL) {
+		printf("Audio clip sample %s not loaded!\n", gptr->winSoundFile);
 		FEXIT();
 		return false;
 	}FEXIT();
@@ -580,11 +580,11 @@ bool loadAudioWinner(GameData *gamePtr) {
    the various graphics\n
  --------------------------------------------------------------------------
  */
-bool loadFont(GameData *gamePtr, int size) {
+bool loadFont(GameData *gptr, int size) {
 
 	FENTRY();
 	TRACE();
-	int fontSize = gamePtr->fontsize;
+	int fontSize = gptr->fontsize;
 	switch (size) {
 	case smallFont_c:
 		fontSize /= 2;
@@ -595,11 +595,11 @@ bool loadFont(GameData *gamePtr, int size) {
 	default:
 		break;
 	} //end-switch(size)
-	gamePtr->font[size] = al_load_ttf_font(gamePtr->fontFileName, fontSize, 0);
+	gptr->font[size] = al_load_ttf_font(gptr->fontFileName, fontSize, 0);
 
 	//error message if the font file is NULL
-	if (gamePtr->font[size] == NULL) {
-		printf("Could not load %s.\n", gamePtr->fontFileName);
+	if (gptr->font[size] == NULL) {
+		printf("Could not load %s.\n", gptr->fontFileName);
 		FEXIT();
 		return false;
 	}FEXIT();
@@ -618,16 +618,16 @@ bool loadFont(GameData *gamePtr, int size) {
  After a round win the round winner gets the serve.\n
  --------------------------------------------------------------------------
  */
-void  setInitialObjectPositions(GameData *gamePtr) {
+void  setInitialObjectPositions(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	gamePtr->ball.yspeed = minballspeed_c
-			+ rand() % (gamePtr->maxballspeed - minballspeed_c);
-	if (gamePtr->roundWinner) {
-		gamePtr->turn = gamePtr->roundWinner;
-		if (gamePtr->roundWinner == &(gamePtr->player[0])) {
-			gamePtr->ball.yspeed *= -1;
+	gptr->ball.speed.y = minballspeed_c
+			+ rand() % (gptr->maxballspeed - minballspeed_c);
+	if (gptr->roundWinner) {
+		gptr->turn = gptr->roundWinner;
+		if (gptr->roundWinner == &(gptr->player[0])) {
+			gptr->ball.speed.y *= -1;
 		} //end-of-if(p->roundWinner == &(p->player[0]))
 	} else {
 		//if there is no roundwinnner, it is the first serve of the game
@@ -635,71 +635,71 @@ void  setInitialObjectPositions(GameData *gamePtr) {
 		switch (rand() % 2) {
 		case 0:
 			// player 1
-			gamePtr->ball.yspeed *= -1;
-			gamePtr->turn = &gamePtr->player[0];
+			gptr->ball.speed.y *= -1;
+			gptr->turn = &gptr->player[0];
 			break;
 		default:
 			//player 2
-			gamePtr->turn = &gamePtr->player[1];
+			gptr->turn = &gptr->player[1];
 			break;
 		} //end-switch(rand() %2)
 	} //end-of-if(p->roundWinner)
 
-	float ratio_c = (float) gamePtr->display.height / (2 * gamePtr->display.width);
-	float maxxspeed = ratio_c * abs(gamePtr->ball.yspeed);
+	float ratio_c = (float) gptr->display.height / (2 * gptr->display.width);
+	float maxspeedx = ratio_c * abs(gptr->ball.speed.y);
 
-	gamePtr->ball.xspeed = rand() % (int) maxxspeed;
-	if (gamePtr->ball.xspeed == 0)
-		gamePtr->ball.xspeed = 3;
+	gptr->ball.speed.x = rand() % (int) maxspeedx;
+	if (gptr->ball.speed.x == 0)
+		gptr->ball.speed.x = 3;
 	switch (rand() % 2) {
 	case 0:
 		//serve up
-		gamePtr->ball.xspeed *= -1;
+		gptr->ball.speed.x *= -1;
 		break;
 	default:
 		break;
 	} //end-switch(rand() %2)
 
-	gamePtr->player[0].ge.xposition = gamePtr->display.width / 2 - gamePtr->player[0].ge.width / 2;
-	gamePtr->player[0].ge.yposition = gamePtr->display.height - gamePtr->player[0].ge.height;
-	gamePtr->player[0].ge.xspeed = 0;
-	gamePtr->player[1].ge.xposition = gamePtr->display.width / 2 - gamePtr->player[1].ge.width / 2;
-	gamePtr->player[1].ge.yposition = 0;
-	gamePtr->player[1].ge.xspeed = 0;
+	gptr->player[0].ge.position.x = gptr->display.width / 2 - gptr->player[0].ge.width / 2;
+	gptr->player[0].ge.position.y = gptr->display.height - gptr->player[0].ge.height;
+	gptr->player[0].ge.speed.x = 0;
+	gptr->player[1].ge.position.x = gptr->display.width / 2 - gptr->player[1].ge.width / 2;
+	gptr->player[1].ge.position.y = 0;
+	gptr->player[1].ge.speed.x = 0;
 
-	if (gamePtr->ball.yspeed > 0) {
-		gamePtr->ball.yprevposition = gamePtr->ball.yposition;
-		gamePtr->ball.yposition = gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height;
+	if (gptr->ball.speed.y > 0) {
+		gptr->ball.prevposition.y = gptr->ball.position.y;
+		gptr->ball.position.y = gptr->player[1].ge.position.y + gptr->player[1].ge.height;
 	}else {
-		gamePtr->ball.yprevposition = gamePtr->ball.yposition;
-		gamePtr->ball.yposition = gamePtr->player[0].ge.yposition - gamePtr->ball.height;
+		gptr->ball.prevposition.y = gptr->ball.position.y;
+		gptr->ball.position.y = gptr->player[0].ge.position.y - gptr->ball.height;
 	}
-	gamePtr->ball.xprevposition = gamePtr->ball.xposition;
-	gamePtr->ball.xposition = gamePtr->display.width / 2 - (gamePtr->ball.width / 2);
-	if (gamePtr->ball.yspeed > 0) {
-		gamePtr->startsample = gamePtr->player[1].sample;
+	gptr->ball.prevposition.x = gptr->ball.position.x;
+	gptr->ball.position.x = gptr->display.width / 2 - (gptr->ball.width / 2);
+	if (gptr->ball.speed.y > 0) {
+		gptr->startsample = gptr->player[1].sample;
 	} else {
-		gamePtr->startsample = gamePtr->player[0].sample;
+		gptr->startsample = gptr->player[0].sample;
 	}
 
-	int ypos = (gamePtr->display.height - gamePtr->bricks[0][0].height*gamePtr->maxRows)/2;
+	int ypos = (gptr->display.height - gptr->bricks[0][0].height*gptr->maxRows)/2;
 
-	for (int i = 0; i < gamePtr->maxRows; i++) {
-		int xpos = (gamePtr->display.width - gamePtr->bricks[0][0].width*gamePtr->maxColumns)/2;
+	for (int i = 0; i < gptr->maxRows; i++) {
+		int xpos = (gptr->display.width - gptr->bricks[0][0].width*gptr->maxColumns)/2;
 		if(xpos < 0) {
 			xpos = 0;
 		}
 
-		for (int j = 0; j < gamePtr->maxColumns; j++) {
-			gamePtr->bricks[i][j].yposition = ypos;
-			gamePtr->bricks[i][j].xposition = xpos;
-			xpos += gamePtr->bricks[i][j].width;
+		for (int j = 0; j < gptr->maxColumns; j++) {
+			gptr->bricks[i][j].position.y = ypos;
+			gptr->bricks[i][j].position.x = xpos;
+			xpos += gptr->bricks[i][j].width;
 		} //end-of-for
-		ypos += gamePtr->bricks[i][0].height;
+		ypos += gptr->bricks[i][0].height;
 	} //end-of-for
 
-	gamePtr->carArea.xposition = gamePtr->bricks[0][0].xposition;
-	gamePtr->carArea.yposition = gamePtr->bricks[0][0].yposition;
+	gptr->carArea.position.x = gptr->bricks[0][0].position.x;
+	gptr->carArea.position.y = gptr->bricks[0][0].position.y;
 
 	FEXIT();
 
@@ -714,21 +714,21 @@ void  setInitialObjectPositions(GameData *gamePtr) {
  Wait for P or ESC to be pressed again\n
  --------------------------------------------------------------------------
  */
-bool pauseGame(GameData *gamePtr) {
+bool pauseGame(GameData *gptr) {
 
 	//To pause the game we need to stop the timers
 	FENTRY();
 	TRACE();
-	stopTimers(gamePtr);
+	stopTimers(gptr);
 	while (true) {
 		TRACE();
 		//wait for an event
-		al_wait_for_event(gamePtr->eventqueue, &(gamePtr->ev));
+		al_wait_for_event(gptr->eventqueue, &(gptr->ev));
 		//check if the event is a key press
 		//can be something else as the event queue
 		//has other sources
-		if (gamePtr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-			switch (gamePtr->ev.keyboard.keycode) {
+		if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+			switch (gptr->ev.keyboard.keycode) {
 			case ALLEGRO_KEY_ESCAPE:
 				//exit game
 				FEXIT();
@@ -737,14 +737,14 @@ bool pauseGame(GameData *gamePtr) {
 				//P was pressed again
 				//we want no events in the queue
 				//and we want to start the timers
-				al_flush_event_queue(gamePtr->eventqueue);
-				startTimers(gamePtr);
+				al_flush_event_queue(gptr->eventqueue);
+				startTimers(gptr);
 				FEXIT();
 				return true;
 			}
 		}
 		//close the display with the mouse
-		if (gamePtr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
 			FEXIT();
 			return false;
 		}
@@ -764,65 +764,65 @@ bool pauseGame(GameData *gamePtr) {
  When a key is pushed down a boolean is set to keep the keep down as it is pressed\n
  --------------------------------------------------------------------------
  */
-bool isKeyPressEvent(GameData *gamePtr) {
+bool isKeyPressEvent(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	if (gamePtr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-		switch (gamePtr->ev.keyboard.keycode) {
+	if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+		switch (gptr->ev.keyboard.keycode) {
 		case ALLEGRO_KEY_LEFT:
-			gamePtr->player[0].keyPress[0] = true;
-			gamePtr->player[0].keyPress[1] = false;
+			gptr->player[0].keyPress[0] = true;
+			gptr->player[0].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_RIGHT:
-			gamePtr->player[0].keyPress[0] = false;
-			gamePtr->player[0].keyPress[1] = true;
+			gptr->player[0].keyPress[0] = false;
+			gptr->player[0].keyPress[1] = true;
 			break;
 		case ALLEGRO_KEY_Q:
-			gamePtr->player[1].keyPress[0] = true;
-			gamePtr->player[1].keyPress[1] = false;
+			gptr->player[1].keyPress[0] = true;
+			gptr->player[1].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_E:
-			gamePtr->player[1].keyPress[0] = false;
-			gamePtr->player[1].keyPress[1] = true;
+			gptr->player[1].keyPress[0] = false;
+			gptr->player[1].keyPress[1] = true;
 			break;
 		case ALLEGRO_KEY_P:
-			if (pauseGame(gamePtr) == false) {
+			if (pauseGame(gptr) == false) {
 				FEXIT();
 				return false;
 			}
 			break;
 		case ALLEGRO_KEY_F:
-			fastBall(gamePtr);
+			fastBall(gptr);
 			break;
 		case ALLEGRO_KEY_S:
-			slowBall(gamePtr);
+			slowBall(gptr);
 			break;
 		case ALLEGRO_KEY_ESCAPE:
 			//exit game
 			FEXIT();
 			return false;
 		}
-	} else if (gamePtr->ev.type == ALLEGRO_EVENT_KEY_UP) {
-		switch (gamePtr->ev.keyboard.keycode) {
+	} else if (gptr->ev.type == ALLEGRO_EVENT_KEY_UP) {
+		switch (gptr->ev.keyboard.keycode) {
 		case ALLEGRO_KEY_LEFT:
-			gamePtr->player[0].keyPress[0] = false;
+			gptr->player[0].keyPress[0] = false;
 			break;
 		case ALLEGRO_KEY_RIGHT:
-			gamePtr->player[0].keyPress[1] = false;
+			gptr->player[0].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_Q:
-			gamePtr->player[1].keyPress[0] = false;
+			gptr->player[1].keyPress[0] = false;
 			break;
 		case ALLEGRO_KEY_E:
-			gamePtr->player[1].keyPress[1] = false;
+			gptr->player[1].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_ESCAPE:
 			//exit game
 			FEXIT();
 			return false;
 		}
-	} else if (gamePtr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+	} else if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
 		FEXIT();
 		return false;
 	}FEXIT();
@@ -838,23 +838,23 @@ bool isKeyPressEvent(GameData *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-bool pressAnyKeyToBeginGame(GameData *gamePtr) {
+bool pressAnyKeyToBeginGame(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	al_flush_event_queue(gamePtr->eventqueue);
+	al_flush_event_queue(gptr->eventqueue);
 
 	while (true) {
 		TRACE();
 		//wait for an event
-		al_wait_for_event(gamePtr->eventqueue, &(gamePtr->ev));
+		al_wait_for_event(gptr->eventqueue, &(gptr->ev));
 		//check if the event is a key press
 		//can be something else as the event queue
 		//has other sources
-		if (gamePtr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+		if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
 			FEXIT();
 			//exits either way
-			switch (gamePtr->ev.keyboard.keycode) {
+			switch (gptr->ev.keyboard.keycode) {
 			case ALLEGRO_KEY_ESCAPE:
 				//exit game
 				return false;
@@ -862,7 +862,7 @@ bool pressAnyKeyToBeginGame(GameData *gamePtr) {
 				return true;
 			}
 		}
-		if (gamePtr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
 			FEXIT();
 			return false;
 		}
@@ -879,32 +879,32 @@ bool pressAnyKeyToBeginGame(GameData *gamePtr) {
  This function calculates the new positions of the paddles after the keys are pressed\n
  --------------------------------------------------------------------------
  */
-void  movePlayers(GameData *gamePtr) {
+void  movePlayers(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
 
-	if (gamePtr->player[0].keyPress[0] == true) {
-		gamePtr->player[0].ge.xposition -= gamePtr->player[0].paddleSpeed;
-		if (gamePtr->player[0].ge.xposition < 0)
-			gamePtr->player[0].ge.xposition = 0;
+	if (gptr->player[0].keyPress[0] == true) {
+		gptr->player[0].ge.position.x -= gptr->player[0].paddleSpeed;
+		if (gptr->player[0].ge.position.x < 0)
+			gptr->player[0].ge.position.x = 0;
 	}
-	if (gamePtr->player[0].keyPress[1] == true) {
-		gamePtr->player[0].ge.xposition += gamePtr->player[0].paddleSpeed;
-		if (gamePtr->player[0].ge.xposition >= (gamePtr->display.width - gamePtr->player[0].ge.width))
-			gamePtr->player[0].ge.xposition = (gamePtr->display.width - gamePtr->player[0].ge.width);
+	if (gptr->player[0].keyPress[1] == true) {
+		gptr->player[0].ge.position.x += gptr->player[0].paddleSpeed;
+		if (gptr->player[0].ge.position.x >= (gptr->display.width - gptr->player[0].ge.width))
+			gptr->player[0].ge.position.x = (gptr->display.width - gptr->player[0].ge.width);
 	} //end-of-if(p->player[0].keyPress[1] ==true)
 
-	if (gamePtr->player[1].keyPress[0] == true) {
-		gamePtr->player[1].ge.xposition -= gamePtr->player[1].paddleSpeed;
-		if (gamePtr->player[1].ge.xposition < 0)
-			gamePtr->player[1].ge.xposition = 0;
+	if (gptr->player[1].keyPress[0] == true) {
+		gptr->player[1].ge.position.x -= gptr->player[1].paddleSpeed;
+		if (gptr->player[1].ge.position.x < 0)
+			gptr->player[1].ge.position.x = 0;
 	} //end-of-if(p->player[1].keyPress[0] == true)
 
-	if (gamePtr->player[1].keyPress[1] == true) {
-		gamePtr->player[1].ge.xposition += gamePtr->player[1].paddleSpeed;
-		if (gamePtr->player[1].ge.xposition >= (gamePtr->display.width - gamePtr->player[1].ge.width))
-			gamePtr->player[1].ge.xposition = (gamePtr->display.width - gamePtr->player[1].ge.width);
+	if (gptr->player[1].keyPress[1] == true) {
+		gptr->player[1].ge.position.x += gptr->player[1].paddleSpeed;
+		if (gptr->player[1].ge.position.x >= (gptr->display.width - gptr->player[1].ge.width))
+			gptr->player[1].ge.position.x = (gptr->display.width - gptr->player[1].ge.width);
 	} //end-of-if(p->player[1].keyPress[1] == true)
 
 	FEXIT();
@@ -921,11 +921,11 @@ void  movePlayers(GameData *gamePtr) {
  Different text sizes are used for different messages \n
  --------------------------------------------------------------------------
  */
-int drawTextOnScreen(GameData *gamePtr, char *text, int x, int y, int size) {
+int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size) {
 	FENTRY();
 	TRACE();
-	al_draw_text(gamePtr->font[size], gamePtr->fcolor, x, y, ALLEGRO_ALIGN_CENTRE, text);
-	int fsize = gamePtr->fontsize;
+	al_draw_text(gptr->font[size], gptr->fcolor, x, y, ALLEGRO_ALIGN_CENTRE, text);
+	int fsize = gptr->fontsize;
 	switch (size) {
 	case smallFont_c:
 		fsize /= 2;
@@ -950,29 +950,29 @@ int drawTextOnScreen(GameData *gamePtr, char *text, int x, int y, int size) {
  This function displays the first screen that the user views in the game\n
  --------------------------------------------------------------------------
  */
-bool drawTextAndWaitBegin(GameData *gamePtr) {
+bool drawTextAndWaitBegin(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	int next = drawTextOnScreen(gamePtr, (char*) "Welcome to Car Smasher", gamePtr->display.width / 2,
-			gamePtr->display.height / 4, largeFont_c);
-	al_flush_event_queue(gamePtr->eventqueue);
-	drawTextOnScreen(gamePtr, (char*) "(c) mlambiri 2019", gamePtr->display.width / 2, next,
+	int next = drawTextOnScreen(gptr, (char*) "Welcome to Car Smasher", gptr->display.width / 2,
+			gptr->display.height / 4, largeFont_c);
+	al_flush_event_queue(gptr->eventqueue);
+	drawTextOnScreen(gptr, (char*) "(c) mlambiri 2019", gptr->display.width / 2, next,
 			smallFont_c);
 
 
-	next = drawTextOnScreen(gamePtr, (char*) "Two Player Mode", gamePtr->display.width / 2,
-			gamePtr->display.height / 2, regularFont_c);
+	next = drawTextOnScreen(gptr, (char*) "Two Player Mode", gptr->display.width / 2,
+			gptr->display.height / 2, regularFont_c);
 
 	char buffer[100];
-	sprintf(buffer, "Most points after %d rounds wins!", gamePtr->maxRounds);
-	next = drawTextOnScreen(gamePtr, buffer, gamePtr->display.width / 2, next, regularFont_c);
-	next = drawTextOnScreen(gamePtr, (char*) "Press a key to begin", gamePtr->display.width / 2,
+	sprintf(buffer, "Most points after %d rounds wins!", gptr->maxRounds);
+	next = drawTextOnScreen(gptr, buffer, gptr->display.width / 2, next, regularFont_c);
+	next = drawTextOnScreen(gptr, (char*) "Press a key to begin", gptr->display.width / 2,
 			next, regularFont_c);
 
 	al_flip_display();
 
-	if (pressAnyKeyToBeginGame(gamePtr) == false) {
+	if (pressAnyKeyToBeginGame(gptr) == false) {
 		FEXIT();
 		return false;
 	}
@@ -993,19 +993,19 @@ bool drawTextAndWaitBegin(GameData *gamePtr) {
  We do this by adding a value to the y coordinate of the message\n
  --------------------------------------------------------------------------
  */
-bool drawTextAndWaitRoundWin(GameData *gamePtr) {
+bool drawTextAndWaitRoundWin(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
 	char textBuffer[MAXBUFFER];
-	if ((gamePtr->roundNumber == gamePtr->maxRounds) || (gamePtr->remainingCars == 0)){
-		gamePtr->roundNumber = 1;
+	if ((gptr->roundNumber == gptr->maxRounds) || (gptr->remainingCars == 0)){
+		gptr->roundNumber = 1;
 		GamePlayer* ptr;
-		if(gamePtr->player[0].carsSmashed > gamePtr->player[1].carsSmashed) {
-			ptr = &gamePtr->player[0];
+		if(gptr->player[0].carsSmashed > gptr->player[1].carsSmashed) {
+			ptr = &gptr->player[0];
 		}
-		else if(gamePtr->player[0].carsSmashed < gamePtr->player[1].carsSmashed) {
-			ptr = &gamePtr->player[1];
+		else if(gptr->player[0].carsSmashed < gptr->player[1].carsSmashed) {
+			ptr = &gptr->player[1];
 		}
 		else {
 			ptr= NULL;
@@ -1016,49 +1016,49 @@ bool drawTextAndWaitRoundWin(GameData *gamePtr) {
 		else {
 			sprintf(textBuffer, "%s Wins The Game!!", ptr->name);
 		}
-		int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2,
-				gamePtr->carArea.yposition - 3*gamePtr->fontsize, largeFont_c);
-		sprintf(textBuffer, "Score: %s %d %s %d", gamePtr->player[1].name, gamePtr->player[1].carsSmashed,
-				gamePtr->player[0].name, gamePtr->player[0].carsSmashed);
-		next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2, next,
+		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
+				gptr->carArea.position.y - 3*gptr->fontsize, largeFont_c);
+		sprintf(textBuffer, "Score: %s %d %s %d", gptr->player[1].name, gptr->player[1].carsSmashed,
+				gptr->player[0].name, gptr->player[0].carsSmashed);
+		next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2, next,
 				regularFont_c);
 
-		drawTextOnScreen(gamePtr, (char*) "Press a key to begin or ESC to exit",
-				gamePtr->display.width / 2, gamePtr->carArea.yposition+gamePtr->carArea.height, regularFont_c);
+		drawTextOnScreen(gptr, (char*) "Press a key to begin or ESC to exit",
+				gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
 
-		playSound(gamePtr->winsample);
+		playSound(gptr->winsample);
 		sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
-				"Human", gamePtr->player[1].name,
-				gamePtr->player[0].name);
+				"Human", gptr->player[1].name,
+				gptr->player[0].name);
 		recordResult(textBuffer);
-		gamePtr->bcolor = gamePtr->initcolor;
-		initBrickLayout(gamePtr);
-		setBrickInfo(gamePtr);
+		gptr->bcolor = gptr->initcolor;
+		initBrickLayout(gptr);
+		setBrickInfo(gptr);
 
 	} else {
 		sprintf(textBuffer, "Score: %s %d %s %d",
-				gamePtr->player[1].name, gamePtr->player[1].carsSmashed, gamePtr->player[0].name,
-				gamePtr->player[0].carsSmashed);
-		int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width / 2,
-				gamePtr->carArea.yposition - gamePtr->fontsize, regularFont_c);
+				gptr->player[1].name, gptr->player[1].carsSmashed, gptr->player[0].name,
+				gptr->player[0].carsSmashed);
+		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
+				gptr->carArea.position.y - gptr->fontsize, regularFont_c);
 		char buffer[100];
-		sprintf(buffer, "Press a key to begin Round %d of %d or ESC to exit", ++gamePtr->roundNumber, gamePtr->maxRounds);
-		drawTextOnScreen(gamePtr, buffer, gamePtr->display.width / 2, gamePtr->carArea.yposition+gamePtr->carArea.height, regularFont_c);
+		sprintf(buffer, "Press a key to begin Round %d of %d or ESC to exit", ++gptr->roundNumber, gptr->maxRounds);
+		drawTextOnScreen(gptr, buffer, gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
 		//DEBUG(" =======\n");
 	}
 
 	al_flip_display();
 
-	if (pressAnyKeyToBeginGame(gamePtr) == false) {
+	if (pressAnyKeyToBeginGame(gptr) == false) {
 		FEXIT();
 		return false;
 	}
 
 	for (int i = 0; i < 2; i++) {
-		gamePtr->player[0].keyPress[i] = false;
-		gamePtr->player[1].keyPress[i] = false;
+		gptr->player[0].keyPress[i] = false;
+		gptr->player[1].keyPress[i] = false;
 	} //end-of-for
-	al_flush_event_queue(gamePtr->eventqueue);
+	al_flush_event_queue(gptr->eventqueue);
 
 	FEXIT();
 	return true;
@@ -1073,19 +1073,19 @@ bool drawTextAndWaitRoundWin(GameData *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-bool displayScore(GameData *gamePtr) {
+bool displayScore(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
 	char textBuffer[MAXBUFFER];
 	sprintf(textBuffer, "Score: %s %d %s %d",
-			gamePtr->player[1].name, gamePtr->player[1].carsSmashed, gamePtr->player[0].name,
-			gamePtr->player[0].carsSmashed);
-	int next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width -100,
+			gptr->player[1].name, gptr->player[1].carsSmashed, gptr->player[0].name,
+			gptr->player[0].carsSmashed);
+	int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
 			30, smallFont_c);
 	sprintf(textBuffer, "Remain: %d",
-			gamePtr->remainingCars);
-	next = drawTextOnScreen(gamePtr, textBuffer, gamePtr->display.width -100,
+			gptr->remainingCars);
+	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
 			next, smallFont_c);
 }
 
@@ -1101,7 +1101,7 @@ bool displayScore(GameData *gamePtr) {
 void  drawBitmap(GameBasicBlock *g) {
 	FENTRY();
 	TRACE();
-	al_draw_bitmap(g->bmap, g->xposition, g->yposition, 0);
+	al_draw_bitmap(g->bmap, g->position.x, g->position.y, 0);
 	FEXIT();
 
 } // end-of-function DrawBitmap
@@ -1119,8 +1119,8 @@ void  drawBitmap(GameBasicBlock *g) {
 void  drawBitmapSection(GameBasicBlock *g) {
 	FENTRY();
 	TRACE();
-	al_draw_bitmap_region(g->bmap, 0, 0, g->width, g->height, g->xposition,
-			g->yposition, 0);
+	al_draw_bitmap_region(g->bmap, 0, 0, g->width, g->height, g->position.x,
+			g->position.y, 0);
 	FEXIT();
 } // end-of-function DrawBitmapSection
 
@@ -1134,22 +1134,22 @@ void  drawBitmapSection(GameBasicBlock *g) {
  Has to be called every time we want to refresh the display during gameplay\n
  --------------------------------------------------------------------------
  */
-void  drawObjects(GameData *gamePtr) {
+void  drawObjects(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	setBackgroundColor(*(gamePtr->bcolor));
-	drawBitmapSection(&(gamePtr->player[0].ge));
-	drawBitmapSection(&(gamePtr->player[1].ge));
-	drawBitmap(&(gamePtr->ball));
-	for (int i = 0; i < gamePtr->maxRows; i++) {
-		for (int j = 0; j < gamePtr->maxColumns; j++) {
-			if (gamePtr->bricks[i][j].onScreen == true) {
-				drawBitmap(&(gamePtr->bricks[i][j]));
+	setBackgroundColor(*(gptr->bcolor));
+	drawBitmapSection(&(gptr->player[0].ge));
+	drawBitmapSection(&(gptr->player[1].ge));
+	drawBitmap(&(gptr->ball));
+	for (int i = 0; i < gptr->maxRows; i++) {
+		for (int j = 0; j < gptr->maxColumns; j++) {
+			if (gptr->bricks[i][j].onScreen == true) {
+				drawBitmap(&(gptr->bricks[i][j]));
 			}//end-of-if
 		} //end-of-for
 	} //end-of-for
-	displayScore(gamePtr);
+	displayScore(gptr);
 	FEXIT();
 } // end-of-function DrawObjects
 
@@ -1162,20 +1162,20 @@ void  drawObjects(GameData *gamePtr) {
  true if there is a collision with top or bottom\n
  --------------------------------------------------------------------------
  */
-bool checkCollisionLeftRight(GameData *gamePtr) {
+bool checkCollisionLeftRight(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	if (gamePtr->ball.xposition > (gamePtr->display.width - gamePtr->ball.width)) {
-		gamePtr->ball.xposition = gamePtr->display.width - gamePtr->ball.width;
-		if (gamePtr->ball.xspeed > 0)
-			gamePtr->ball.xspeed *= -1;
+	if (gptr->ball.position.x > (gptr->display.width - gptr->ball.width)) {
+		gptr->ball.position.x = gptr->display.width - gptr->ball.width;
+		if (gptr->ball.speed.x > 0)
+			gptr->ball.speed.x *= -1;
 		FEXIT();
 		return true;
-	} else if (gamePtr->ball.xposition < 0) {
-		gamePtr->ball.xposition = 0;
-		if (gamePtr->ball.xspeed < 0)
-			gamePtr->ball.xspeed *= -1;
+	} else if (gptr->ball.position.x < 0) {
+		gptr->ball.position.x = 0;
+		if (gptr->ball.speed.x < 0)
+			gptr->ball.speed.x *= -1;
 		FEXIT();
 		return true;
 	}
@@ -1193,22 +1193,22 @@ bool checkCollisionLeftRight(GameData *gamePtr) {
  Checks if the ball hits either player's side of the field and grants a roundwin\n
  --------------------------------------------------------------------------
  */
-bool checkCollisionTopAndBottom(GameData *gamePtr) {
+bool checkCollisionTopAndBottom(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	if ((gamePtr->ball.yposition >= (gamePtr->display.height - gamePtr->ball.height))
-			&& (gamePtr->ball.yspeed > 0)) {
+	if ((gptr->ball.position.y >= (gptr->display.height - gptr->ball.height))
+			&& (gptr->ball.speed.y > 0)) {
 		DEBUG("I hit the bottom line\n");
-		gamePtr->player[1].carsSmashed += gamePtr->penalty;
-		gamePtr->roundWinner = &(gamePtr->player[1]);
+		gptr->player[1].carsSmashed += gptr->penalty;
+		gptr->roundWinner = &(gptr->player[1]);
 		FEXIT();
 		return true;
 
-	} else if ((gamePtr->ball.yposition <= 0) && (gamePtr->ball.yspeed < 0)) {
+	} else if ((gptr->ball.position.y <= 0) && (gptr->ball.speed.y < 0)) {
 		DEBUG("I hit the top line\n");
-		gamePtr->player[0].carsSmashed += gamePtr->penalty;
-		gamePtr->roundWinner = &(gamePtr->player[0]);
+		gptr->player[0].carsSmashed += gptr->penalty;
+		gptr->roundWinner = &(gptr->player[0]);
 		FEXIT();
 		return true;
 	}FEXIT();
@@ -1241,11 +1241,11 @@ void  playSound(ALLEGRO_SAMPLE *s) {
  Stops all game timers \n
  --------------------------------------------------------------------------
  */
-void  stopTimers(GameData *gamePtr) {
+void  stopTimers(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	al_stop_timer(gamePtr->timer);
+	al_stop_timer(gptr->timer);
 	FEXIT();
 
 } // end-of-function StopTimers
@@ -1259,11 +1259,11 @@ void  stopTimers(GameData *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-void  startTimers(GameData *gamePtr) {
+void  startTimers(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	al_start_timer(gamePtr->timer);
+	al_start_timer(gptr->timer);
 	FEXIT();
 } // end-of-function StartTimers
 
@@ -1279,20 +1279,20 @@ void  startTimers(GameData *gamePtr) {
  Then we wait for user input to restart the game\n
  --------------------------------------------------------------------------
  */
-bool printRoundWinner(GameData *gamePtr) {
+bool printRoundWinner(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	stopTimers(gamePtr);
-	setInitialObjectPositions(gamePtr);
-	drawObjects(gamePtr);
+	stopTimers(gptr);
+	setInitialObjectPositions(gptr);
+	drawObjects(gptr);
 
-	if (drawTextAndWaitRoundWin(gamePtr) == false) {
+	if (drawTextAndWaitRoundWin(gptr) == false) {
 		FEXIT();
 		return false;
 	} else {
-		startTimers(gamePtr);
-		playSound(gamePtr->startsample);
+		startTimers(gptr);
+		playSound(gptr->startsample);
 	}FEXIT();
 	return true;
 } // end-of-function PrintRoundWinner
@@ -1332,17 +1332,17 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 
 	FENTRY();
 	TRACE();
-	int newxspeed = abs(ball->yspeed) + (rand() % (minballspeed_c / 2));
-	if (newxspeed > maxballspeed)
-		newxspeed = maxballspeed;
-	ball->yspeed = signOfNumber(ball->yspeed) * -1 * newxspeed;
+	int newspeedx = abs(ball->speed.y) + (rand() % (minballspeed_c / 2));
+	if (newspeedx > maxballspeed)
+		newspeedx = maxballspeed;
+	ball->speed.y = signOfNumber(ball->speed.y) * -1 * newspeedx;
 
 	int zones_c = 8 - playerPtr->paddleSize;
 	if (playerPtr->paddleSize == maxPaddleSize_c) {
-		ball->xspeed += signOfNumber(ball->xspeed)*rand()%2;
+		ball->speed.x += signOfNumber(ball->speed.x)*rand()%2;
 	} else {
 		int zonelength = playerPtr->ge.width / zones_c;
-		int zonenum = (ball->xposition - playerPtr->ge.xposition) / zonelength;
+		int zonenum = (ball->position.x - playerPtr->ge.position.x) / zonelength;
 		if (zonenum < 0) {
 			zonenum = 0;
 		}
@@ -1350,7 +1350,7 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 			zonenum = zones_c - 1;
 		} //end-of-if(zonenum > zones_c -1)
 
-		ball->xspeed += signOfNumber(ball->xspeed)*rand()%2;
+		ball->speed.x += signOfNumber(ball->speed.x)*rand()%2;
 	}
 
 	playSound(playerPtr->sample);
@@ -1370,24 +1370,24 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 
  --------------------------------------------------------------------------
  */
-bool checkBallCollisionWithPlayers(GameData *gamePtr) {
+bool checkBallCollisionWithPlayers(GameData *gptr) {
 	FENTRY();
 	TRACE();
 
 	COLLISIONSIDE side;
 	// check collision with player 1
-	if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->player[0].ge), side)) {
-		gamePtr->ball.yposition = gamePtr->player[0].ge.yposition - gamePtr->ball.height;
-		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[0]), gamePtr->maxballspeed);
-		gamePtr->turn = &gamePtr->player[0];
+	if(areObjectsColliding(&(gptr->ball), &(gptr->player[0].ge), side)) {
+		gptr->ball.position.y = gptr->player[0].ge.position.y - gptr->ball.height;
+		ballBounceOnPlayer(&(gptr->ball), &(gptr->player[0]), gptr->maxballspeed);
+		gptr->turn = &gptr->player[0];
 		FEXIT();
 		return true;
 	}
 	//check collision with player 2
-	else if(areObjectsColliding(&(gamePtr->ball), &(gamePtr->player[1].ge), side)) {
-		gamePtr->ball.yposition = gamePtr->player[1].ge.yposition + gamePtr->player[1].ge.height;
-		ballBounceOnPlayer(&(gamePtr->ball), &(gamePtr->player[1]), gamePtr->maxballspeed);
-		gamePtr->turn = &gamePtr->player[1];
+	else if(areObjectsColliding(&(gptr->ball), &(gptr->player[1].ge), side)) {
+		gptr->ball.position.y = gptr->player[1].ge.position.y + gptr->player[1].ge.height;
+		ballBounceOnPlayer(&(gptr->ball), &(gptr->player[1]), gptr->maxballspeed);
+		gptr->turn = &gptr->player[1];
 		FEXIT();
 		return true;
 	}
@@ -1442,33 +1442,33 @@ uint min(uint a, uint b) {
   paper' at page YYY in the Game Architecture book.\n
  --------------------------------------------------------------------------
  */
-bool updateBallPosition(GameData *gamePtr) {
+bool updateBallPosition(GameData *gptr) {
 	FENTRY();
 	TRACE();
 
-	if(gamePtr->remainingCars == 0) {
+	if(gptr->remainingCars == 0) {
 		FEXIT();
 		return true;
 	}
 
 
-	GameBasicBlock tmpBall = gamePtr->ball;
+	GameBasicBlock tmpBall = gptr->ball;
 
-	tmpBall.xposition = gamePtr->ball.xposition + gamePtr->ball.xspeed;
-	tmpBall.yposition = gamePtr->ball.yposition + gamePtr->ball.yspeed;
+	tmpBall.position.x = gptr->ball.position.x + gptr->ball.speed.x;
+	tmpBall.position.y = gptr->ball.position.y + gptr->ball.speed.y;
 
-	if(isBallInRegion(&tmpBall, &(gamePtr->carArea)) == true) {
-		if(abs(gamePtr->ball.xspeed) > gamePtr->maxXSpeed) {
-			gamePtr->ball.xspeed = signOfNumber(gamePtr->ball.xspeed)*gamePtr->maxXSpeed;
+	if(isBallInRegion(&tmpBall, &(gptr->carArea)) == true) {
+		if(abs(gptr->ball.speed.x) > gptr->maxspeed.x) {
+			gptr->ball.speed.x = signOfNumber(gptr->ball.speed.x)*gptr->maxspeed.x;
 		}
-		gamePtr->ball.xprevposition = gamePtr->ball.xposition;
-		gamePtr->ball.xposition += gamePtr->ball.xspeed;
+		gptr->ball.prevposition.x = gptr->ball.position.x;
+		gptr->ball.position.x += gptr->ball.speed.x;
 
-		if(abs(gamePtr->ball.yspeed) > gamePtr->maxYSpeed) {
-			gamePtr->ball.yspeed += signOfNumber(gamePtr->ball.yspeed)*gamePtr->maxYSpeed;
+		if(abs(gptr->ball.speed.y) > gptr->maxspeed.y) {
+			gptr->ball.speed.y += signOfNumber(gptr->ball.speed.y)*gptr->maxspeed.y;
 		}
-		gamePtr->ball.yprevposition = gamePtr->ball.yposition;
-		gamePtr->ball.yposition += gamePtr->ball.yspeed;
+		gptr->ball.prevposition.y = gptr->ball.position.y;
+		gptr->ball.position.y += gptr->ball.speed.y;
 
 
 		// this collision detection checks all rows and columns
@@ -1477,10 +1477,10 @@ bool updateBallPosition(GameData *gamePtr) {
 		// then we can start checking from (maxRows, maxColumns)
 		// this will detect the collisions faster
 		bool done = false;
-		if(gamePtr->ball.yspeed <= 0) {
-			for (int i = gamePtr->maxRows-1; i >=0; i--) {
-				for (int j = 0; j < gamePtr->maxColumns; j++) {
-					if(isBallBrickCollision(gamePtr, i, j)) {
+		if(gptr->ball.speed.y <= 0) {
+			for (int i = gptr->maxRows-1; i >=0; i--) {
+				for (int j = 0; j < gptr->maxColumns; j++) {
+					if(isBallBrickCollision(gptr, i, j)) {
 						done = true;
 						break;
 					}
@@ -1488,12 +1488,12 @@ bool updateBallPosition(GameData *gamePtr) {
 				if(done) break;
 			} //end-of-for
 		}
-		else if(gamePtr->ball.yspeed > 0) {
+		else if(gptr->ball.speed.y > 0) {
 			// if the speed is 'positive' (ie ball moves from top to bottom)
 			// we can to the check from (0,0) to (maxRow, maxColumn)
-			for (int i = 0; i < gamePtr->maxRows; i++) {
-				for (int j = 0; j < gamePtr->maxColumns; j++) {
-					if(isBallBrickCollision(gamePtr, i, j)) {
+			for (int i = 0; i < gptr->maxRows; i++) {
+				for (int j = 0; j < gptr->maxColumns; j++) {
+					if(isBallBrickCollision(gptr, i, j)) {
 						done = true;
 						break;
 					}
@@ -1503,26 +1503,26 @@ bool updateBallPosition(GameData *gamePtr) {
 		}
 	}
 	else {
-		if(abs(gamePtr->ball.xspeed) > gamePtr->maxXSpeed) {
-			gamePtr->ball.xspeed = signOfNumber(gamePtr->ball.xspeed)*gamePtr->maxXSpeed;
+		if(abs(gptr->ball.speed.x) > gptr->maxspeed.x) {
+			gptr->ball.speed.x = signOfNumber(gptr->ball.speed.x)*gptr->maxspeed.x;
 		}
-		if(abs(gamePtr->ball.yspeed) > gamePtr->maxYSpeed) {
-			gamePtr->ball.yspeed += signOfNumber(gamePtr->ball.yspeed)*gamePtr->maxYSpeed;
+		if(abs(gptr->ball.speed.y) > gptr->maxspeed.y) {
+			gptr->ball.speed.y += signOfNumber(gptr->ball.speed.y)*gptr->maxspeed.y;
 		}
-		gamePtr->ball.xprevposition = gamePtr->ball.xposition;
-		gamePtr->ball.yprevposition = gamePtr->ball.yposition;
-		gamePtr->ball.xposition +=  gamePtr->ball.xspeed;
-		gamePtr->ball.yposition += gamePtr->ball.yspeed;
+		gptr->ball.prevposition.x = gptr->ball.position.x;
+		gptr->ball.prevposition.y = gptr->ball.position.y;
+		gptr->ball.position.x +=  gptr->ball.speed.x;
+		gptr->ball.position.y += gptr->ball.speed.y;
 	}
 
 
-	if (checkBallCollisionWithPlayers(gamePtr) == false) {
-		if (checkCollisionTopAndBottom(gamePtr) == true) {
+	if (checkBallCollisionWithPlayers(gptr) == false) {
+		if (checkCollisionTopAndBottom(gptr) == true) {
 			FEXIT();
 			return true;
 		}
 	}
-	checkCollisionLeftRight(gamePtr);
+	checkCollisionLeftRight(gptr);
 	FEXIT();
 	return false;
 } // end-of-function UpdateBallPosition
@@ -1544,24 +1544,24 @@ bool updateBallPosition(GameData *gamePtr) {
  Then that buffer is shown on the screen. \n
  --------------------------------------------------------------------------
  */
-bool gameMainLoop(GameData *gamePtr) {
+bool gameMainLoop(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	startTimers(gamePtr);
+	startTimers(gptr);
 
 	bool roundwin = false;
 	int skipCounter = 0;
 
-	playSound(gamePtr->startsample);
+	playSound(gptr->startsample);
 	//We are waiting for an event from on one of the sources that are linked to the event queue
 	//The frame-timer, keyboard, mouse
 	//This function blocks until an event is received
 	//Therefore if the timers would not be started, this function would return only on a keyboard or mouse event
 	while (true) {
-		al_wait_for_event(gamePtr->eventqueue, &(gamePtr->ev));
+		al_wait_for_event(gptr->eventqueue, &(gptr->ev));
 
-		if (gamePtr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
 			FEXIT();
 			return false;
 		}
@@ -1569,16 +1569,16 @@ bool gameMainLoop(GameData *gamePtr) {
 		//We do this by counting timer events without processing them which in effect
 		//skips frames
 		if (roundwin == true) {
-			if (gamePtr->ev.type == ALLEGRO_EVENT_TIMER
-					&& gamePtr->ev.timer.source == gamePtr->timer) {
+			if (gptr->ev.type == ALLEGRO_EVENT_TIMER
+					&& gptr->ev.timer.source == gptr->timer) {
 				//skip maxSkip frames
 				//At the end of each round we want to keep the last frame of the play that shows where the ball exitied the screen
 				//for a little longer, so the user can see who won the round
 				//We do this by counting frame timer events
-				if (skipCounter++ >= (int) gamePtr->fps) {
+				if (skipCounter++ >= (int) gptr->fps) {
 					skipCounter = 0;
 					roundwin = false;
-					if (printRoundWinner(gamePtr) == false) {
+					if (printRoundWinner(gptr) == false) {
 						//user has pressed ESC to end the game
 						FEXIT();
 						return false;
@@ -1589,20 +1589,20 @@ bool gameMainLoop(GameData *gamePtr) {
 				continue;
 		} else {
 			//check if escape key has been pressed
-			if (isKeyPressEvent(gamePtr) == false) {
+			if (isKeyPressEvent(gptr) == false) {
 				//user has ended game
 				FEXIT();
 				return false;
 			}
 			//check if we need to update the frame
-			else if (gamePtr->ev.type == ALLEGRO_EVENT_TIMER
-					&& gamePtr->ev.timer.source == gamePtr->timer) {
+			else if (gptr->ev.type == ALLEGRO_EVENT_TIMER
+					&& gptr->ev.timer.source == gptr->timer) {
 				//If this is a screen update timer event then we have to redraw the screen
 				//we have to update the ball position and then draw all objects (players and ball)
 				//Calculates next position of the paddles based on the key inputs read above
-				movePlayers(gamePtr);
-				roundwin = updateBallPosition(gamePtr);
-				drawObjects(gamePtr);
+				movePlayers(gptr);
+				roundwin = updateBallPosition(gptr);
+				drawObjects(gptr);
 				//This function shows the content of the display buffer on the screen.
 				al_flip_display();
 			}
@@ -1623,23 +1623,23 @@ bool gameMainLoop(GameData *gamePtr) {
  \n
  --------------------------------------------------------------------------
  */
-void  exitGame(GameData *gamePtr) {
+void  exitGame(GameData *gptr) {
 	FENTRY();
 	TRACE();
 	al_rest(0.0);
-	al_destroy_display(gamePtr->display.display);
-	al_destroy_timer(gamePtr->botTimer);
-	al_destroy_timer(gamePtr->timer);
-	al_destroy_event_queue(gamePtr->eventqueue);
+	al_destroy_display(gptr->display.display);
+	al_destroy_timer(gptr->botTimer);
+	al_destroy_timer(gptr->timer);
+	al_destroy_event_queue(gptr->eventqueue);
 	for (int i = 0; i < MAXFONTS; i++) {
-		if (gamePtr->font[i]) {
-			al_destroy_font(gamePtr->font[i]);
+		if (gptr->font[i]) {
+			al_destroy_font(gptr->font[i]);
 		} //end-of-if(p->font[i])
 	} //end-of-for
 
-	al_destroy_bitmap(gamePtr->player[0].ge.bmap);
-	al_destroy_bitmap(gamePtr->player[1].ge.bmap);
-	al_destroy_bitmap(gamePtr->ball.bmap);
+	al_destroy_bitmap(gptr->player[0].ge.bmap);
+	al_destroy_bitmap(gptr->player[1].ge.bmap);
+	al_destroy_bitmap(gptr->ball.bmap);
 	FEXIT();
 } // end-of-function GameExit
 
@@ -1960,8 +1960,8 @@ bool initializeGraphics(GameData *p) {
 	loadAudio(&(p->player[1]));
 	loadAudioWinner(p);
 
-	p->maxXSpeed = p->bricks[0][0].width /4;
-	p->maxYSpeed = p->bricks[0][0].height/4;
+	p->maxspeed.x = p->bricks[0][0].width /4;
+	p->maxspeed.y = p->bricks[0][0].height/4;
 
 	setInitialObjectPositions(p);
 
