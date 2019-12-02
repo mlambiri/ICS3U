@@ -69,6 +69,18 @@ enum COLLISIONSIDE {
 
 //======= GAME STRUCTURE DEFINITIONS =========
 
+/*
+ * @author   mlambiri
+ * @date     Dec. 2, 2019
+ *   stores x, y coordinates
+ */
+
+typedef struct Point {
+	int x;
+	int y;
+} Point;
+
+
 /**
   ---------------------------------------------------------------------------
    @author     mlambiri
@@ -96,14 +108,11 @@ enum COLLISIONSIDE {
 typedef struct GameBasicBlock {
 	bool onScreen;
 	bool indestructible;
-	int xposition;
-	int yposition;
-	int xprevposition;
-	int yprevposition;
+	Point position;
+	Point prevposition;
 	int width;
 	int height;
-	int xspeed;
-	int yspeed;
+	Point speed;
 	ALLEGRO_BITMAP* bmap;
 }GameBasicBlock;
 
@@ -146,6 +155,12 @@ typedef struct GameDisplay {
 	ALLEGRO_DISPLAY *display;
 } GameDisplay;
 
+#define MAXRECORDING 1000
+
+typedef struct DataRecorder {
+	Point  point[MAXRECORDING];
+	int used;
+} DataRecorder;
 
 /**
   ---------------------------------------------------------------------------
@@ -211,51 +226,51 @@ typedef struct GameData {
 	int maxColumns;
 	GameBasicBlock carArea;
 	bool cAlgoSelector;
-	uint maxXSpeed;
-	uint maxYSpeed;
+	Point maxspeed;
 	GameDisplay helpDisplay;
+	DataRecorder path;
 
 } GameData;
 
 
-#define INITGBB {true, true, 0, 0, 0,0, 0, 0, 0, 0, NULL}
+#define INITGBB {true, true, {0, 0}, {0,0}, 0, 0, {0, 0}, NULL}
 #define INITPLAYER {  0, 0, INITGBB, {0}, {0}, NULL, {false, false}, 0}
 #define INITDISPLAY {SCREEN_W, SCREEN_H, NULL}
 
 //======= FUNCTION DECLARATIONS =====
-bool checkCollisionLeftRight(GameData *gamePtr);
-bool checkCollisionTopAndBottom(GameData *gamePtr);
-bool checkBallCollisionWithPlayers(GameData *gamePtr);
-bool displayScore(GameData *gamePtr);
-bool drawTextAndWaitBegin(GameData *gamePtr);
-bool drawTextAndWaitRoundWin(GameData *gamePtr);
-bool gameMainLoop(GameData *gamePtr);
-bool loadAudio(GamePlayer *gamePtr);
-bool loadAudioWinner(GameData *gamePtr);
+bool checkCollisionLeftRight(GameData *gptr);
+bool checkCollisionTopAndBottom(GameData *gptr);
+bool checkBallCollisionWithPlayers(GameData *gptr);
+bool displayScore(GameData *gptr);
+bool drawTextAndWaitBegin(GameData *gptr);
+bool drawTextAndWaitRoundWin(GameData *gptr);
+bool gameMainLoop(GameData *gptr);
+bool loadAudio(GamePlayer *gptr);
+bool loadAudioWinner(GameData *gptr);
 bool loadBitmap(GameBasicBlock *g, char* fname);
 bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
-bool loadFont(GameData *gamePtr, int size);
+bool loadFont(GameData *gptr, int size);
 bool loadPlayerBitmap(GamePlayer *p, char* fname);
-bool pauseGame(GameData *gamePtr);
-bool pressAnyKeyToBeginGame(GameData *gamePtr);
-bool printRoundWinner(GameData *gamePtr);
-bool isKeyPressEvent(GameData *gamePtr);
-bool updateBallPosition(GameData *gamePtr);
-int drawTextOnScreen(GameData *gamePtr, char *text, int x, int y, int size);
+bool pauseGame(GameData *gptr);
+bool pressAnyKeyToBeginGame(GameData *gptr);
+bool printRoundWinner(GameData *gptr);
+bool isKeyPressEvent(GameData *gptr);
+bool updateBallPosition(GameData *gptr);
+int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size);
 int signOfNumber(int value);
 void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int);
-void  lrtBotControl(GameData *gamePtr, uint botNumber);
+void  lrtBotControl(GameData *gptr, uint botNumber);
 void  drawBitmap(GameBasicBlock *g);
 void  drawBitmapSection(GameBasicBlock *g);
-void  drawObjects(GameData *gamePtr);
-void  exitGame(GameData *gamePtr);
-void  initBrickLayout(GameData*gamePtr);
-void  movePlayers(GameData *gamePtr);
+void  drawObjects(GameData *gptr);
+void  exitGame(GameData *gptr);
+void  initBrickLayout(GameData*gptr);
+void  movePlayers(GameData *gptr);
 void  playSound(ALLEGRO_SAMPLE *s);
 void  setBackgroundColor(ALLEGRO_COLOR color);
-void  setInitialObjectPositions(GameData *gamePtr);
-void  startTimers(GameData *gamePtr);
-void  stopTimers(GameData *gamePtr);
+void  setInitialObjectPositions(GameData *gptr);
+void  startTimers(GameData *gptr);
+void  stopTimers(GameData *gptr);
 void  setBrickInfo(GameData* p);
 bool recordResult(char *p);
 
