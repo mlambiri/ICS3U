@@ -645,10 +645,7 @@ void  setInitialObjectPositions(GameData *gptr) {
 		} //end-switch(rand() %2)
 	} //end-of-if(p->roundWinner)
 
-	float ratio_c = (float) gptr->display.height / (2 * gptr->display.width);
-	float maxspeedx = ratio_c * abs(gptr->ball.speed.y);
-
-	gptr->ball.speed.x = rand() % (int) maxspeedx;
+	gptr->ball.speed.x = rand() % 5;
 	if (gptr->ball.speed.x == 0)
 		gptr->ball.speed.x = 3;
 	switch (rand() % 2) {
