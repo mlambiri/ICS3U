@@ -719,10 +719,10 @@ bool isBallBrickCollision(GameData* gptr, int i, int j) {
 	if(areObjectsColliding(&(gptr->ball), &(gptr->bricks[i][j]), side)) {
 
 		if(gptr->ball.speed.y == 0) {
-			gptr->ball.speed.y = rand() %3 -2;
+			gptr->ball.speed.y = rand() %5 -2;
 		}
 		if(gptr->ball.speed.x == 0) {
-			gptr->ball.speed.x = rand() %3 -2;
+			gptr->ball.speed.x = rand() %5 -2;
 		}
 
 		switch(side){
