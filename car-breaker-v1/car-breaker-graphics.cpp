@@ -477,7 +477,7 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 		FEXIT();
 		return false;
 	}
-	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (maxPaddleSize_c + 1 - p->paddleSize)) / maxPaddleSize_c;
+	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (p->paddleSize)) / maxPaddleSize_c;
 	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
 	return true;
@@ -1778,19 +1778,23 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			//player 2 sound file name
 			if (++param < argc)
 				strcpy(p->player[1].audioFileName, argv[param]);
-		}   else if (strcmp(argv[param], "buslevel") == 0) {
+		}   else if (strcmp(argv[param], "buslength") == 0) {
 			//level (controls the paddle size)
 			if (++param < argc) {
 				p->player[0].paddleSize = atoi(argv[param]);
 				if (p->player[0].paddleSize > maxPaddleSize_c)
 					p->player[0].paddleSize = maxPaddleSize_c;
+				if (p->player[0].paddleSize < 1)
+					p->player[0].paddleSize = 1;
 			}
-		} else if (strcmp(argv[param], "lrtlevel") == 0) {
+		} else if (strcmp(argv[param], "lrtlength") == 0) {
 			//level (controls the paddle size)
 			if (++param < argc) {
 				p->player[1].paddleSize = atoi(argv[param]);
 				if (p->player[1].paddleSize > maxPaddleSize_c)
 					p->player[1].paddleSize = maxPaddleSize_c;
+				if (p->player[1].paddleSize < 1)
+					p->player[1].paddleSize = 1;
 			}
 		} else if (strcmp(argv[param], "fps") == 0) {
 			//display fps

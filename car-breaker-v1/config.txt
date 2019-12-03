@@ -44,12 +44,10 @@ colourscheme = white
 
 winSound = applause6.wav
 
-#this *substracts* from the paddle length
-# the paddle has 7 blocks
-#if level is set to x we will have 8-x
-# blocks in the screen for the players
-buslevel = 5
-lrtlevel = 2
+# number of blocks that form the player paddle
+# [1 .. 7]
+buslength = 3
+lrtlength = 6
 
 #frames per second min 5 max 240
 fps = 60
