@@ -778,6 +778,13 @@ bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i
 
 		switch(side){
 		case top_c:
+			if(i > 0) {
+				// check is there is another car on top
+				if(gptr->bricks[i-1][j].onScreen == true ) {
+					FEXIT();
+					return false;
+				}
+			}
 			tmpBall->position.y = gptr->bricks[i][j].position.y - tmpBall->height;
 			if(tmpBall->speed.y < 0) {
 				FEXIT();
@@ -786,6 +793,13 @@ bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i
 			DEBUG("p-top");
 			break;
 		case bottom_c:
+			if(i < gptr->maxRows-1) {
+				// check is there is another car underneath
+				if(gptr->bricks[i+1][j].onScreen == true ) {
+					FEXIT();
+					return false;
+				}
+			}
 			tmpBall->position.y = gptr->bricks[i][j].position.y + gptr->bricks[i][j].height;
 			if(tmpBall->speed.y > 0) {
 				FEXIT();
@@ -794,6 +808,13 @@ bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i
 			DEBUG("p-bottom");
 			break;
 		case left_c:
+			if(j >0) {
+				// check is there is another car to the left
+				if(gptr->bricks[i][j-1].onScreen == true ) {
+					FEXIT();
+					return false;
+				}
+			}
 			tmpBall->position.x = gptr->bricks[i][j].position.x - tmpBall->width;
 			if(tmpBall->speed.x < 0) {
 				FEXIT();
@@ -802,6 +823,13 @@ bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i
 			DEBUG("p-left");
 			break;
 		case right_c:
+			if(j < gptr->maxColumns-1) {
+				// check is there is another car underneath
+				if(gptr->bricks[i][j+1].onScreen == true ) {
+					FEXIT();
+					return false;
+				}
+			}
 			tmpBall->position.x = gptr->bricks[i][j].position.x + gptr->bricks[i][j].width;
 			if(tmpBall->speed.x > 0) {
 				FEXIT();
@@ -2469,14 +2497,6 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 				p->maxspeed.y = maxballspeed;
 				p->maxballspeed = maxballspeed;
 			}
-		} else if (strcmp(argv[param], "p1name") == 0) {
-			//player1 name
-			if (++param < argc)
-				strcpy(p->player[0].name, argv[param]);
-		} else if (strcmp(argv[param], "p2name") == 0) {
-			//player2 name
-			if (++param < argc)
-				strcpy(p->player[1].name, argv[param]);
 		} else if (strcmp(argv[param], "maxrounds") == 0) {
 			//maxscore
 			if (++param < argc)
@@ -2489,11 +2509,11 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			//font file name
 			if (++param < argc)
 				strcpy(p->winSoundFile, argv[param]);
-		} else if (strcmp(argv[param], "player1bmp") == 0) {
+		} else if (strcmp(argv[param], "busbmp") == 0) {
 			//player 1 bitmap file name
 			if (++param < argc)
 				strcpy(p->p1BitmapName, argv[param]);
-		} else if (strcmp(argv[param], "player2bmp") == 0) {
+		} else if (strcmp(argv[param], "lrtbmp") == 0) {
 			//player 2 bitmap file name
 			if (++param < argc)
 				strcpy(p->p2BitmapName, argv[param]);
@@ -2509,11 +2529,11 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			//ecar bitmap file name
 			if (++param < argc)
 				strcpy(p->ecarBitmapName, argv[param]);
-		} else if (strcmp(argv[param], "player1sound") == 0) {
+		} else if (strcmp(argv[param], "bussound") == 0) {
 			//player 1 sound file name
 			if (++param < argc)
 				strcpy(p->player[0].audioFileName, argv[param]);
-		} else if (strcmp(argv[param], "player2sound") == 0) {
+		} else if (strcmp(argv[param], "lrtsound") == 0) {
 			//player 2 sound file name
 			if (++param < argc)
 				strcpy(p->player[1].audioFileName, argv[param]);
@@ -2528,24 +2548,24 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			if (++param < argc) {
 				strcpy(p->outLayout, argv[param]);
 			}
-		} else if (strcmp(argv[param], "p1paddleSpeed") == 0) {
+		} else if (strcmp(argv[param], "busspeed") == 0) {
 			//player 1 paddle speed
 			if (++param < argc) {
 				p->player[0].paddleSpeed = atoi(argv[param]);
 			}
-		} else if (strcmp(argv[param], "p2paddleSpeed") == 0) {
+		} else if (strcmp(argv[param], "lrtspeed") == 0) {
 			//player 2 paddle speed
 			if (++param < argc) {
 				p->player[1].paddleSpeed = atoi(argv[param]);
 			}
-		} else if (strcmp(argv[param], "p1level") == 0) {
+		} else if (strcmp(argv[param], "buslevel") == 0) {
 			//level (controls the paddle size)
 			if (++param < argc) {
 				p->player[0].paddleSize = atoi(argv[param]);
 				if (p->player[0].paddleSize > maxPaddleSize_c)
 					p->player[0].paddleSize = maxPaddleSize_c;
 			}
-		} else if (strcmp(argv[param], "p2level") == 0) {
+		} else if (strcmp(argv[param], "lrtlevel") == 0) {
 			//level (controls the paddle size)
 			if (++param < argc) {
 				p->player[1].paddleSize = atoi(argv[param]);

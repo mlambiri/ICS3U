@@ -7,9 +7,6 @@ screenwidth = 900
 screenheight = 700
 fontsize = 34
 
-p1name = Bus
-p2name = LRT
-
 # number of rounds to play before a winner is declared
 # a round ends when the ball exits through the top/bottom lines
 maxrounds = 5
@@ -17,7 +14,7 @@ maxrounds = 5
 #maximum number of pixels the ball advances in one direction 
 #per frame [2, 7]
 
-maxballspeed =  4
+maxballspeed =  7
 
 # gamemode is one of: human, arcade, auto
 gamemode = auto
@@ -35,14 +32,14 @@ maxcolumns = 22
 fontfile = mexcellent3d.ttf
 #fontfile = pirulen.ttf
 #fontfile =  fofbb_reg.ttf
-player1bmp = player1.png
-player2bmp = player2.png
+busbmp = player1.png
+lrtbmp = player2.png
 ballbmp = ball.png
 gascarbmp = gascar.png
 ecarbmp = ecar.png
 
-player1sound = cardoor.wav
-player2sound = cardoor.wav
+bussound = cardoor.wav
+lrtsound = cardoor.wav
 
 #input file name for car setup
 pattern = testout.txt
@@ -62,8 +59,8 @@ calgo = 0
 colourscheme = q
 
 #number of pixels *per frame* to move the players when the key is pressed.
-p1paddleSpeed = 30
-p2paddleSpeed = 20
+busspeed = 30
+lrtspeed = 20
 
 winSound = applause6.wav
 
@@ -72,8 +69,8 @@ winSound = applause6.wav
 #if level is set to x we will have 8-x
 # blocks in the screen for the players
 # player1 is Bus, player 2 is LRT
-p1level = 5
-p2level = 2
+buslevel = 5
+lrtlevel = 2
 
 #frames per second min 5 max 120
 fps = 60
