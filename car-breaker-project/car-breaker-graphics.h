@@ -45,6 +45,10 @@ typedef unsigned int uint;
 
 #define POINTSFORLOSTBALL 5
 
+enum PLAYERS {
+	bus_c = 0, lrt_c = 1
+};
+
 enum FONTSIZES {
 	smallFont_c = 0, regularFont_c = 1, largeFont_c = 2
 };
@@ -160,6 +164,7 @@ typedef struct GameDisplay {
 typedef struct DataRecorder {
 	Point  point[MAXRECORDING];
 	int used;
+	bool rec;
 } DataRecorder;
 
 /**

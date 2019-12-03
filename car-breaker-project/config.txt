@@ -64,13 +64,9 @@ lrtspeed = 20
 
 winSound = applause6.wav
 
-#this *substracts* from the paddle length
-# the paddle has 7 blocks
-#if level is set to x we will have 8-x
-# blocks in the screen for the players
-# player1 is Bus, player 2 is LRT
-buslevel = 5
-lrtlevel = 2
+# number of blocks that form the paddle
+buslength = 3
+lrtlength = 6
 
 #frames per second min 5 max 120
 fps = 60
