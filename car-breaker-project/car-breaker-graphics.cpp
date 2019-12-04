@@ -110,6 +110,34 @@ recordPoint(DataRecorder* r, Point* p) {
 } // end-of-method recordPoint
 
 
+/**
+  ---------------------------------------------------------------------------
+   @author  elambiri
+   @date    Dec. 4, 2019
+   @mname   writeHelp
+   @details
+	  \n
+  --------------------------------------------------------------------------
+ */
+void
+writeHelp(GameData* g) {
+	if(g->helpDisplay.display  == NULL) return;
+	al_set_target_backbuffer(g->helpDisplay.display );
+	al_clear_to_color(al_map_rgb(255,255,255));
+	int next = drawTextOnScreen(g, (char*) "Help Window", 10, 10, smallFont_c);
+	drawTextOnScreen(g, (char*) "(c) mlambiri 2019", 10, next, smallFont_c);
+
+	if(g->path.rec == true) {
+		for (int i = 1; i < g->path.used; i++ ) {
+			al_draw_line(g->path.point[i-1].x/2, g->path.point[i-1].y/2, g->path.point[i].x/2, g->path.point[i].y/2, al_map_rgb(255, 0,0), 1.0);
+		} //end-of-for
+		al_draw_line(g->path.point[g->path.used-1].x/2, g->path.point[g->path.used-1].y/2, g->ball.position.x/2, g->ball.position.y/2, al_map_rgb(255, 0,0), 1.0);
+	}
+
+	al_set_target_backbuffer(g->display.display);
+
+} // end-of-method writeHelp
+
 
 /**
   ---------------------------------------------------------------------------
@@ -127,8 +155,8 @@ displayHelp(GameData* g) {
 		return;
 	}
 
-	g->helpDisplay.width = 640;
-	g->helpDisplay.height = 480;
+	g->helpDisplay.width = g->display.width/2;
+	g->helpDisplay.height = g->display.height/2;
 	g->helpDisplay.display = al_create_display(g->helpDisplay.width, g->helpDisplay.height);
 	if(!g->helpDisplay.display ) {
 		ERROR("failed to create help display!");
@@ -136,16 +164,32 @@ displayHelp(GameData* g) {
 	}
 
 	al_register_event_source(g->eventqueue, al_get_display_event_source(g->helpDisplay.display));
-	al_set_target_backbuffer(g->helpDisplay.display );
-	al_clear_to_color(al_map_rgb(255,255,255));
-	int next = drawTextOnScreen(g, (char*) "Help Window", g->helpDisplay.width / 2,
-			g->helpDisplay.height / 4, smallFont_c);
-	drawTextOnScreen(g, (char*) "(c) mlambiri 2019", g->helpDisplay.width / 2, next,
-			smallFont_c/2);
-	al_flip_display();
-	al_set_target_backbuffer(g->display.display);
-
+	writeHelp(g);
 } // end-of-method displayHelp
+
+
+/**
+  ---------------------------------------------------------------------------
+   @author  elambiri
+   @date    Dec. 4, 2019
+   @mname   flipAllDisplays
+   @details
+	  \n
+  --------------------------------------------------------------------------
+ */
+void
+flipAllDisplays(GameData* g) {
+
+	if(g->helpDisplay.display) {
+		al_set_target_backbuffer(g->helpDisplay.display );
+		al_flip_display();
+	}
+	if(g->display.display) {
+		al_set_target_backbuffer(g->display.display);
+		al_flip_display();
+	}
+
+} // end-of-method flipAllDisplays
 
 
 
@@ -1460,7 +1504,7 @@ bool drawTextAndWaitBegin(GameData *gptr) {
 	next = drawTextOnScreen(gptr, (char*) "Press a key to begin", gptr->display.width / 2,
 			next, regularFont_c);
 
-	al_flip_display();
+	flipAllDisplays(gptr);
 
 	gptr->path.rec = false;
 	gptr->path.used = 0;
@@ -1553,7 +1597,7 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 		//DEBUG(" =======\n");
 	}
 
-	al_flip_display();
+	flipAllDisplays(gptr);
 
 	gptr->path.rec = false;
 	gptr->path.used = 0;
@@ -2410,8 +2454,9 @@ bool gameMainLoop(GameData *gptr) {
 				movePlayers(gptr);
 				roundwin = updateBallPosition(gptr);
 				drawObjects(gptr);
+				writeHelp(gptr);
 				//This function shows the content of the display buffer on the screen.
-				al_flip_display();
+				flipAllDisplays(gptr);
 			}
 		}
 	}
