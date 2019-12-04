@@ -28,7 +28,6 @@ maxrows = 8
 #define maximum number of car columns; max is 30
 maxcolumns = 22
 
-
 fontfile = mexcellent3d.ttf
 #fontfile = pirulen.ttf
 #fontfile =  fofbb_reg.ttf

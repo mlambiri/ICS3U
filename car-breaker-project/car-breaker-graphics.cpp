@@ -1055,8 +1055,7 @@ void  setInitialObjectPositions(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	gptr->ball.speed.y = minballspeed_c
-			+ rand() % 3;
+	gptr->ball.speed.y = minballspeed_c + rand() % 3;
 	if (gptr->roundWinner) {
 		gptr->turn = gptr->roundWinner;
 		if (gptr->roundWinner == &(gptr->player[bus_c])) {
@@ -1078,10 +1077,7 @@ void  setInitialObjectPositions(GameData *gptr) {
 		} //end-switch(rand() %2)
 	} //end-of-if(p->roundWinner)
 
-	float ratio_c = (float) gptr->display.height / (2 * gptr->display.width);
-	float maxspeedx = ratio_c * abs(gptr->ball.speed.y);
-
-	gptr->ball.speed.x = rand() % (int) maxspeedx;
+	gptr->ball.speed.x = rand() % 5;
 	if (gptr->ball.speed.x == 0)
 		gptr->ball.speed.x = 3;
 	switch (rand() % 2) {
@@ -1269,20 +1265,28 @@ bool isKeyPressEvent(GameData *gptr) {
 	} else if (gptr->ev.type == ALLEGRO_EVENT_KEY_UP) {
 		switch (gptr->ev.keyboard.keycode) {
 		case ALLEGRO_KEY_LEFT:
-			if (gptr->gameMode != fullbot_c)
+			if (gptr->gameMode != fullbot_c) {
 				gptr->player[bus_c].keyPress[0] = false;
+				gptr->player[bus_c].ge.speed.x = 0;
+			}
 			break;
 		case ALLEGRO_KEY_RIGHT:
-			if (gptr->gameMode != fullbot_c)
+			if (gptr->gameMode != fullbot_c) {
 				gptr->player[bus_c].keyPress[1] = false;
+				gptr->player[bus_c].ge.speed.x = 0;
+			}
 			break;
 		case ALLEGRO_KEY_Q:
-			if (gptr->gameMode == human_c)
+			if (gptr->gameMode == human_c) {
 				gptr->player[lrt_c].keyPress[0] = false;
+				gptr->player[lrt_c].ge.speed.x = 0;
+			}
 			break;
 		case ALLEGRO_KEY_E:
-			if (gptr->gameMode == human_c)
+			if (gptr->gameMode == human_c) {
 				gptr->player[lrt_c].keyPress[1] = false;
+				gptr->player[lrt_c].ge.speed.x = 0;
+			}
 			break;
 		case ALLEGRO_KEY_W:
 			writeFile(gptr);
@@ -1360,23 +1364,27 @@ void  movePlayers(GameData *gptr) {
 	TRACE();
 	if (gptr->player[bus_c].keyPress[0] == true) {
 		gptr->player[bus_c].ge.position.x -= gptr->player[bus_c].paddleSpeed;
+		gptr->player[bus_c].ge.speed.x = (-1)*gptr->player[bus_c].paddleSpeed;
 		if (gptr->player[bus_c].ge.position.x < 0)
 			gptr->player[bus_c].ge.position.x = 0;
 	}
 	if (gptr->player[bus_c].keyPress[1] == true) {
 		gptr->player[bus_c].ge.position.x += gptr->player[bus_c].paddleSpeed;
+		gptr->player[bus_c].ge.speed.x = gptr->player[bus_c].paddleSpeed;
 		if (gptr->player[bus_c].ge.position.x >= (gptr->display.width - gptr->player[bus_c].ge.width))
 			gptr->player[bus_c].ge.position.x = (gptr->display.width - gptr->player[bus_c].ge.width);
 	} //end-of-if(p->player[0].keyPress[1] ==true)
 
 	if (gptr->player[lrt_c].keyPress[0] == true) {
 		gptr->player[lrt_c].ge.position.x -= gptr->player[lrt_c].paddleSpeed;
+		gptr->player[lrt_c].ge.speed.x = (-1)* gptr->player[lrt_c].paddleSpeed;
 		if (gptr->player[lrt_c].ge.position.x < 0)
 			gptr->player[lrt_c].ge.position.x = 0;
 	} //end-of-if(p->player[1].keyPress[0] == true)
 
 	if (gptr->player[lrt_c].keyPress[1] == true) {
 		gptr->player[lrt_c].ge.position.x += gptr->player[lrt_c].paddleSpeed;
+		gptr->player[lrt_c].ge.speed.x = gptr->player[lrt_c].paddleSpeed;
 		if (gptr->player[lrt_c].ge.position.x >= (gptr->display.width - gptr->player[lrt_c].ge.width))
 			gptr->player[lrt_c].ge.position.x = (gptr->display.width - gptr->player[lrt_c].ge.width);
 	} //end-of-if(p->player[1].keyPress[1] == true)
@@ -1846,9 +1854,9 @@ int signOfNumber(int value) {
  @details
  This function changes the direction of the ball after a collision with the
  pallete.
- The pallete height is divided into vone_c zones
+ The pallete height is divided into zones
  Depending on which zone makes contact the ball will react in a different way
- This is to increase the unpredictability of the game and make it more fun and cBotlenging\n
+ This is to increase the unpredictability of the game and make it more fun\n
  --------------------------------------------------------------------------
  */
 void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
@@ -1856,26 +1864,25 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 
 	FENTRY();
 	TRACE();
-	int newspeedx = abs(ball->speed.y) + (rand() % (minballspeed_c / 2));
-	if (newspeedx > maxballspeed)
-		newspeedx = maxballspeed;
-	ball->speed.y = signOfNumber(ball->speed.y) * -1 * newspeedx;
+	int newspeedy = abs(ball->speed.y) + (rand() % (minballspeed_c / 2));
+	if (newspeedy > maxballspeed)
+		newspeedy = maxballspeed;
+	ball->speed.y = signOfNumber(ball->speed.y) * -1 * newspeedy;
 
-	int zones_c = 8 - playerPtr->paddleSize;
-	if (playerPtr->paddleSize == maxPaddleSize_c) {
-		ball->speed.x += signOfNumber(ball->speed.x)*rand()%2;
-	} else {
-		int zonelength = playerPtr->ge.width / zones_c;
-		int zonenum = (ball->position.x - playerPtr->ge.position.x) / zonelength;
-		if (zonenum < 0) {
-			zonenum = 0;
-		}
-		if (zonenum > zones_c - 1) {
-			zonenum = zones_c - 1;
-		} //end-of-if(zonenum > zones_c -1)
+	int zones_c = playerPtr->paddleSize;
 
-		ball->speed.x += signOfNumber(ball->speed.x)*rand()%2;
+	int zonelength = playerPtr->ge.width / zones_c;
+	int zonenum = (ball->position.x - playerPtr->ge.position.x) / zonelength;
+	if (zonenum <= 0) {
+		zonenum = 1;
 	}
+	if (zonenum > zones_c - 1) {
+		zonenum = zones_c - 1;
+	} //end-of-if(zonenum > zones_c -1)
+
+	ball->speed.x = (-1)* signOfNumber(ball->speed.x)*(rand()%zonenum-4);
+	DEBUG2("speed.x", ball->speed.x);
+	//	ball->speed.x += playerPtr->ge.speed.x;
 
 	playSound(playerPtr->sample);
 	FEXIT();
@@ -2170,7 +2177,7 @@ void  lrtBotControl(GameData *gptr) {
 	// if Y speed > 0 it means the ball is moving downward
 	//If the Y speed < 0 it means the ball is moving upwards
 	//bot 1 is at the top
-	uint botNumber = 1;
+	uint botNumber = lrt_c;
 
 	if (gptr->ball.speed.y > 0) {
 		FEXIT();
@@ -2196,29 +2203,36 @@ void  lrtBotControl(GameData *gptr) {
 	float f = gptr->player[botNumber].paddleSpeed * mult;
 	if (gptr->ball.speed.x > 0) {
 		if (gptr->ball.position.x > (gptr->player[botNumber].ge.position.x + gptr->player[botNumber].ge.width)) {
-			gptr->ball.prevposition.x = gptr->ball.position.x;
+			//gptr->ball.prevposition.x = gptr->ball.position.x;
 			gptr->player[botNumber].ge.position.x += (int) f;
+			gptr->player[botNumber].ge.speed.x = (int) f;
 		} else if (gptr->ball.position.x < gptr->player[botNumber].ge.position.x) {
 			gptr->ball.prevposition.x = gptr->ball.position.x;
 			gptr->player[botNumber].ge.position.x -= (int) f;
+			gptr->player[botNumber].ge.speed.x = (int) (-1)*f;
 		}
 	} else {
 		if (gptr->ball.position.x < gptr->player[botNumber].ge.position.x) {
-			gptr->ball.prevposition.x = gptr->ball.position.x;
+			//gptr->ball.prevposition.x = gptr->ball.position.x;
 			gptr->player[botNumber].ge.position.x -= (int) f;
+			gptr->player[botNumber].ge.speed.x = (int) (-1)*f;
 		} else if (gptr->ball.position.x  > (gptr->player[botNumber].ge.position.x + gptr->player[botNumber].ge.width)) {
-			gptr->ball.prevposition.x = gptr->ball.position.x;
+			//gptr->ball.prevposition.x = gptr->ball.position.x;
 			gptr->player[botNumber].ge.position.x += (int) f;
+			gptr->player[botNumber].ge.speed.x = (int) f;
 		}
 	}
 
 	//end of display to the left
-	if (gptr->player[botNumber].ge.position.x < 0)
+	if (gptr->player[botNumber].ge.position.x < 0) {
 		gptr->player[botNumber].ge.position.x = 0;
+		gptr->player[botNumber].ge.speed.x = 0;
+	}
 	//end of display to the right
-	if (gptr->player[botNumber].ge.position.x >= (gptr->display.width - gptr->player[botNumber].ge.width))
+	if (gptr->player[botNumber].ge.position.x >= (gptr->display.width - gptr->player[botNumber].ge.width)) {
 		gptr->player[botNumber].ge.position.x = (gptr->display.width - gptr->player[botNumber].ge.width);
-
+		gptr->player[botNumber].ge.speed.x = 0;
+	}
 	FEXIT();
 } // end-of-function botControl
 
@@ -2240,7 +2254,7 @@ void  busBotControl(GameData *gptr) {
 	//We decide to move up based on the ball Y speed
 	// if Y speed > 0 it means the ball is moving downward
 	//If the Y speed < 0 it means the ball is moving upwards
-	uint botNumber = 0;
+	uint botNumber = bus_c;
 
 	//bot 0 is at the bottom
 	if (gptr->ball.speed.y < 0) {
@@ -2267,31 +2281,35 @@ void  busBotControl(GameData *gptr) {
 	float f = gptr->player[botNumber].paddleSpeed * mult;
 	if (gptr->ball.speed.x > 0) {
 		if (gptr->ball.position.x > (gptr->player[botNumber].ge.position.x + gptr->player[botNumber].ge.width)) {
-			gptr->ball.prevposition.x = gptr->ball.position.x;
+			//gptr->ball.prevposition.x = gptr->ball.position.x;
 			gptr->player[botNumber].ge.position.x += (int) f;
+			gptr->player[botNumber].ge.speed.x = (int) f;
 		} else if (gptr->ball.position.x < gptr->player[botNumber].ge.position.x) {
-			gptr->ball.prevposition.x = gptr->ball.position.x;
+			//gptr->ball.prevposition.x = gptr->ball.position.x;
 			gptr->player[botNumber].ge.position.x -= (int) f;
+			gptr->player[botNumber].ge.speed.x = (int) (-1)*f;
 		}
 	} else {
 		if (gptr->ball.position.x < gptr->player[botNumber].ge.position.x) {
-			gptr->ball.prevposition.x = gptr->ball.position.x;
+			//gptr->ball.prevposition.x = gptr->ball.position.x;
 			gptr->player[botNumber].ge.position.x -= (int) f;
+			gptr->player[botNumber].ge.speed.x = (int) (-1)*f;
 		} else if (gptr->ball.position.x  > (gptr->player[botNumber].ge.position.x + gptr->player[botNumber].ge.width)) {
-			gptr->ball.prevposition.x = gptr->ball.position.x;
+			//gptr->ball.prevposition.x = gptr->ball.position.x;
 			gptr->player[botNumber].ge.position.x += (int) f;
+			gptr->player[botNumber].ge.speed.x = (int) f;
 		}
 	}
 
 	//end of display to the left
 	if (gptr->player[botNumber].ge.position.x < 0) {
-		gptr->ball.prevposition.x = gptr->ball.position.x;
 		gptr->player[botNumber].ge.position.x = 0;
+		gptr->player[botNumber].ge.speed.x = 0;
 	}
 	//end of display to the right
 	if (gptr->player[botNumber].ge.position.x >= (gptr->display.width - gptr->player[botNumber].ge.width)) {
-		gptr->ball.prevposition.x = gptr->ball.position.x;
 		gptr->player[botNumber].ge.position.x = (gptr->display.width - gptr->player[botNumber].ge.width);
+		gptr->player[botNumber].ge.speed.x = 0;
 	}
 
 	FEXIT();
