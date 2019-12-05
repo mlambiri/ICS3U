@@ -69,3 +69,8 @@ lrtlength = 6
 
 #frames per second min 5 max 120
 fps = 60
+
+#trajectory is displayed in a separate window
+#by default it is done in the main window
+# y or n
+trajectorywindow = y

@@ -30,3 +30,5 @@
 2019-12-02 21:40:43  [Mode: Arcade] [Score: LRT Bus] 
 2019-12-02 22:18:58  [Mode: Arcade] [Score: LRT Bus] 
 2019-12-03 22:39:42  [Mode: Arcade] [Score: LRT Bus] 
+2019-12-04 20:41:09  [Mode: Arcade] [Score: LRT Bus] 
+2019-12-04 22:32:01  [Mode: Arcade] [Score: LRT Bus] 

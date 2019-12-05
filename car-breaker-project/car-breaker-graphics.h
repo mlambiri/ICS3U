@@ -159,12 +159,13 @@ typedef struct GameDisplay {
 	ALLEGRO_DISPLAY *display;
 } GameDisplay;
 
-#define MAXRECORDING 1000
+#define MAXRECORDING 2000
 
 typedef struct DataRecorder {
 	Point  point[MAXRECORDING];
 	int used;
 	bool rec;
+	bool separateDisplay;
 } DataRecorder;
 
 /**
@@ -232,7 +233,7 @@ typedef struct GameData {
 	GameBasicBlock carArea;
 	bool cAlgoSelector;
 	Point maxspeed;
-	GameDisplay helpDisplay;
+	GameDisplay trajectoryDisplay;
 	DataRecorder path;
 
 } GameData;

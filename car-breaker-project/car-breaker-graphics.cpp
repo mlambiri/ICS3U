@@ -91,7 +91,7 @@ static BotControlArray *busBotPtr = &(busBotArray[busBotPlayingLevel]);
 
 /**
   ---------------------------------------------------------------------------
-   @author  elambiri
+   @author  mlambiri
    @date    Dec. 2, 2019
    @mname   recordPoint
    @details
@@ -112,20 +112,19 @@ recordPoint(DataRecorder* r, Point* p) {
 
 /**
   ---------------------------------------------------------------------------
-   @author  elambiri
+   @author  mlambiri
    @date    Dec. 4, 2019
-   @mname   writeHelp
+   @mname   writeTrajectoryToWindow
    @details
 	  \n
   --------------------------------------------------------------------------
  */
 void
-writeHelp(GameData* g) {
-	if(g->helpDisplay.display  == NULL) return;
-	al_set_target_backbuffer(g->helpDisplay.display );
+writeTrajectoryToWindow(GameData* g) {
+	if(g->trajectoryDisplay.display  == NULL) return;
+	if(g->path.separateDisplay == false) return;
+	al_set_target_backbuffer(g->trajectoryDisplay.display );
 	al_clear_to_color(al_map_rgb(255,255,255));
-	int next = drawTextOnScreen(g, (char*) "Help Window", 10, 10, smallFont_c);
-	drawTextOnScreen(g, (char*) "(c) mlambiri 2019", 10, next, smallFont_c);
 
 	if(g->path.rec == true) {
 		for (int i = 1; i < g->path.used; i++ ) {
@@ -136,41 +135,51 @@ writeHelp(GameData* g) {
 
 	al_set_target_backbuffer(g->display.display);
 
-} // end-of-method writeHelp
+} // end-of-method writeTrajectoryToWindow
 
 
 /**
   ---------------------------------------------------------------------------
-   @author  elambiri
+   @author  mlambiri
    @date    Dec. 1, 2019
-   @mname   displayHelp
+   @mname   createTrajectoryDisplay
    @details
 	  \n
   --------------------------------------------------------------------------
  */
 void
-displayHelp(GameData* g) {
+createTrajectoryDisplay(GameData* g) {
 
-	if(g->helpDisplay.display != NULL) {
+	if(g->trajectoryDisplay.display != NULL) {
 		return;
 	}
 
-	g->helpDisplay.width = g->display.width/2;
-	g->helpDisplay.height = g->display.height/2;
-	g->helpDisplay.display = al_create_display(g->helpDisplay.width, g->helpDisplay.height);
-	if(!g->helpDisplay.display ) {
-		ERROR("failed to create help display!");
-		return;
+	g->trajectoryDisplay.width = g->display.width/2;
+	g->trajectoryDisplay.height = g->display.height/2;
+	int x = 100;
+	int y = 200;
+
+	g->trajectoryDisplay.display = al_create_display(g->trajectoryDisplay.width, g->trajectoryDisplay.height);
+	if(g->display.display) {
+		al_get_window_position(g->display.display, &x, &y);
+		x += g->display.width;
 	}
 
-	al_register_event_source(g->eventqueue, al_get_display_event_source(g->helpDisplay.display));
-	writeHelp(g);
-} // end-of-method displayHelp
+//	if(!g->trajectoryDisplay.display ) {
+//		ERROR("failed to create help display!");
+//		return;
+//	}
+//	al_set_window_position(g->trajectoryDisplay.display, x , y);
+
+	al_set_window_title(g->trajectoryDisplay.display, "Ball Trajectory");
+	al_register_event_source(g->eventqueue, al_get_display_event_source(g->trajectoryDisplay.display));
+	writeTrajectoryToWindow(g);
+} // end-of-method createTrajectoryDisplay
 
 
 /**
   ---------------------------------------------------------------------------
-   @author  elambiri
+   @author  mlambiri
    @date    Dec. 4, 2019
    @mname   flipAllDisplays
    @details
@@ -180,8 +189,8 @@ displayHelp(GameData* g) {
 void
 flipAllDisplays(GameData* g) {
 
-	if(g->helpDisplay.display) {
-		al_set_target_backbuffer(g->helpDisplay.display );
+	if(g->trajectoryDisplay.display) {
+		al_set_target_backbuffer(g->trajectoryDisplay.display );
 		al_flip_display();
 	}
 	if(g->display.display) {
@@ -1217,10 +1226,10 @@ bool pauseGame(GameData *gptr) {
 		}
 		//close the display with the mouse
 		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-			if(gptr->ev.any.source == al_get_display_event_source(gptr->helpDisplay.display)) {
+			if(gptr->ev.any.source == al_get_display_event_source(gptr->trajectoryDisplay.display)) {
 				DEBUG("one");
-				al_destroy_display(gptr->helpDisplay.display);
-				gptr->helpDisplay.display = NULL;
+				al_destroy_display(gptr->trajectoryDisplay.display);
+				gptr->trajectoryDisplay.display = NULL;
 			} else {
 				DEBUG("one");
 				FEXIT();
@@ -1285,15 +1294,17 @@ bool isKeyPressEvent(GameData *gptr) {
 			break;
 		case ALLEGRO_KEY_T:
 			if(gptr->path.rec == false) {
+				if(gptr->path.separateDisplay) {
+					createTrajectoryDisplay(gptr);
+				}
 				gptr->path.rec = true;
 			}
 			else {
+				al_destroy_display(gptr->trajectoryDisplay.display);
+				gptr->trajectoryDisplay.display = NULL;
 				gptr->path.rec = false;
 				gptr->path.used = 0;
 			}
-			break;
-		case ALLEGRO_KEY_H:
-			displayHelp(gptr);
 			break;
 		case ALLEGRO_KEY_F:
 			fastBall(gptr);
@@ -1379,10 +1390,10 @@ bool pressAnyKeyToBeginGame(GameData *gptr) {
 			}
 		}
 		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-			if(gptr->ev.any.source == al_get_display_event_source(gptr->helpDisplay.display)) {
+			if(gptr->ev.any.source == al_get_display_event_source(gptr->trajectoryDisplay.display)) {
 				DEBUG("three");
-				al_destroy_display(gptr->helpDisplay.display);
-				gptr->helpDisplay.display = NULL;
+				al_destroy_display(gptr->trajectoryDisplay.display);
+				gptr->trajectoryDisplay.display = NULL;
 			} else {
 				DEBUG("three");
 				FEXIT();
@@ -1710,7 +1721,7 @@ void  drawObjects(GameData *gptr) {
 		} //end-of-for
 	} //end-of-for
 	displayScore(gptr);
-	if(gptr->path.rec == true) {
+	if(gptr->path.rec == true && gptr->path.separateDisplay == false) {
 		for (int i = 1; i < gptr->path.used; i++ ) {
 			al_draw_line(gptr->path.point[i-1].x, gptr->path.point[i-1].y, gptr->path.point[i].x, gptr->path.point[i].y, al_map_rgb(255, 0,0), 1.0);
 		} //end-of-for
@@ -1908,23 +1919,23 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 
 	FENTRY();
 	TRACE();
-	int newspeedy = abs(ball->speed.y) + (rand() % (minballspeed_c / 2));
+	int newspeedy = abs(ball->speed.y) + (rand() % minballspeed_c);
 	if (newspeedy > maxballspeed)
 		newspeedy = maxballspeed;
 	ball->speed.y = signOfNumber(ball->speed.y) * -1 * newspeedy;
 
-	int zones_c = playerPtr->paddleSize;
+	int paddleZones = playerPtr->paddleSize;
+	int zonelength = playerPtr->ge.width / paddleZones;
+	int zoneHitByBall = (ball->position.x - playerPtr->ge.position.x) / zonelength;
 
-	int zonelength = playerPtr->ge.width / zones_c;
-	int zonenum = (ball->position.x - playerPtr->ge.position.x) / zonelength;
-	if (zonenum <= 0) {
-		zonenum = 1;
+	if (zoneHitByBall <= 0) {
+		zoneHitByBall = 0;
 	}
-	if (zonenum > zones_c - 1) {
-		zonenum = zones_c - 1;
-	} //end-of-if(zonenum > zones_c -1)
+	else if (zoneHitByBall > paddleZones - 1) {
+		zoneHitByBall = paddleZones - 1;
+	}
 
-	ball->speed.x = (-1)* signOfNumber(ball->speed.x)*(rand()%zonenum-4);
+	ball->speed.x = (-2)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
 	DEBUG2("speed.x", ball->speed.x);
 	//	ball->speed.x += playerPtr->ge.speed.x;
 
@@ -2394,10 +2405,10 @@ bool gameMainLoop(GameData *gptr) {
 		al_wait_for_event(gptr->eventqueue, &(gptr->ev));
 
 		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-			if(gptr->ev.any.source == al_get_display_event_source(gptr->helpDisplay.display)) {
+			if(gptr->ev.any.source == al_get_display_event_source(gptr->trajectoryDisplay.display)) {
 				DEBUG("four");
-				al_destroy_display(gptr->helpDisplay.display);
-				gptr->helpDisplay.display = NULL;
+				al_destroy_display(gptr->trajectoryDisplay.display);
+				gptr->trajectoryDisplay.display = NULL;
 			} else {
 				DEBUG("four");
 				FEXIT();
@@ -2454,7 +2465,7 @@ bool gameMainLoop(GameData *gptr) {
 				movePlayers(gptr);
 				roundwin = updateBallPosition(gptr);
 				drawObjects(gptr);
-				writeHelp(gptr);
+				writeTrajectoryToWindow(gptr);
 				//This function shows the content of the display buffer on the screen.
 				flipAllDisplays(gptr);
 			}
@@ -2548,9 +2559,10 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	p->player[bus_c].paddleSpeed = initPaddleSpeed_c;
 	p->player[lrt_c].paddleSpeed = initPaddleSpeed_c;
 
-	p->helpDisplay.display = NULL;
+	p->trajectoryDisplay.display = NULL;
 	p->path.rec = false;
 	p->path.used = 0;
+	p->path.separateDisplay = false;
 
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself
@@ -2706,7 +2718,13 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			if (++param < argc) {
 				p->penalty = atoi(argv[param]);
 			}
-		} else if (strcmp(argv[param], "colourscheme") == 0) {
+		} else if (strcmp(argv[param], "trajectorywindow") == 0) {
+			//ball bitmap file name
+			if (++param < argc)
+				if(argv[param][0] == 'y' ) {
+					p->path.separateDisplay = true;
+				}
+		}else if (strcmp(argv[param], "colourscheme") == 0) {
 			//player 2 bitmap file name
 			if (++param < argc) {
 				switch (argv[param][0]) {
