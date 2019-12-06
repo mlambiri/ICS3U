@@ -168,6 +168,31 @@ typedef struct DataRecorder {
 	bool separateDisplay;
 } DataRecorder;
 
+#define botArrays_c  5
+
+/*
+ * @author   mlambiri
+ * @date     Dec 1, 2019
+ *  Bot needs two arrays of values to decide when and how fast to move
+ *  This structure stores them in one group both arrays.
+ *  Bot adapts his own skill to match the level of skill of the human player
+ *  This is done by keeping several sets of variables for Bot's AI.
+ *  cond is a divisor of the field length
+ *  Because Bot plays the side x = 0 The greater the divisor the closer the ball is to him
+ *  val is a multiplier that will make Bot move faster or slower between two frames
+ *  If the value of n == 0 Bot will not move
+ *  Therefore placing all zeroes in Bot will render him immobile at the center
+ *
+ */
+typedef struct BotControlArray {
+	//first array represents where in the field Bot will start to move
+	int cond[botArrays_c];
+	//This array is a multiplier to determine how much Bot should move
+	//setting an entry to zero will prevent Bot from moving
+	float val[botArrays_c];
+	int paddlespeed;
+} BotControlArray;
+
 /**
   ---------------------------------------------------------------------------
    @author     mlambiri
@@ -235,6 +260,8 @@ typedef struct GameData {
 	Point maxspeed;
 	GameDisplay trajectoryDisplay;
 	DataRecorder path;
+	int botLevel[2];
+	BotControlArray *botControlPtr[2];
 
 } GameData;
 

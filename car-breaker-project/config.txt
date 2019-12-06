@@ -67,6 +67,10 @@ winSound = applause6.wav
 buslength = 3
 lrtlength = 6
 
+# bot level 1=novice 4=pro
+buslevel = 4
+lrtlevel = 4
+
 #frames per second min 5 max 120
 fps = 60
 

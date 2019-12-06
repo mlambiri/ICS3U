@@ -18,7 +18,6 @@ static const int minballspeed_c = 2;
 static const int maxballspeed_c = 7;
 static const uint maxPaddleSize_c = 7;
 static const uint maxdiff_c = 4;
-static const uint botArrays_c = 5;
 static const int ballSpeedIncrease_c = 3;
 static const int initPaddleSpeed_c = 20;
 
@@ -42,30 +41,6 @@ GameData carBreaker = {
 
 };
 
-
-/*
- * @author   mlambiri
- * @date     Dec 1, 2019
- *  Bot needs two arrays of values to decide when and how fast to move
- *  This structure stores them in one group both arrays.
- *  Bot adapts his own skill to match the level of skill of the human player
- *  This is done by keeping several sets of variables for Bot's AI.
- *  cond is a divisor of the field length
- *  Because Bot plays the side x = 0 The greater the divisor the closer the ball is to him
- *  val is a multiplier that will make Bot move faster or slower between two frames
- *  If the value of n == 0 Bot will not move
- *  Therefore placing all zeroes in Bot will render him immobile at the center
- *
- */
-typedef struct BotControlArray {
-	//first array represents where in the field Bot will start to move
-	int cond[botArrays_c];
-	//This array is a multiplier to determine how much Bot should move
-	//setting an entry to zero will prevent Bot from moving
-	float val[botArrays_c];
-	int paddlespeed;
-} BotControlArray;
-
 //It is an array that stores several sets of conditions and values
 //The values make the Bot more responsive as the index in the array increases
 BotControlArray lrtBotArray[pro_c + 1] = {
@@ -81,13 +56,6 @@ BotControlArray busBotArray[pro_c + 1] = {
 		{ { 2, 2, 3, 4, 8 }, { 0.5, 0.5, 0.5, 0.5, 0.5 }, (int) PLAYERSPEED },
 		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED },
 		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, 40 } };
-
-int lrtBotPlayingLevel = pro_c;
-static BotControlArray *lrtBotPtr = &(lrtBotArray[lrtBotPlayingLevel]);
-
-int busBotPlayingLevel = pro_c;
-static BotControlArray *busBotPtr = &(busBotArray[busBotPlayingLevel]);
-
 
 /**
   ---------------------------------------------------------------------------
@@ -1935,7 +1903,24 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 		zoneHitByBall = paddleZones - 1;
 	}
 
-	ball->speed.x = (-2)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
+	switch (paddleZones) {
+		case 1:
+			ball->speed.x = (-5)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1));
+			break;
+		case 2:
+			ball->speed.x = (-5)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
+			break;
+		case 3:
+			ball->speed.x = (-4)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
+			break;
+		case 4:
+			ball->speed.x = (-3)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
+			break;
+		default:
+			ball->speed.x = (-2)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
+			break;
+	} //end-switch(paddleZones)
+
 	DEBUG2("speed.x", ball->speed.x);
 	//	ball->speed.x += playerPtr->ge.speed.x;
 
@@ -2240,16 +2225,16 @@ void  lrtBotControl(GameData *gptr) {
 	}
 
 	float mult = 1;
-	if (gptr->ball.position.y > gptr->display.height / lrtBotPtr->cond[0])
-		mult = lrtBotPtr->val[0];
-	if (gptr->ball.position.y <= gptr->display.height / lrtBotPtr->cond[1])
-		mult = lrtBotPtr->val[1];
-	if (gptr->ball.position.y <= gptr->display.height / lrtBotPtr->cond[2])
-		mult = lrtBotPtr->val[2];
-	if (gptr->ball.position.y <= gptr->display.height / lrtBotPtr->cond[3])
-		mult = lrtBotPtr->val[3];
-	if (gptr->ball.position.y <= gptr->display.height / lrtBotPtr->cond[4])
-		mult = lrtBotPtr->val[4];
+	if (gptr->ball.position.y > gptr->display.height / gptr->botControlPtr[lrt_c]->cond[0])
+		mult = gptr->botControlPtr[lrt_c]->val[0];
+	if (gptr->ball.position.y <= gptr->display.height / gptr->botControlPtr[lrt_c]->cond[1])
+		mult = gptr->botControlPtr[lrt_c]->val[1];
+	if (gptr->ball.position.y <= gptr->display.height / gptr->botControlPtr[lrt_c]->cond[2])
+		mult = gptr->botControlPtr[lrt_c]->val[2];
+	if (gptr->ball.position.y <= gptr->display.height / gptr->botControlPtr[lrt_c]->cond[3])
+		mult = gptr->botControlPtr[lrt_c]->val[3];
+	if (gptr->ball.position.y <= gptr->display.height / gptr->botControlPtr[lrt_c]->cond[4])
+		mult = gptr->botControlPtr[lrt_c]->val[4];
 
 	if(gptr->ball.position.y > gptr->display.height/2)
 		mult = 0;
@@ -2318,16 +2303,16 @@ void  busBotControl(GameData *gptr) {
 	}
 
 	float mult = 1;
-	if ((gptr->display.height - gptr->ball.position.y) > gptr->display.height / busBotPtr->cond[0])
-		mult = busBotPtr->val[0];
-	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / busBotPtr->cond[1])
-		mult = busBotPtr->val[1];
-	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / busBotPtr->cond[2])
-		mult = busBotPtr->val[2];
-	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / busBotPtr->cond[3])
-		mult = busBotPtr->val[3];
-	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / busBotPtr->cond[4])
-		mult = busBotPtr->val[4];
+	if ((gptr->display.height - gptr->ball.position.y) > gptr->display.height / gptr->botControlPtr[bus_c]->cond[0])
+		mult = gptr->botControlPtr[bus_c]->val[0];
+	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControlPtr[bus_c]->cond[1])
+		mult = gptr->botControlPtr[bus_c]->val[1];
+	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControlPtr[bus_c]->cond[2])
+		mult = gptr->botControlPtr[bus_c]->val[2];
+	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControlPtr[bus_c]->cond[3])
+		mult = gptr->botControlPtr[bus_c]->val[3];
+	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControlPtr[bus_c]->cond[4])
+		mult = gptr->botControlPtr[bus_c]->val[4];
 
 	if(gptr->ball.position.y< gptr->display.height/2)
 		mult = 0;
@@ -2564,6 +2549,9 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	p->path.used = 0;
 	p->path.separateDisplay = false;
 
+	p->botLevel[bus_c] = pro_c;
+	p->botLevel[lrt_c] = pro_c;
+
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself
 	for (int param = 0; param < argc; param++) {
@@ -2686,6 +2674,24 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			if (++param < argc) {
 				p->player[lrt_c].paddleSpeed = atoi(argv[param]);
 			}
+		}else if (strcmp(argv[param], "buslevel") == 0) {
+			//player 2 paddle speed
+			if (++param < argc) {
+				p->botLevel[bus_c] = atoi(argv[param]) - 1;
+				if(p->botLevel[bus_c] < 0 )
+					p->botLevel[bus_c] = 0;
+				if(p->botLevel[bus_c] > 3 )
+					p->botLevel[bus_c] = 3;
+			}
+		}else if (strcmp(argv[param], "lrtlevel") == 0) {
+			//player 2 paddle speed
+			if (++param < argc) {
+				p->botLevel[lrt_c] = atoi(argv[param]) -1;
+			}
+			if(p->botLevel[lrt_c] < 0 )
+				p->botLevel[lrt_c] = 0;
+			if(p->botLevel[lrt_c] > 3 )
+				p->botLevel[lrt_c] = 3;
 		} else if (strcmp(argv[param], "buslength") == 0) {
 			//level (controls the paddle size)
 			if (++param < argc) {
@@ -2760,6 +2766,9 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	lrtBotArray[1].paddlespeed = p->player[lrt_c].paddleSpeed;
 	lrtBotArray[2].paddlespeed = (3 * p->player[lrt_c].paddleSpeed) / 2;
 	lrtBotArray[3].paddlespeed = p->player[lrt_c].paddleSpeed * 2;
+
+	p->botControlPtr[bus_c] = &(busBotArray[p->botLevel[bus_c]]);
+	p->botControlPtr[lrt_c] = &(lrtBotArray[p->botLevel[lrt_c]]);
 
 	initBrickLayout(p);
 	FEXIT();
