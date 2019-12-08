@@ -22,7 +22,7 @@ static const uint botArrays_c = 5;
 static const int ballSpeedIncrease_c = 3;
 static const int initPaddleSpeed_c = 20;
 
-static const char P1FNAME[] = "player1.png";
+static const char BUSIMAGE[] = "player1.png";
 static const char P2FNAME[] = "player2.png";
 static const char BALLFNAME[] = "ball.png";
 static const char GASCARFNAME[] = "gascar.png";
@@ -1667,8 +1667,8 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	strcpy(p->fontFileName, FONTNAME);
 	strcpy(p->player[0].audioFileName, P1SOUND);
 	strcpy(p->player[1].audioFileName, P2SOUND);
-	strcpy(p->p1BitmapName, P1FNAME);
-	strcpy(p->p2BitmapName, P2FNAME);
+	strcpy(p->busBitmapName, BUSIMAGE);
+	strcpy(p->lrtBitmapName, P2FNAME);
 	strcpy(p->ballBitmapName, BALLFNAME);
 	strcpy(p->gasBitmapName, GASCARFNAME);
 	strcpy(p->ecarBitmapName, ECARFNAME);
@@ -1750,11 +1750,11 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 		} else if (strcmp(argv[param], "busbmp") == 0) {
 			//player 1 bitmap file name
 			if (++param < argc)
-				strcpy(p->p1BitmapName, argv[param]);
+				strcpy(p->busBitmapName, argv[param]);
 		} else if (strcmp(argv[param], "lrtbmp") == 0) {
 			//player 2 bitmap file name
 			if (++param < argc)
-				strcpy(p->p2BitmapName, argv[param]);
+				strcpy(p->lrtBitmapName, argv[param]);
 		} else if (strcmp(argv[param], "ballbmp") == 0) {
 			//ball bitmap file name
 			if (++param < argc)
@@ -1922,11 +1922,11 @@ bool initializeGraphics(GameData *p) {
 			al_get_timer_event_source(p->timer));
 	p->botTimer = NULL;
 
-	if (loadPlayerBitmap(&(p->player[0]), p->p1BitmapName) == false) {
+	if (loadPlayerBitmap(&(p->player[0]), p->busBitmapName) == false) {
 		FEXIT();
 		return false;
 	}
-	if (loadPlayerBitmap(&(p->player[1]), p->p2BitmapName) == false) {
+	if (loadPlayerBitmap(&(p->player[1]), p->lrtBitmapName) == false) {
 		FEXIT();
 		return false;
 	}

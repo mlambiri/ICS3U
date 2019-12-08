@@ -199,8 +199,8 @@ typedef struct GameData {
 	ALLEGRO_COLOR* initcolor;
 	uint scorePointsPerSmash;
 
-	char p1BitmapName[MAXNAME];
-	char p2BitmapName[MAXNAME];
+	char busBitmapName[MAXNAME];
+	char lrtBitmapName[MAXNAME];
 	char ballBitmapName[MAXNAME];
 	char gasBitmapName[MAXNAME];
 	char ecarBitmapName[MAXNAME];
