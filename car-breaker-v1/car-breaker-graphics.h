@@ -190,8 +190,8 @@ typedef struct GameData {
 	ALLEGRO_TIMER *botTimer;
 	ALLEGRO_FONT *font[MAXFONTS];
 	ALLEGRO_COLOR bcolorarray[maxColors_c];
-	ALLEGRO_COLOR* bcolor;
-	ALLEGRO_COLOR fcolor;
+	ALLEGRO_COLOR* backgroundColor;
+	ALLEGRO_COLOR fontColor;
 	ALLEGRO_SAMPLE *startsample;
 	ALLEGRO_SAMPLE *winsample;
 

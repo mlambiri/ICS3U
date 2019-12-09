@@ -18,7 +18,6 @@ static const int minballspeed_c = 3;
 static const int maxballspeed_c = minballspeed_c + 2;
 static const uint maxPaddleSize_c = 7;
 static const uint maxdiff_c = 4;
-static const uint botArrays_c = 5;
 static const int ballSpeedIncrease_c = 3;
 static const int initPaddleSpeed_c = 20;
 
@@ -27,8 +26,8 @@ static const char LRTIMAGE[] = "player2.png";
 static const char BALLFNAME[] = "ball.png";
 static const char GASCARFNAME[] = "gascar.png";
 static const char ECARFNAME[] = "ecar.png";
-static const char P1SOUND[] = "cardoor.wav";
-static const char P2SOUND[] = "cardoor.wav";
+static const char BUSSOUND[] = "cardoor.wav";
+static const char LRTSOUND[] = "cardoor.wav";
 static const char FONTNAME[] = "pirulen.ttf";
 
 //========VARIABLE DECLARATIONS=====
@@ -925,7 +924,7 @@ void  movePlayers(GameData *gptr) {
 int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size) {
 	FENTRY();
 	TRACE();
-	al_draw_text(gptr->font[size], gptr->fcolor, x, y, ALLEGRO_ALIGN_CENTRE, text);
+	al_draw_text(gptr->font[size], gptr->fontColor, x, y, ALLEGRO_ALIGN_CENTRE, text);
 	int fsize = gptr->fontsize;
 	switch (size) {
 	case smallFont_c:
@@ -1032,7 +1031,7 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 				"Human", gptr->player[lrt_c].name,
 				gptr->player[bus_c].name);
 		recordResult(textBuffer);
-		gptr->bcolor = gptr->initcolor;
+		gptr->backgroundColor = gptr->initcolor;
 		initBrickLayout(gptr);
 		setBrickInfo(gptr);
 
@@ -1139,7 +1138,7 @@ void  drawObjects(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	setBackgroundColor(*(gptr->bcolor));
+	setBackgroundColor(*(gptr->backgroundColor));
 	drawBitmapSection(&(gptr->player[bus_c].ge));
 	drawBitmapSection(&(gptr->player[lrt_c].ge));
 	drawBitmap(&(gptr->ball));
@@ -1669,8 +1668,8 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	strcpy(p->player[bus_c].name, "Bus");
 	strcpy(p->player[lrt_c].name, "LRT");
 	strcpy(p->fontFileName, FONTNAME);
-	strcpy(p->player[bus_c].audioFileName, P1SOUND);
-	strcpy(p->player[lrt_c].audioFileName, P2SOUND);
+	strcpy(p->player[bus_c].audioFileName, BUSSOUND);
+	strcpy(p->player[lrt_c].audioFileName, LRTSOUND);
 	strcpy(p->busBitmapName, BUSIMAGE);
 	strcpy(p->lrtBitmapName, LRTIMAGE);
 	strcpy(p->ballBitmapName, BALLFNAME);
@@ -1688,7 +1687,7 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 
 	p->gameNumber = 1;
 	p->roundNumber = 1;
-	p->bcolor = &(p->bcolorarray[yellow_c]);
+	p->backgroundColor = &(p->bcolorarray[yellow_c]);
 
 	p->scorePointsPerSmash = 1;
 	p->player[bus_c].paddleSpeed = initPaddleSpeed_c;
@@ -1816,24 +1815,24 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			if (++param < argc) {
 				switch (argv[param][0]) {
 				case 'y':
-					p->bcolor = &(p->bcolorarray[yellow_c]);
+					p->backgroundColor = &(p->bcolorarray[yellow_c]);
 					break;
 				case 'b':
-					p->bcolor = &(p->bcolorarray[blue_c]);
+					p->backgroundColor = &(p->bcolorarray[blue_c]);
 					break;
 				case 'w':
-					p->bcolor = &(p->bcolorarray[white_c]);
+					p->backgroundColor = &(p->bcolorarray[white_c]);
 					break;
 				case 'g':
-					p->bcolor = &(p->bcolorarray[green_c]);
+					p->backgroundColor = &(p->bcolorarray[green_c]);
 					break;
 				case 'q':
-					p->bcolor = &(p->bcolorarray[grey_c]);
+					p->backgroundColor = &(p->bcolorarray[grey_c]);
 					break;
 				default:
 					break;
 				} //end-switch(argv[param][0])
-				p->initcolor = p->bcolor;
+				p->initcolor = p->backgroundColor;
 			}
 		}
 	} //end-of-for
@@ -1882,18 +1881,24 @@ bool initializeGraphics(GameData *p) {
 	//TRACE();
 	//tries to load font file
 	if (loadFont(p, smallFont_c) == false) {
+		/*Helps with indenting print during trace
+		Helps find where this went wrong and why it couldn't load the font*/
 		FEXIT();
 		return false;
 	} //end-of-if(LoadFont(p, smallFont_c) == false)
 
 	//TRACE();
 	if (loadFont(p, regularFont_c) == false) {
+		/*Helps with indenting print during trace
+		Helps find where this went wrong and why it couldn't load the font*/
 		FEXIT();
 		return false;
 	} //end-of-if(LoadFont(p, regularFont_c) == false)
 
 	//TRACE();
 	if (loadFont(p, largeFont_c) == false) {
+		/*Helps with indenting print during trace
+		Helps find where this went wrong and why it couldn't load the font*/
 		FEXIT();
 		return false;
 	} //end-of-if(LoadFont(p, largeFont_c) == false)
@@ -1901,30 +1906,47 @@ bool initializeGraphics(GameData *p) {
 	//TRACE();
 	if ((p->display.display = al_create_display(p->display.width,
 			p->display.height)) == NULL) {
+		//Prints error message if display could not be displayed
 		ERROR("Cannot init display");FEXIT();
 		return false;
 	}
 
 	//TRACE();
+
+	/*Creating background colors
+	 * The numbers in the brackets represent the intensity primary colours, from 0 to 255
+	 * The primary colours in this instance are Red, Green, Blue in that order (so 255,0,0 would represent red)
+	 */
 	p->bcolorarray[yellow_c] = al_map_rgb(255, 255, 0);
 	p->bcolorarray[blue_c] = al_map_rgb(200, 200, 255);
 	p->bcolorarray[grey_c] = al_map_rgb(180, 180, 180);
 	p->bcolorarray[white_c] = al_map_rgb(255, 255, 255);
 	p->bcolorarray[green_c] = al_map_rgb(0, 180, 0);
 
-	p->fcolor = al_map_rgb(0, 100, 0);
+	//Creating font colour
+	p->fontColor = al_map_rgb(0, 100, 0);
+
+	//Creating timer and event queue
 	p->timer = al_create_timer(1.0 / p->fps);
 	p->eventqueue = al_create_event_queue();
+
+	//Prints error message in case it could not create
 	if (al_is_event_queue_empty(p->eventqueue) == false) {
 		ERROR("Event queue not empty after creation");
 	}
 
+	/*Registering an event source for our game
+	 * The keyboard is our event source because it causes the lrt and bus to move (That is an event)
+	 */
 	al_register_event_source(p->eventqueue, al_get_keyboard_event_source());
+
+	/*Connecting event sources with our event queue
+	 * Tells you what adds to our event queue
+	 */
 	al_register_event_source(p->eventqueue,
 			al_get_display_event_source(p->display.display));
 	al_register_event_source(p->eventqueue,
 			al_get_timer_event_source(p->timer));
-	p->botTimer = NULL;
 
 	if (loadPlayerBitmap(&(p->player[bus_c]), p->busBitmapName) == false) {
 		FEXIT();
@@ -1962,7 +1984,7 @@ bool initializeGraphics(GameData *p) {
 
 	setInitialObjectPositions(p);
 
-	setBackgroundColor(*(p->bcolor));
+	setBackgroundColor(*(p->backgroundColor));
 	FEXIT();
 	return true;
 } // end-of-function InitGame
@@ -1981,7 +2003,7 @@ bool initializeGraphics(GameData *p) {
 void runGame(GameData *p) {
 	FENTRY();
 	TRACE();
-	setBackgroundColor(*(p->bcolor));
+	setBackgroundColor(*(p->backgroundColor));
 	if (drawTextAndWaitBegin(p) == true) {
 		gameMainLoop(p);
 	}
