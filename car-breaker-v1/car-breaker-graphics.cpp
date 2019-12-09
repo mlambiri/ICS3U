@@ -1948,6 +1948,7 @@ bool initializeGraphics(GameData *p) {
 	al_register_event_source(p->eventqueue,
 			al_get_timer_event_source(p->timer));
 
+	//If you can't load a bitmap, it will returns false to show that it didn't work
 	if (loadPlayerBitmap(&(p->player[bus_c]), p->busBitmapName) == false) {
 		FEXIT();
 		return false;
@@ -1961,12 +1962,14 @@ bool initializeGraphics(GameData *p) {
 		return false;
 	}
 
+	//Printing error message for gas car bitmap
 	if ((p->gasBitmap = al_load_bitmap(p->gasBitmapName)) == NULL) {
 		printf("cannot load %s\n ", p->gasBitmapName);
 		FEXIT();
 		return false;
 	}
 
+	//Printing error message for electric car bitmap
 	if ((p->ecarBitmap = al_load_bitmap(p->ecarBitmapName)) == NULL) {
 		printf("cannot load %s\n ", p->ecarBitmapName);
 		FEXIT();
@@ -1979,11 +1982,19 @@ bool initializeGraphics(GameData *p) {
 	loadAudio(&(p->player[lrt_c]));
 	loadAudioWinner(p);
 
+	/*The equation for the maximum ball speed
+	 * The ball's speed is the number of pixels it moves per flip of the display
+	 * The maximum speed has to be less than the size of a block to avoid "jumping"
+	 * Jumping is when it completely skips over a block (does not hit it), and moves through it
+	 * This happens more frequently with high speeds
+	 */
 	p->maxspeed.x = p->bricks[0][0].width /4;
 	p->maxspeed.y = p->bricks[0][0].height/4;
 
+	//Setting the initial object position
 	setInitialObjectPositions(p);
 
+	//Setting the background colour
 	setBackgroundColor(*(p->backgroundColor));
 	FEXIT();
 	return true;
