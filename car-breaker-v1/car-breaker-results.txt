@@ -27,3 +27,5 @@
 2019-12-01 12:08:42  [Mode: Human] [Score: LRT Bus] 
 2019-12-01 18:30:06  [Mode: Human] [Score: LRT Bus] 
 2019-12-01 18:32:15  [Mode: Human] [Score: LRT Bus] 
+2019-12-08 18:14:13  [Mode: Human] [Score: LRT Bus] 
+2019-12-08 18:23:23  [Mode: Human] [Score: LRT Bus] 

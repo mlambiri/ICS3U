@@ -22,9 +22,7 @@
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_acodec.h>
 
-
 typedef unsigned int uint;
-
 
 #define MAXNAME 200
 #define MAXBUFFER 200
@@ -67,6 +65,10 @@ enum COLLISIONSIDE {
 	top_c, bottom_c, left_c, right_c
 };
 
+enum PLAYER {
+	bus_c, lrt_c
+};
+
 //======= GAME STRUCTURE DEFINITIONS =========
 
 
@@ -89,7 +91,7 @@ typedef struct Point {
    @name       GameBasicBlock
    @details
      The GameBasicBlock structure is used for the information and
-     logic of game entities (player, ball, cars, trees).
+     logic of game entities (player, ball, cars and whatever else I decide to add).
      Allegro 5 uses a system of coordinates that has (0,0) in the top left corner of the screen
      x values increase from left to right and y values increase from top to bottom
      A GameBasicBlock location on the screen is defined by the position of that bitmap's top left corner
@@ -145,7 +147,9 @@ typedef struct GamePlayer {
    @author     mlambiri
    @date       Nov 17, 2019
    @name       GameDisplay
-   @details     Contains Display information, height width, and pointer to
+   @details     I decided to make the display and the game data structure two separate entities
+   This is to help me avoid having too much be stored in one structure
+   Contains Display information, height width, and pointer to
    the allegro display
     \n
   ---------------------------------------------------------------------------
@@ -163,8 +167,8 @@ typedef struct GameDisplay {
    @date       Nov 13, 2019
    @name       GameData
    @details
-    This is the main data structure
-    It aggregates all the required variables that make the game run \n
+    This is the main data structure, I have called it GameData
+    Because it aggregates all the required variables that make the game run
   ---------------------------------------------------------------------------
  */
 typedef struct GameData {

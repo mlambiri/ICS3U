@@ -23,7 +23,7 @@ static const int ballSpeedIncrease_c = 3;
 static const int initPaddleSpeed_c = 20;
 
 static const char BUSIMAGE[] = "player1.png";
-static const char P2FNAME[] = "player2.png";
+static const char LRTIMAGE[] = "player2.png";
 static const char BALLFNAME[] = "ball.png";
 static const char GASCARFNAME[] = "gascar.png";
 static const char ECARFNAME[] = "ecar.png";
@@ -57,7 +57,8 @@ void  initBrickLayout(GameData*gptr) {
 	TRACE();
 	gptr->remainingCars = 0;
 
-
+	/*Checks what year it is before loading the game.
+	 * It doesn't check the actual yer, but you can change the year*/
 
 	int year = (gptr->year > 2080)?2080:gptr->year;
 	uint rNumber = (year > 2020)? (2100- year )/10:10;
@@ -70,6 +71,7 @@ void  initBrickLayout(GameData*gptr) {
 
 	// number of smashable cars in top and bottom row must be similar
 	// othewise there is in an advantage to one player
+
 	int topCount = 0;
 
 	int totalCount = 0;
@@ -78,9 +80,11 @@ void  initBrickLayout(GameData*gptr) {
 		for (int j = 0; j < gptr->maxColumns; j++) {
 			gptr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
 			if(gptr->bricks[i][j].onScreen == true ) {
-				// ecars are 'indestructible'
-				// as times goes by more are ecars
+
+				// electric cars are 'indestructible'
+				// as times goes by more are electric cars
 				// but also less cars on road
+
 				totalCount++;
 				if(gptr->year >= 2000) {
 					if(i == gptr->maxRows - 1) {
@@ -626,9 +630,9 @@ void  setInitialObjectPositions(GameData *gptr) {
 			+ rand() % (gptr->maxballspeed - minballspeed_c);
 	if (gptr->roundWinner) {
 		gptr->turn = gptr->roundWinner;
-		if (gptr->roundWinner == &(gptr->player[0])) {
+		if (gptr->roundWinner == &(gptr->player[bus_c])) {
 			gptr->ball.speed.y *= -1;
-		} //end-of-if(p->roundWinner == &(p->player[0]))
+		} //end-of-if(p->roundWinner == &(p->player[bus_c]))
 	} else {
 		//if there is no roundwinnner, it is the first serve of the game
 		//we need to pick at random a starting player
@@ -636,11 +640,11 @@ void  setInitialObjectPositions(GameData *gptr) {
 		case 0:
 			// player 1
 			gptr->ball.speed.y *= -1;
-			gptr->turn = &gptr->player[0];
+			gptr->turn = &gptr->player[bus_c];
 			break;
 		default:
 			//player 2
-			gptr->turn = &gptr->player[1];
+			gptr->turn = &gptr->player[lrt_c];
 			break;
 		} //end-switch(rand() %2)
 	} //end-of-if(p->roundWinner)
@@ -657,26 +661,26 @@ void  setInitialObjectPositions(GameData *gptr) {
 		break;
 	} //end-switch(rand() %2)
 
-	gptr->player[0].ge.position.x = gptr->display.width / 2 - gptr->player[0].ge.width / 2;
-	gptr->player[0].ge.position.y = gptr->display.height - gptr->player[0].ge.height;
-	gptr->player[0].ge.speed.x = 0;
-	gptr->player[1].ge.position.x = gptr->display.width / 2 - gptr->player[1].ge.width / 2;
-	gptr->player[1].ge.position.y = 0;
-	gptr->player[1].ge.speed.x = 0;
+	gptr->player[bus_c].ge.position.x = gptr->display.width / 2 - gptr->player[bus_c].ge.width / 2;
+	gptr->player[bus_c].ge.position.y = gptr->display.height - gptr->player[bus_c].ge.height;
+	gptr->player[bus_c].ge.speed.x = 0;
+	gptr->player[lrt_c].ge.position.x = gptr->display.width / 2 - gptr->player[lrt_c].ge.width / 2;
+	gptr->player[lrt_c].ge.position.y = 0;
+	gptr->player[lrt_c].ge.speed.x = 0;
 
 	if (gptr->ball.speed.y > 0) {
 		gptr->ball.prevposition.y = gptr->ball.position.y;
-		gptr->ball.position.y = gptr->player[1].ge.position.y + gptr->player[1].ge.height;
+		gptr->ball.position.y = gptr->player[lrt_c].ge.position.y + gptr->player[lrt_c].ge.height;
 	}else {
 		gptr->ball.prevposition.y = gptr->ball.position.y;
-		gptr->ball.position.y = gptr->player[0].ge.position.y - gptr->ball.height;
+		gptr->ball.position.y = gptr->player[bus_c].ge.position.y - gptr->ball.height;
 	}
 	gptr->ball.prevposition.x = gptr->ball.position.x;
 	gptr->ball.position.x = gptr->display.width / 2 - (gptr->ball.width / 2);
 	if (gptr->ball.speed.y > 0) {
-		gptr->startsample = gptr->player[1].sample;
+		gptr->startsample = gptr->player[lrt_c].sample;
 	} else {
-		gptr->startsample = gptr->player[0].sample;
+		gptr->startsample = gptr->player[bus_c].sample;
 	}
 
 	int ypos = (gptr->display.height - gptr->bricks[0][0].height*gptr->maxRows)/2;
@@ -768,20 +772,20 @@ bool isKeyPressEvent(GameData *gptr) {
 	if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
 		switch (gptr->ev.keyboard.keycode) {
 		case ALLEGRO_KEY_LEFT:
-			gptr->player[0].keyPress[0] = true;
-			gptr->player[0].keyPress[1] = false;
+			gptr->player[bus_c].keyPress[0] = true;
+			gptr->player[bus_c].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_RIGHT:
-			gptr->player[0].keyPress[0] = false;
-			gptr->player[0].keyPress[1] = true;
+			gptr->player[bus_c].keyPress[0] = false;
+			gptr->player[bus_c].keyPress[1] = true;
 			break;
 		case ALLEGRO_KEY_Q:
-			gptr->player[1].keyPress[0] = true;
-			gptr->player[1].keyPress[1] = false;
+			gptr->player[lrt_c].keyPress[0] = true;
+			gptr->player[lrt_c].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_E:
-			gptr->player[1].keyPress[0] = false;
-			gptr->player[1].keyPress[1] = true;
+			gptr->player[lrt_c].keyPress[0] = false;
+			gptr->player[lrt_c].keyPress[1] = true;
 			break;
 		case ALLEGRO_KEY_P:
 			if (pauseGame(gptr) == false) {
@@ -803,16 +807,16 @@ bool isKeyPressEvent(GameData *gptr) {
 	} else if (gptr->ev.type == ALLEGRO_EVENT_KEY_UP) {
 		switch (gptr->ev.keyboard.keycode) {
 		case ALLEGRO_KEY_LEFT:
-			gptr->player[0].keyPress[0] = false;
+			gptr->player[bus_c].keyPress[0] = false;
 			break;
 		case ALLEGRO_KEY_RIGHT:
-			gptr->player[0].keyPress[1] = false;
+			gptr->player[bus_c].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_Q:
-			gptr->player[1].keyPress[0] = false;
+			gptr->player[lrt_c].keyPress[0] = false;
 			break;
 		case ALLEGRO_KEY_E:
-			gptr->player[1].keyPress[1] = false;
+			gptr->player[lrt_c].keyPress[1] = false;
 			break;
 		case ALLEGRO_KEY_ESCAPE:
 			//exit game
@@ -881,28 +885,28 @@ void  movePlayers(GameData *gptr) {
 	FENTRY();
 	TRACE();
 
-	if (gptr->player[0].keyPress[0] == true) {
-		gptr->player[0].ge.position.x -= gptr->player[0].paddleSpeed;
-		if (gptr->player[0].ge.position.x < 0)
-			gptr->player[0].ge.position.x = 0;
+	if (gptr->player[bus_c].keyPress[0] == true) {
+		gptr->player[bus_c].ge.position.x -= gptr->player[bus_c].paddleSpeed;
+		if (gptr->player[bus_c].ge.position.x < 0)
+			gptr->player[bus_c].ge.position.x = 0;
 	}
-	if (gptr->player[0].keyPress[1] == true) {
-		gptr->player[0].ge.position.x += gptr->player[0].paddleSpeed;
-		if (gptr->player[0].ge.position.x >= (gptr->display.width - gptr->player[0].ge.width))
-			gptr->player[0].ge.position.x = (gptr->display.width - gptr->player[0].ge.width);
-	} //end-of-if(p->player[0].keyPress[1] ==true)
+	if (gptr->player[bus_c].keyPress[1] == true) {
+		gptr->player[bus_c].ge.position.x += gptr->player[bus_c].paddleSpeed;
+		if (gptr->player[bus_c].ge.position.x >= (gptr->display.width - gptr->player[bus_c].ge.width))
+			gptr->player[bus_c].ge.position.x = (gptr->display.width - gptr->player[bus_c].ge.width);
+	} //end-of-if(p->player[bus_c].keyPress[1] ==true)
 
-	if (gptr->player[1].keyPress[0] == true) {
-		gptr->player[1].ge.position.x -= gptr->player[1].paddleSpeed;
-		if (gptr->player[1].ge.position.x < 0)
-			gptr->player[1].ge.position.x = 0;
-	} //end-of-if(p->player[1].keyPress[0] == true)
+	if (gptr->player[lrt_c].keyPress[0] == true) {
+		gptr->player[lrt_c].ge.position.x -= gptr->player[lrt_c].paddleSpeed;
+		if (gptr->player[lrt_c].ge.position.x < 0)
+			gptr->player[lrt_c].ge.position.x = 0;
+	} //end-of-if(p->player[lrt_c].keyPress[0] == true)
 
-	if (gptr->player[1].keyPress[1] == true) {
-		gptr->player[1].ge.position.x += gptr->player[1].paddleSpeed;
-		if (gptr->player[1].ge.position.x >= (gptr->display.width - gptr->player[1].ge.width))
-			gptr->player[1].ge.position.x = (gptr->display.width - gptr->player[1].ge.width);
-	} //end-of-if(p->player[1].keyPress[1] == true)
+	if (gptr->player[lrt_c].keyPress[1] == true) {
+		gptr->player[lrt_c].ge.position.x += gptr->player[lrt_c].paddleSpeed;
+		if (gptr->player[lrt_c].ge.position.x >= (gptr->display.width - gptr->player[lrt_c].ge.width))
+			gptr->player[lrt_c].ge.position.x = (gptr->display.width - gptr->player[lrt_c].ge.width);
+	} //end-of-if(p->player[lrt_c].keyPress[1] == true)
 
 	FEXIT();
 } // end-of-function movePlayers
@@ -998,11 +1002,11 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 	if ((gptr->roundNumber == gptr->maxRounds) || (gptr->remainingCars == 0)){
 		gptr->roundNumber = 1;
 		GamePlayer* ptr;
-		if(gptr->player[0].carsSmashed > gptr->player[1].carsSmashed) {
-			ptr = &gptr->player[0];
+		if(gptr->player[bus_c].carsSmashed > gptr->player[lrt_c].carsSmashed) {
+			ptr = &gptr->player[bus_c];
 		}
-		else if(gptr->player[0].carsSmashed < gptr->player[1].carsSmashed) {
-			ptr = &gptr->player[1];
+		else if(gptr->player[bus_c].carsSmashed < gptr->player[lrt_c].carsSmashed) {
+			ptr = &gptr->player[lrt_c];
 		}
 		else {
 			ptr= NULL;
@@ -1015,8 +1019,8 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 		}
 		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
 				gptr->carArea.position.y - 3*gptr->fontsize, largeFont_c);
-		sprintf(textBuffer, "Score: %s %d %s %d", gptr->player[1].name, gptr->player[1].carsSmashed,
-				gptr->player[0].name, gptr->player[0].carsSmashed);
+		sprintf(textBuffer, "Score: %s %d %s %d", gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
+				gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
 		next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2, next,
 				regularFont_c);
 
@@ -1025,8 +1029,8 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 
 		playSound(gptr->winsample);
 		sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
-				"Human", gptr->player[1].name,
-				gptr->player[0].name);
+				"Human", gptr->player[lrt_c].name,
+				gptr->player[bus_c].name);
 		recordResult(textBuffer);
 		gptr->bcolor = gptr->initcolor;
 		initBrickLayout(gptr);
@@ -1034,8 +1038,8 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 
 	} else {
 		sprintf(textBuffer, "Score: %s %d %s %d",
-				gptr->player[1].name, gptr->player[1].carsSmashed, gptr->player[0].name,
-				gptr->player[0].carsSmashed);
+				gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed, gptr->player[bus_c].name,
+				gptr->player[bus_c].carsSmashed);
 		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
 				gptr->carArea.position.y - gptr->fontsize, regularFont_c);
 		char buffer[100];
@@ -1052,8 +1056,8 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 	}
 
 	for (int i = 0; i < 2; i++) {
-		gptr->player[0].keyPress[i] = false;
-		gptr->player[1].keyPress[i] = false;
+		gptr->player[bus_c].keyPress[i] = false;
+		gptr->player[lrt_c].keyPress[i] = false;
 	} //end-of-for
 	al_flush_event_queue(gptr->eventqueue);
 
@@ -1076,8 +1080,8 @@ bool displayScore(GameData *gptr) {
 	TRACE();
 	char textBuffer[MAXBUFFER];
 	sprintf(textBuffer, "Score: %s %d %s %d",
-			gptr->player[1].name, gptr->player[1].carsSmashed, gptr->player[0].name,
-			gptr->player[0].carsSmashed);
+			gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed, gptr->player[bus_c].name,
+			gptr->player[bus_c].carsSmashed);
 	int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
 			30, smallFont_c);
 	sprintf(textBuffer, "Remain: %d",
@@ -1136,8 +1140,8 @@ void  drawObjects(GameData *gptr) {
 	FENTRY();
 	TRACE();
 	setBackgroundColor(*(gptr->bcolor));
-	drawBitmapSection(&(gptr->player[0].ge));
-	drawBitmapSection(&(gptr->player[1].ge));
+	drawBitmapSection(&(gptr->player[bus_c].ge));
+	drawBitmapSection(&(gptr->player[lrt_c].ge));
 	drawBitmap(&(gptr->ball));
 	for (int i = 0; i < gptr->maxRows; i++) {
 		for (int j = 0; j < gptr->maxColumns; j++) {
@@ -1197,15 +1201,15 @@ bool checkCollisionTopAndBottom(GameData *gptr) {
 	if ((gptr->ball.position.y >= (gptr->display.height - gptr->ball.height))
 			&& (gptr->ball.speed.y > 0)) {
 		DEBUG("I hit the bottom line\n");
-		gptr->player[1].carsSmashed += gptr->penalty;
-		gptr->roundWinner = &(gptr->player[1]);
+		gptr->player[lrt_c].carsSmashed += gptr->penalty;
+		gptr->roundWinner = &(gptr->player[lrt_c]);
 		FEXIT();
 		return true;
 
 	} else if ((gptr->ball.position.y <= 0) && (gptr->ball.speed.y < 0)) {
 		DEBUG("I hit the top line\n");
-		gptr->player[0].carsSmashed += gptr->penalty;
-		gptr->roundWinner = &(gptr->player[0]);
+		gptr->player[bus_c].carsSmashed += gptr->penalty;
+		gptr->roundWinner = &(gptr->player[bus_c]);
 		FEXIT();
 		return true;
 	}FEXIT();
@@ -1373,18 +1377,18 @@ bool checkBallCollisionWithPlayers(GameData *gptr) {
 
 	COLLISIONSIDE side;
 	// check collision with player 1
-	if(areObjectsColliding(&(gptr->ball), &(gptr->player[0].ge), side)) {
-		gptr->ball.position.y = gptr->player[0].ge.position.y - gptr->ball.height;
-		ballBounceOnPlayer(&(gptr->ball), &(gptr->player[0]), gptr->maxballspeed);
-		gptr->turn = &gptr->player[0];
+	if(areObjectsColliding(&(gptr->ball), &(gptr->player[bus_c].ge), side)) {
+		gptr->ball.position.y = gptr->player[bus_c].ge.position.y - gptr->ball.height;
+		ballBounceOnPlayer(&(gptr->ball), &(gptr->player[bus_c]), gptr->maxballspeed);
+		gptr->turn = &gptr->player[bus_c];
 		FEXIT();
 		return true;
 	}
 	//check collision with player 2
-	else if(areObjectsColliding(&(gptr->ball), &(gptr->player[1].ge), side)) {
-		gptr->ball.position.y = gptr->player[1].ge.position.y + gptr->player[1].ge.height;
-		ballBounceOnPlayer(&(gptr->ball), &(gptr->player[1]), gptr->maxballspeed);
-		gptr->turn = &gptr->player[1];
+	else if(areObjectsColliding(&(gptr->ball), &(gptr->player[lrt_c].ge), side)) {
+		gptr->ball.position.y = gptr->player[lrt_c].ge.position.y + gptr->player[lrt_c].ge.height;
+		ballBounceOnPlayer(&(gptr->ball), &(gptr->player[lrt_c]), gptr->maxballspeed);
+		gptr->turn = &gptr->player[lrt_c];
 		FEXIT();
 		return true;
 	}
@@ -1634,8 +1638,8 @@ void  exitGame(GameData *gptr) {
 		} //end-of-if(p->font[i])
 	} //end-of-for
 
-	al_destroy_bitmap(gptr->player[0].ge.bmap);
-	al_destroy_bitmap(gptr->player[1].ge.bmap);
+	al_destroy_bitmap(gptr->player[bus_c].ge.bmap);
+	al_destroy_bitmap(gptr->player[lrt_c].ge.bmap);
 	al_destroy_bitmap(gptr->ball.bmap);
 	FEXIT();
 } // end-of-function GameExit
@@ -1662,13 +1666,13 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 
 	srand(time(0));
 
-	strcpy(p->player[0].name, "Bus");
-	strcpy(p->player[1].name, "LRT");
+	strcpy(p->player[bus_c].name, "Bus");
+	strcpy(p->player[lrt_c].name, "LRT");
 	strcpy(p->fontFileName, FONTNAME);
-	strcpy(p->player[0].audioFileName, P1SOUND);
-	strcpy(p->player[1].audioFileName, P2SOUND);
+	strcpy(p->player[bus_c].audioFileName, P1SOUND);
+	strcpy(p->player[lrt_c].audioFileName, P2SOUND);
 	strcpy(p->busBitmapName, BUSIMAGE);
-	strcpy(p->lrtBitmapName, P2FNAME);
+	strcpy(p->lrtBitmapName, LRTIMAGE);
 	strcpy(p->ballBitmapName, BALLFNAME);
 	strcpy(p->gasBitmapName, GASCARFNAME);
 	strcpy(p->ecarBitmapName, ECARFNAME);
@@ -1687,8 +1691,8 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	p->bcolor = &(p->bcolorarray[yellow_c]);
 
 	p->scorePointsPerSmash = 1;
-	p->player[0].paddleSpeed = initPaddleSpeed_c;
-	p->player[1].paddleSpeed = initPaddleSpeed_c;
+	p->player[bus_c].paddleSpeed = initPaddleSpeed_c;
+	p->player[lrt_c].paddleSpeed = initPaddleSpeed_c;
 
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself
@@ -1770,28 +1774,28 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 		} else if (strcmp(argv[param], "bussound") == 0) {
 			//player 1 sound file name
 			if (++param < argc)
-				strcpy(p->player[0].audioFileName, argv[param]);
+				strcpy(p->player[bus_c].audioFileName, argv[param]);
 		} else if (strcmp(argv[param], "lrtsound") == 0) {
 			//player 2 sound file name
 			if (++param < argc)
-				strcpy(p->player[1].audioFileName, argv[param]);
+				strcpy(p->player[lrt_c].audioFileName, argv[param]);
 		}   else if (strcmp(argv[param], "buslength") == 0) {
 			//level (controls the paddle size)
 			if (++param < argc) {
-				p->player[0].paddleSize = atoi(argv[param]);
-				if (p->player[0].paddleSize > maxPaddleSize_c)
-					p->player[0].paddleSize = maxPaddleSize_c;
-				if (p->player[0].paddleSize < 1)
-					p->player[0].paddleSize = 1;
+				p->player[bus_c].paddleSize = atoi(argv[param]);
+				if (p->player[bus_c].paddleSize > maxPaddleSize_c)
+					p->player[bus_c].paddleSize = maxPaddleSize_c;
+				if (p->player[bus_c].paddleSize < 1)
+					p->player[bus_c].paddleSize = 1;
 			}
 		} else if (strcmp(argv[param], "lrtlength") == 0) {
 			//level (controls the paddle size)
 			if (++param < argc) {
-				p->player[1].paddleSize = atoi(argv[param]);
-				if (p->player[1].paddleSize > maxPaddleSize_c)
-					p->player[1].paddleSize = maxPaddleSize_c;
-				if (p->player[1].paddleSize < 1)
-					p->player[1].paddleSize = 1;
+				p->player[lrt_c].paddleSize = atoi(argv[param]);
+				if (p->player[lrt_c].paddleSize > maxPaddleSize_c)
+					p->player[lrt_c].paddleSize = maxPaddleSize_c;
+				if (p->player[lrt_c].paddleSize < 1)
+					p->player[lrt_c].paddleSize = 1;
 			}
 		} else if (strcmp(argv[param], "fps") == 0) {
 			//display fps
@@ -1922,11 +1926,11 @@ bool initializeGraphics(GameData *p) {
 			al_get_timer_event_source(p->timer));
 	p->botTimer = NULL;
 
-	if (loadPlayerBitmap(&(p->player[0]), p->busBitmapName) == false) {
+	if (loadPlayerBitmap(&(p->player[bus_c]), p->busBitmapName) == false) {
 		FEXIT();
 		return false;
 	}
-	if (loadPlayerBitmap(&(p->player[1]), p->lrtBitmapName) == false) {
+	if (loadPlayerBitmap(&(p->player[lrt_c]), p->lrtBitmapName) == false) {
 		FEXIT();
 		return false;
 	}
@@ -1949,8 +1953,8 @@ bool initializeGraphics(GameData *p) {
 
 	setBrickInfo(p);
 
-	loadAudio(&(p->player[0]));
-	loadAudio(&(p->player[1]));
+	loadAudio(&(p->player[bus_c]));
+	loadAudio(&(p->player[lrt_c]));
 	loadAudioWinner(p);
 
 	p->maxspeed.x = p->bricks[0][0].width /4;
