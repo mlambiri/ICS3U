@@ -6,11 +6,13 @@
 // Description : car breaker game
 //============================================================================
 
+//Inclusions
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 
+//Including the Header Files
 #include "game-debug.h"
 #include "car-breaker-graphics.h"
 
@@ -31,8 +33,8 @@ static const char LRTSOUND[] = "cardoor.wav";
 static const char FONTNAME[] = "pirulen.ttf";
 
 //========VARIABLE DECLARATIONS=====
-//declaring the main data variable of the game
-//usually passed to functions using a pointer
+//Declaring the main data variable of the game
+//Usually passed to functions using a pointer
 GameData carBreaker = {
 		{INITPLAYER, INITPLAYER},
 		INITGBB,
@@ -56,8 +58,10 @@ void  initBrickLayout(GameData*gptr) {
 	TRACE();
 	gptr->remainingCars = 0;
 
-	/*Checks what year it is before loading the game.
-	 * It doesn't check the actual yer, but you can change the year*/
+	/* Checks what year it is before loading the game.
+	 * It doesn't check the actual year, but instead a value which the user can change
+	 * The year affects the game layout
+	 * As the years go by, there are less cars and more of the cars are electric */
 
 	int year = (gptr->year > 2080)?2080:gptr->year;
 	uint rNumber = (year > 2020)? (2100- year )/10:10;
@@ -68,8 +72,8 @@ void  initBrickLayout(GameData*gptr) {
 	}
 
 
-	// number of smashable cars in top and bottom row must be similar
-	// othewise there is in an advantage to one player
+	//Number of smashable cars in top and bottom row must be similar
+	//Othewise there is in an advantage to one player because they have an easier time smashing the cars
 
 	int topCount = 0;
 
@@ -80,9 +84,7 @@ void  initBrickLayout(GameData*gptr) {
 			gptr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
 			if(gptr->bricks[i][j].onScreen == true ) {
 
-				// electric cars are 'indestructible'
-				// as times goes by more are electric cars
-				// but also less cars on road
+				// Electric cars are 'Indestructible'
 
 				totalCount++;
 				if(gptr->year >= 2000) {
@@ -107,9 +109,11 @@ void  initBrickLayout(GameData*gptr) {
 	for(int i = 1; i < gptr->maxRows-1; i++) {
 		for (int j = 1; j < gptr->maxColumns-1; j++) {
 			if(gptr->bricks[i][j].indestructible  == false) {
-				// do not allow gas cars to be surrounded by ecars
-				// in that case the cars cannot be smashed
-				// check if the gas car is surrounded and if it is, make it an ecar
+
+				// Do not allow gas cars to be surrounded by Electric Cars
+				// In that case it becomes near impossible to smash the cars
+				// Check if the Gas Car is surrounded by Electric Cars, and if it is, make it an Electric Car
+
 				if((gptr->bricks[i-1][j].indestructible == true)
 						&& (gptr->bricks[i][j-1].indestructible == true)
 						&& (gptr->bricks[i][j+1].indestructible == true)
@@ -143,6 +147,8 @@ void  setBrickInfo(GameData* p) {
 	FENTRY();
 	TRACE();
 
+	//The carArea object is meant to be a rectangle around the cars to help the program determine when to do object collision checks
+	//We are setting these values to zero, and then later reassigning them to be the proper values
 	p->carArea.speed.x = 0;
 	p->carArea.speed.y = 0;
 	p->carArea.onScreen = false;
@@ -203,6 +209,9 @@ void  setBrickInfo(GameData* p) {
  --------------------------------------------------------------------------
  */
 void fastBall(GameData* g) {
+
+	//This is meant to increase the speed of the ball
+	//This is implemented to have the ball's speed increase as the game progresses
 	g->maxspeed.x += 2;
 	g->maxspeed.y += 2;
 }
@@ -219,6 +228,8 @@ void fastBall(GameData* g) {
  --------------------------------------------------------------------------
  */
 void slowBall(GameData* g) {
+
+	//Same idea as the above function
 	g->maxspeed.x -= 2;
 	g->maxspeed.y -= 2;
 }
@@ -236,6 +247,8 @@ void slowBall(GameData* g) {
 bool isPointInObject(GameBasicBlock* b, int x, int y){
 	FENTRY();
 	TRACE();
+
+	//This allows us to check if an action occurs within the same area as an object.
 	if((x>=b->position.x)
 			&& (x <= (b->position.x+b->width))
 			&&(y>=b->position.y)
@@ -264,16 +277,21 @@ bool isBallInRegion(GameBasicBlock* ball, GameBasicBlock* obj){
 
 	FENTRY();
 	TRACE();
+
+	//We see the use of the above function
+	//What we are doing is running the above function multiple times, to check if the ball is within the region of any objects
 	bool result = isPointInObject(obj,ball->position.x,ball->position.y);
 	result = result || isPointInObject(obj, ball->position.x+ball->width, ball->position.y);
 	result = result || isPointInObject(obj,ball->position.x, ball->position.y+ball->height);
 	result = result || isPointInObject(obj, ball->position.x+ball->width, ball->position.y+ball->height);
 
+	//If it is not, we return false
 	if(result == false) {
 		FEXIT();
 		return false;
 	}
 
+	//If it is, we return true
 	FEXIT();
 	return true;
 
@@ -294,11 +312,14 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
 
 	FENTRY();
 	TRACE();
+
+	//Checking if the ball is near an object
 	bool result = isPointInObject(obj,ball->position.x,ball->position.y);
 	result = result || isPointInObject(obj, ball->position.x+ball->width, ball->position.y);
 	result = result || isPointInObject(obj,ball->position.x, ball->position.y+ball->height);
 	result = result || isPointInObject(obj, ball->position.x+ball->width, ball->position.y+ball->height);
 
+	//If it isn't, we return false
 	if(result == false) {
 		FEXIT();
 		return false;
@@ -386,6 +407,8 @@ bool isBallBrickCollision(GameData* gptr, int i, int j) {
 
 	FENTRY();
 	TRACE();
+
+	//Check if it collides with a car that is being displayed on screen
 	if (gptr->bricks[i][j].onScreen == false) {
 		FEXIT();
 		return false;
@@ -459,6 +482,8 @@ bool isBallBrickCollision(GameData* gptr, int i, int j) {
 void  setBackgroundColor(ALLEGRO_COLOR color) {
 	FENTRY();
 	TRACE();
+
+	//Setting background colour
 	al_clear_to_color(color);
 	FEXIT();
 } // end-of-function SetBackgroundColor
@@ -475,11 +500,15 @@ void  setBackgroundColor(ALLEGRO_COLOR color) {
 bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 	FENTRY();
 	TRACE();
+
+	//If it is unable to load the bitmap, it will print an error message
 	if ((p->ge.bmap = al_load_bitmap(fname)) == NULL) {
 		printf("cannot load %s\n ", fname);
 		FEXIT();
 		return false;
 	}
+
+	//Get the width and height of the bitmap
 	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (p->paddleSize)) / maxPaddleSize_c;
 	p->ge.height = al_get_bitmap_height(p->ge.bmap);
 	FEXIT();
@@ -498,11 +527,15 @@ bool loadPlayerBitmap(GamePlayer *p, char* fname) {
 bool loadBitmap(GameBasicBlock *g, char* fname) {
 	FENTRY();
 	TRACE();
+
+	//If it is unable to load the bitmap, it will print an error message
 	if ((g->bmap = al_load_bitmap(fname)) == NULL) {
 		printf("cannot load %s\n ", fname);
 		FEXIT();
 		return false;
 	}
+
+	//Getting the width and height of the bitmap
 	g->width = al_get_bitmap_width(g->bmap);
 	g->height = al_get_bitmap_height(g->bmap);
 
@@ -523,7 +556,11 @@ bool loadBitmap(GameBasicBlock *g, char* fname) {
 bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
 	//FENTRY();
 	//TRACE();
+
+	//Stores the bitmap in the variable "bmap"
 	g->bmap = b;
+
+	//Getting the width and height of the bitmap
 	g->width = al_get_bitmap_width(g->bmap);
 	g->height = al_get_bitmap_height(g->bmap);
 	//FEXIT();
@@ -543,7 +580,11 @@ bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
 bool loadAudio(GamePlayer *gptr) {
 	FENTRY();
 	TRACE();
+
+	//Load the audio file
 	gptr->sample = al_load_sample(gptr->audioFileName);
+
+	//If it is unable to load the audio, it will print an error message
 	if (gptr->sample == NULL) {
 		printf("Audio clip sample %s not loaded!\n", gptr->audioFileName);
 		FEXIT();
@@ -564,7 +605,11 @@ bool loadAudio(GamePlayer *gptr) {
 bool loadAudioWinner(GameData *gptr) {
 	FENTRY();
 	TRACE();
+
+	//Load the audio file
 	gptr->winsample = al_load_sample(gptr->winSoundFile);
+
+	//If unable to load audio file, it will print an error
 	if (gptr->winsample == NULL) {
 		printf("Audio clip sample %s not loaded!\n", gptr->winSoundFile);
 		FEXIT();
@@ -587,7 +632,11 @@ bool loadFont(GameData *gptr, int size) {
 
 	FENTRY();
 	TRACE();
+
+	//Setting the font size to be equal to what it says in the game data
 	int fontSize = gptr->fontsize;
+
+	//Using enumerate, we can determine which font size we are looking for (small or large sized font).
 	switch (size) {
 	case smallFont_c:
 		fontSize /= 2;
@@ -598,9 +647,12 @@ bool loadFont(GameData *gptr, int size) {
 	default:
 		break;
 	} //end-switch(size)
+
+	//Now we load our font
+	//Our font file name is stored within the variable, fontFileName
 	gptr->font[size] = al_load_ttf_font(gptr->fontFileName, fontSize, 0);
 
-	//error message if the font file is NULL
+	//Error message if the font file is NULL
 	if (gptr->font[size] == NULL) {
 		printf("Could not load %s.\n", gptr->fontFileName);
 		FEXIT();
@@ -625,8 +677,12 @@ void  setInitialObjectPositions(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+
+	//We start by making our base ball speed
 	gptr->ball.speed.y = minballspeed_c
 			+ rand() % (gptr->maxballspeed - minballspeed_c);
+
+	//If there is a round winner
 	if (gptr->roundWinner) {
 		gptr->turn = gptr->roundWinner;
 		if (gptr->roundWinner == &(gptr->player[bus_c])) {
@@ -653,7 +709,6 @@ void  setInitialObjectPositions(GameData *gptr) {
 		gptr->ball.speed.x = 3;
 	switch (rand() % 2) {
 	case 0:
-		//serve up
 		gptr->ball.speed.x *= -1;
 		break;
 	default:
@@ -667,6 +722,7 @@ void  setInitialObjectPositions(GameData *gptr) {
 	gptr->player[lrt_c].ge.position.y = 0;
 	gptr->player[lrt_c].ge.speed.x = 0;
 
+	//Update out ball speed as the game progresses
 	if (gptr->ball.speed.y > 0) {
 		gptr->ball.prevposition.y = gptr->ball.position.y;
 		gptr->ball.position.y = gptr->player[lrt_c].ge.position.y + gptr->player[lrt_c].ge.height;
@@ -682,6 +738,7 @@ void  setInitialObjectPositions(GameData *gptr) {
 		gptr->startsample = gptr->player[bus_c].sample;
 	}
 
+	//This variable is used to calculate the x and y positions of several of the variables
 	int ypos = (gptr->display.height - gptr->bricks[0][0].height*gptr->maxRows)/2;
 
 	for (int i = 0; i < gptr->maxRows; i++) {
@@ -690,6 +747,7 @@ void  setInitialObjectPositions(GameData *gptr) {
 			xpos = 0;
 		}
 
+		//Calculating the x any y positions of the variables
 		for (int j = 0; j < gptr->maxColumns; j++) {
 			gptr->bricks[i][j].position.y = ypos;
 			gptr->bricks[i][j].position.x = xpos;
@@ -698,6 +756,7 @@ void  setInitialObjectPositions(GameData *gptr) {
 		ypos += gptr->bricks[i][0].height;
 	} //end-of-for
 
+	//Registering where the carArea will encompass
 	gptr->carArea.position.x = gptr->bricks[0][0].position.x;
 	gptr->carArea.position.y = gptr->bricks[0][0].position.y;
 
@@ -722,11 +781,11 @@ bool pauseGame(GameData *gptr) {
 	stopTimers(gptr);
 	while (true) {
 		TRACE();
-		//wait for an event
+		//Waiting for an event to occur
 		al_wait_for_event(gptr->eventqueue, &(gptr->ev));
-		//check if the event is a key press
-		//can be something else as the event queue
-		//has other sources
+		//Check if the event is a key press
+		//Can be something else as the event queue
+		//Has other sources
 		if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
 			switch (gptr->ev.keyboard.keycode) {
 			case ALLEGRO_KEY_ESCAPE:
@@ -735,15 +794,15 @@ bool pauseGame(GameData *gptr) {
 				return false;
 			case ALLEGRO_KEY_P:
 				//P was pressed again
-				//we want no events in the queue
-				//and we want to start the timers
+				//We want no events in the queue
+				//And we want to start the timers
 				al_flush_event_queue(gptr->eventqueue);
 				startTimers(gptr);
 				FEXIT();
 				return true;
 			}
 		}
-		//close the display with the mouse
+		//Close the display with the mouse
 		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
 			FEXIT();
 			return false;
@@ -768,8 +827,11 @@ bool isKeyPressEvent(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+
+	//If the event type is a key being pressed
 	if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
 		switch (gptr->ev.keyboard.keycode) {
+		//Events depend on which key was pressed
 		case ALLEGRO_KEY_LEFT:
 			gptr->player[bus_c].keyPress[0] = true;
 			gptr->player[bus_c].keyPress[1] = false;
@@ -846,11 +908,10 @@ bool pressAnyKeyToBeginGame(GameData *gptr) {
 
 	while (true) {
 		TRACE();
-		//wait for an event
+		//Wait for an event
 		al_wait_for_event(gptr->eventqueue, &(gptr->ev));
-		//check if the event is a key press
-		//can be something else as the event queue
-		//has other sources
+		//Check if the event is a key press
+		//If a key is pressed the game will begin
 		if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
 			FEXIT();
 			//exits either way
@@ -884,6 +945,8 @@ void  movePlayers(GameData *gptr) {
 	FENTRY();
 	TRACE();
 
+	//These move the players based on the key pressed
+	//The left arrow goes left, right arrow goes right so we need the change the position of the vehicle
 	if (gptr->player[bus_c].keyPress[0] == true) {
 		gptr->player[bus_c].ge.position.x -= gptr->player[bus_c].paddleSpeed;
 		if (gptr->player[bus_c].ge.position.x < 0)
@@ -924,6 +987,8 @@ void  movePlayers(GameData *gptr) {
 int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size) {
 	FENTRY();
 	TRACE();
+
+	//Drawing the text on the screen
 	al_draw_text(gptr->font[size], gptr->fontColor, x, y, ALLEGRO_ALIGN_CENTRE, text);
 	int fsize = gptr->fontsize;
 	switch (size) {
@@ -954,6 +1019,8 @@ bool drawTextAndWaitBegin(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+
+	//Drawing the menu text on screen
 	int next = drawTextOnScreen(gptr, (char*) "Welcome to Car Smasher", gptr->display.width / 2,
 			gptr->display.height / 4, largeFont_c);
 	al_flush_event_queue(gptr->eventqueue);
@@ -964,6 +1031,7 @@ bool drawTextAndWaitBegin(GameData *gptr) {
 	next = drawTextOnScreen(gptr, (char*) "Two Player Mode", gptr->display.width / 2,
 			gptr->display.height / 2, regularFont_c);
 
+	//Giving instructions on how the game finds a winner and how to start it
 	char buffer[100];
 	sprintf(buffer, "Most points after %d rounds wins!", gptr->maxRounds);
 	next = drawTextOnScreen(gptr, buffer, gptr->display.width / 2, next, regularFont_c);
@@ -997,7 +1065,11 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+
 	char textBuffer[MAXBUFFER];
+
+	//If the game end condition has been met, end the game
+	//If it has reached the max rounds or there are no cars remaining
 	if ((gptr->roundNumber == gptr->maxRounds) || (gptr->remainingCars == 0)){
 		gptr->roundNumber = 1;
 		GamePlayer* ptr;
@@ -1016,6 +1088,8 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 		else {
 			sprintf(textBuffer, "%s Wins The Game!!", ptr->name);
 		}
+
+		//Drawing the score display on the screen
 		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
 				gptr->carArea.position.y - 3*gptr->fontsize, largeFont_c);
 		sprintf(textBuffer, "Score: %s %d %s %d", gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
@@ -1023,13 +1097,16 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 		next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2, next,
 				regularFont_c);
 
+		//Telling the player how to quit the game
 		drawTextOnScreen(gptr, (char*) "Press a key to begin or ESC to exit",
 				gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
 
+		//If somebody wins they get to hear the victory sound
 		playSound(gptr->winsample);
 		sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
 				"Human", gptr->player[lrt_c].name,
 				gptr->player[bus_c].name);
+		//It will record the result of the game, and revert the game into its initial state
 		recordResult(textBuffer);
 		gptr->backgroundColor = gptr->initcolor;
 		initBrickLayout(gptr);
@@ -1042,6 +1119,7 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
 				gptr->carArea.position.y - gptr->fontsize, regularFont_c);
 		char buffer[100];
+		//Tells the user what round it is and how many rounds they are playing
 		sprintf(buffer, "Press a key to begin Round %d of %d or ESC to exit", ++gptr->roundNumber, gptr->maxRounds);
 		drawTextOnScreen(gptr, buffer, gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
 		//DEBUG(" =======\n");
@@ -1049,11 +1127,13 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 
 	al_flip_display();
 
+	//If they didn't press a key to start the game, don't start the game
 	if (pressAnyKeyToBeginGame(gptr) == false) {
 		FEXIT();
 		return false;
 	}
 
+	//If there are no keys pressed affecting either player, it won't do anything
 	for (int i = 0; i < 2; i++) {
 		gptr->player[bus_c].keyPress[i] = false;
 		gptr->player[lrt_c].keyPress[i] = false;
@@ -1078,6 +1158,8 @@ bool displayScore(GameData *gptr) {
 	FENTRY();
 	TRACE();
 	char textBuffer[MAXBUFFER];
+	//Displaying the score on screen
+	//Also displays the number of cars smashed throughout the game
 	sprintf(textBuffer, "Score: %s %d %s %d",
 			gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed, gptr->player[bus_c].name,
 			gptr->player[bus_c].carsSmashed);
@@ -1101,6 +1183,7 @@ bool displayScore(GameData *gptr) {
 void  drawBitmap(GameBasicBlock *g) {
 	FENTRY();
 	TRACE();
+	//Draws whatever bitmap was provided to it
 	al_draw_bitmap(g->bmap, g->position.x, g->position.y, 0);
 	FEXIT();
 
@@ -1119,6 +1202,7 @@ void  drawBitmap(GameBasicBlock *g) {
 void  drawBitmapSection(GameBasicBlock *g) {
 	FENTRY();
 	TRACE();
+	//Draws a part of the bitmap provided to it
 	al_draw_bitmap_region(g->bmap, 0, 0, g->width, g->height, g->position.x,
 			g->position.y, 0);
 	FEXIT();
@@ -1138,10 +1222,16 @@ void  drawObjects(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+
+	//Sets the background colour
 	setBackgroundColor(*(gptr->backgroundColor));
+
+	//Draws the bitmaps for the players and the ball
 	drawBitmapSection(&(gptr->player[bus_c].ge));
 	drawBitmapSection(&(gptr->player[lrt_c].ge));
 	drawBitmap(&(gptr->ball));
+
+	//Draws the bitmap for every car that is being displayed on the screen
 	for (int i = 0; i < gptr->maxRows; i++) {
 		for (int j = 0; j < gptr->maxColumns; j++) {
 			if (gptr->bricks[i][j].onScreen == true) {
@@ -1166,6 +1256,9 @@ bool checkCollisionLeftRight(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+
+	//If the ball is at the right or left edges of the screen, it will bounce off
+	//You check the ball's x position, and if it is the same as the measurement for display width, that means it is at the edge
 	if (gptr->ball.position.x > (gptr->display.width - gptr->ball.width)) {
 		gptr->ball.position.x = gptr->display.width - gptr->ball.width;
 		if (gptr->ball.speed.x > 0)
@@ -1197,6 +1290,9 @@ bool checkCollisionTopAndBottom(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+
+	//If the ball collides with the top or bottom of the screen, it will end the round
+	//You must check if the ball's y position is the same as the display height
 	if ((gptr->ball.position.y >= (gptr->display.height - gptr->ball.height))
 			&& (gptr->ball.speed.y > 0)) {
 		DEBUG("I hit the bottom line\n");
@@ -1245,6 +1341,7 @@ void  stopTimers(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+	//This stops the event timer from running as it normally would
 	al_stop_timer(gptr->timer);
 	FEXIT();
 
@@ -1263,6 +1360,7 @@ void  startTimers(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+	//This resumes the event timer
 	al_start_timer(gptr->timer);
 	FEXIT();
 } // end-of-function StartTimers
@@ -1283,10 +1381,13 @@ bool printRoundWinner(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+
+	//Stop the event timers as the game has ended
 	stopTimers(gptr);
 	setInitialObjectPositions(gptr);
 	drawObjects(gptr);
 
+	//Wait until they choose to start another game or exit the game
 	if (drawTextAndWaitRoundWin(gptr) == false) {
 		FEXIT();
 		return false;
@@ -1454,9 +1555,11 @@ bool updateBallPosition(GameData *gptr) {
 
 	GameBasicBlock tmpBall = gptr->ball;
 
+	//The calculation for the ball position (both x and y)
 	tmpBall.position.x = gptr->ball.position.x + gptr->ball.speed.x;
 	tmpBall.position.y = gptr->ball.position.y + gptr->ball.speed.y;
 
+	//If the ball is within the region of the carArea, it will increase the speed
 	if(isBallInRegion(&tmpBall, &(gptr->carArea)) == true) {
 		if(abs(gptr->ball.speed.x) > gptr->maxspeed.x) {
 			gptr->ball.speed.x = signOfNumber(gptr->ball.speed.x)*gptr->maxspeed.x;
