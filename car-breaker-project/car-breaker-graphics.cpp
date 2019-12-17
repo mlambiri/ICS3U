@@ -21,14 +21,14 @@ static const uint maxdiff_c = 4;
 static const int ballSpeedIncrease_c = 3;
 static const int initPaddleSpeed_c = 20;
 
-static const char P1FNAME[] = "player1.png";
-static const char P2FNAME[] = "player2.png";
-static const char BALLFNAME[] = "ball.png";
-static const char GASCARFNAME[] = "gascar.png";
-static const char ECARFNAME[] = "ecar.png";
-static const char P1SOUND[] = "cardoor.wav";
-static const char P2SOUND[] = "cardoor.wav";
-static const char FONTNAME[] = "pirulen.ttf";
+static const char busPngName[] = "player1.png";
+static const char lrtPngName[] = "player2.png";
+static const char ballPngName[] = "ball.png";
+static const char gasPngName[] = "gascar.png";
+static const char electricPngName[] = "ecar.png";
+static const char busSound[] = "cardoor.wav";
+static const char lrtSound[] = "cardoor.wav";
+static const char defaultFont[] = "pirulen.ttf";
 
 //========VARIABLE DECLARATIONS=====
 //declaring the main data variable of the game
@@ -284,7 +284,7 @@ bool writeFile(GameData* g) {
    initializes the brick layout\n
  --------------------------------------------------------------------------
  */
-void  initBrickLayout(GameData*gptr) {
+void  initializaCarLayout(GameData*gptr) {
 
 	FENTRY();
 	TRACE();
@@ -397,7 +397,7 @@ void  initBrickLayout(GameData*gptr) {
    \n
  --------------------------------------------------------------------------
  */
-void  setBrickInfo(GameData* p) {
+void  setCarInfo(GameData* p) {
 	FENTRY();
 	TRACE();
 
@@ -491,7 +491,7 @@ void  setPointsPerSmash(GameData*gptr) {
    very useful when we get into an infinite ricochet loop\n
  --------------------------------------------------------------------------
  */
-void fastBall(GameData* g) {
+void increaseBallSpeed(GameData* g) {
 	g->maxspeed.x += 2;
 	g->maxspeed.y += 2;
 }
@@ -726,7 +726,7 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
    and false otherwise\n
  --------------------------------------------------------------------------
  */
-bool isBallBrickCollision(GameData* gptr, int i, int j) {
+bool whenCollisionOccurs(GameData* gptr, int i, int j) {
 
 	FENTRY();
 	TRACE();
@@ -785,9 +785,9 @@ bool isBallBrickCollision(GameData* gptr, int i, int j) {
 			setPointsPerSmash(gptr);
 		}
 		if(gptr->remainingCars < level5_c ) {
-			gptr->bcolor = &(gptr->bcolorarray[green_c]);
+			gptr->backgroundColor = &(gptr->bcolorarray[green_c]);
 		}else if(gptr->remainingCars < level4_c ) {
-			gptr->bcolor = &(gptr->bcolorarray[blue_c]);
+			gptr->backgroundColor = &(gptr->bcolorarray[blue_c]);
 		}
 
 		FEXIT();
@@ -921,7 +921,7 @@ void  setBackgroundColor(ALLEGRO_COLOR color) {
    this function loads a bitmap for the player from a file\n
  --------------------------------------------------------------------------
  */
-bool loadPlayerBitmap(GamePlayer *p, char* fname) {
+bool loadPlayerImage(GamePlayer *p, char* fname) {
 	FENTRY();
 	TRACE();
 	if ((p->ge.bmap = al_load_bitmap(fname)) == NULL) {
@@ -1010,7 +1010,7 @@ bool loadAudio(GamePlayer *gptr) {
  \n
  --------------------------------------------------------------------------
  */
-bool loadAudioWinner(GameData *gptr) {
+bool loadWinnerSound(GameData *gptr) {
 	FENTRY();
 	TRACE();
 	gptr->winsample = al_load_sample(gptr->winSoundFile);
@@ -1260,6 +1260,21 @@ bool isKeyPressEvent(GameData *gptr) {
 				return false;
 			}
 			break;
+		case ALLEGRO_KEY_H:
+			gptr->helpOn = !gptr->helpOn;
+			break;
+		case ALLEGRO_KEY_G:
+			gptr->path.separateDisplay = !gptr->path.separateDisplay;
+			if(gptr->path.rec == true) {
+				if(gptr->path.separateDisplay) {
+					createTrajectoryDisplay(gptr);
+				}
+				else {
+					al_destroy_display(gptr->trajectoryDisplay.display);
+					gptr->trajectoryDisplay.display = NULL;
+				}
+			}
+			break;
 		case ALLEGRO_KEY_T:
 			if(gptr->path.rec == false) {
 				if(gptr->path.separateDisplay) {
@@ -1275,7 +1290,7 @@ bool isKeyPressEvent(GameData *gptr) {
 			}
 			break;
 		case ALLEGRO_KEY_F:
-			fastBall(gptr);
+			increaseBallSpeed(gptr);
 			break;
 		case ALLEGRO_KEY_S:
 			slowBall(gptr);
@@ -1429,7 +1444,7 @@ void  movePlayers(GameData *gptr) {
 int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size) {
 	FENTRY();
 	TRACE();
-	al_draw_text(gptr->font[size], gptr->fcolor, x, y, ALLEGRO_ALIGN_CENTRE, text);
+	al_draw_text(gptr->font[size], gptr->fontColor, x, y, ALLEGRO_ALIGN_CENTRE, text);
 	int fsize = gptr->fontsize;
 	switch (size) {
 	case smallFont_c:
@@ -1560,9 +1575,9 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 				(gptr->gameMode ? "Arcade" : "Human"), gptr->player[lrt_c].name,
 				gptr->player[bus_c].name);
 		recordResult(textBuffer);
-		gptr->bcolor = gptr->initcolor;
-		initBrickLayout(gptr);
-		setBrickInfo(gptr);
+		gptr->backgroundColor = gptr->initcolor;
+		initializaCarLayout(gptr);
+		setCarInfo(gptr);
 
 	} else {
 		sprintf(textBuffer, "Score: %s %d %s %d",
@@ -1631,6 +1646,47 @@ bool displayScore(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
+ @date    Nov 18, 2019
+ @mname
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+bool displayHelp(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	char textBuffer[MAXBUFFER];
+	const int xpos_c = 100;
+	sprintf(textBuffer, "Level: %s %d %s %d",
+			gptr->player[lrt_c].name,
+			gptr->botLevel[lrt_c]+1,
+			gptr->player[bus_c].name,
+			gptr->botLevel[bus_c]+1);
+	int next = drawTextOnScreen(gptr, textBuffer, xpos_c,
+			30, smallFont_c);
+
+	sprintf(textBuffer, "Collision Algo: %d",
+			gptr->cAlgoSelector);
+	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
+			next, smallFont_c);
+
+	sprintf(textBuffer, "Game Mode: %d",
+			gptr->gameMode);
+	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
+			next, smallFont_c);
+
+	sprintf(textBuffer, "New Window: %s",
+			gptr->path.separateDisplay?"Y":"N");
+	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
+			next, smallFont_c);
+}
+
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
  @date    Nov 22, 2019
  @mname   DrawBitmap
  @details
@@ -1677,7 +1733,7 @@ void  drawObjects(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	setBackgroundColor(*(gptr->bcolor));
+	setBackgroundColor(*(gptr->backgroundColor));
 	drawBitmapSection(&(gptr->player[bus_c].ge));
 	drawBitmapSection(&(gptr->player[lrt_c].ge));
 	drawBitmap(&(gptr->ball));
@@ -1689,6 +1745,7 @@ void  drawObjects(GameData *gptr) {
 		} //end-of-for
 	} //end-of-for
 	displayScore(gptr);
+	if(gptr->helpOn) displayHelp(gptr);
 	if(gptr->path.rec == true && gptr->path.separateDisplay == false) {
 		for (int i = 1; i < gptr->path.used; i++ ) {
 			al_draw_line(gptr->path.point[i-1].x, gptr->path.point[i-1].y, gptr->path.point[i].x, gptr->path.point[i].y, al_map_rgb(255, 0,0), 1.0);
@@ -2059,7 +2116,7 @@ bool updateBallPosition(GameData *gptr) {
 			if(gptr->ball.speed.y <= 0) {
 				for (int i = gptr->maxRows-1; i >=0; i--) {
 					for (int j = 0; j < gptr->maxColumns; j++) {
-						if(isBallBrickCollision(gptr, i, j)) {
+						if(whenCollisionOccurs(gptr, i, j)) {
 							done = true;
 							break;
 						}
@@ -2072,7 +2129,7 @@ bool updateBallPosition(GameData *gptr) {
 				// we can to the check from (0,0) to (maxRow, maxColumn)
 				for (int i = 0; i < gptr->maxRows; i++) {
 					for (int j = 0; j < gptr->maxColumns; j++) {
-						if(isBallBrickCollision(gptr, i, j)) {
+						if(whenCollisionOccurs(gptr, i, j)) {
 							done = true;
 							break;
 						}
@@ -2157,7 +2214,7 @@ bool updateBallPosition(GameData *gptr) {
 				gptr->ball.position.x = tmpBall.position.x;
 				gptr->ball.position.y = tmpBall.position.y;
 
-				if(isBallBrickCollision(gptr, row, column)) {
+				if(whenCollisionOccurs(gptr, row, column)) {
 					collision = true;
 					//printf("**  xn = %d, yn = %d \n", gptr->ball.position.x , gptr->ball.position.y);
 					//printf("**  coll  row = %d, col = %d\n", row ,column);
@@ -2515,14 +2572,14 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 
 	strcpy(p->player[bus_c].name, "Bus");
 	strcpy(p->player[lrt_c].name, "LRT");
-	strcpy(p->fontFileName, FONTNAME);
-	strcpy(p->player[bus_c].audioFileName, P1SOUND);
-	strcpy(p->player[lrt_c].audioFileName, P2SOUND);
-	strcpy(p->p1BitmapName, P1FNAME);
-	strcpy(p->p2BitmapName, P2FNAME);
-	strcpy(p->ballBitmapName, BALLFNAME);
-	strcpy(p->gasBitmapName, GASCARFNAME);
-	strcpy(p->ecarBitmapName, ECARFNAME);
+	strcpy(p->fontFileName, defaultFont);
+	strcpy(p->player[bus_c].audioFileName, busSound);
+	strcpy(p->player[lrt_c].audioFileName, lrtSound);
+	strcpy(p->busBitmapName, busPngName);
+	strcpy(p->lrtBitmapName, lrtPngName);
+	strcpy(p->ballBitmapName, ballPngName);
+	strcpy(p->gasBitmapName, gasPngName);
+	strcpy(p->ecarBitmapName, electricPngName);
 
 	// today
 	p->year = 2019;
@@ -2537,7 +2594,7 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 
 	p->gameNumber = 1;
 	p->roundNumber = 1;
-	p->bcolor = &(p->bcolorarray[yellow_c]);
+	p->backgroundColor = &(p->bcolorarray[yellow_c]);
 
 	p->scorePointsPerSmash = 1;
 	p->cAlgoSelector = false;
@@ -2551,6 +2608,8 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 
 	p->botLevel[bus_c] = pro_c;
 	p->botLevel[lrt_c] = pro_c;
+
+	p->helpOn = false;
 
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself
@@ -2628,11 +2687,11 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 		} else if (strcmp(argv[param], "busbmp") == 0) {
 			//player 1 bitmap file name
 			if (++param < argc)
-				strcpy(p->p1BitmapName, argv[param]);
+				strcpy(p->busBitmapName, argv[param]);
 		} else if (strcmp(argv[param], "lrtbmp") == 0) {
 			//player 2 bitmap file name
 			if (++param < argc)
-				strcpy(p->p2BitmapName, argv[param]);
+				strcpy(p->lrtBitmapName, argv[param]);
 		} else if (strcmp(argv[param], "ballbmp") == 0) {
 			//ball bitmap file name
 			if (++param < argc)
@@ -2735,24 +2794,24 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			if (++param < argc) {
 				switch (argv[param][0]) {
 				case 'y':
-					p->bcolor = &(p->bcolorarray[yellow_c]);
+					p->backgroundColor = &(p->bcolorarray[yellow_c]);
 					break;
 				case 'b':
-					p->bcolor = &(p->bcolorarray[blue_c]);
+					p->backgroundColor = &(p->bcolorarray[blue_c]);
 					break;
 				case 'w':
-					p->bcolor = &(p->bcolorarray[white_c]);
+					p->backgroundColor = &(p->bcolorarray[white_c]);
 					break;
 				case 'g':
-					p->bcolor = &(p->bcolorarray[green_c]);
+					p->backgroundColor = &(p->bcolorarray[green_c]);
 					break;
 				case 'q':
-					p->bcolor = &(p->bcolorarray[grey_c]);
+					p->backgroundColor = &(p->bcolorarray[grey_c]);
 					break;
 				default:
 					break;
 				} //end-switch(argv[param][0])
-				p->initcolor = p->bcolor;
+				p->initcolor = p->backgroundColor;
 			}
 		}
 	} //end-of-for
@@ -2770,7 +2829,7 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	p->botControlPtr[bus_c] = &(busBotArray[p->botLevel[bus_c]]);
 	p->botControlPtr[lrt_c] = &(lrtBotArray[p->botLevel[lrt_c]]);
 
-	initBrickLayout(p);
+	initializaCarLayout(p);
 	FEXIT();
 	return true;
 } // end-of-function CreateGameData
@@ -2843,7 +2902,7 @@ bool initializeGraphics(GameData *p) {
 	p->bcolorarray[white_c] = al_map_rgb(255, 255, 255);
 	p->bcolorarray[green_c] = al_map_rgb(0, 180, 0);
 
-	p->fcolor = al_map_rgb(0, 100, 0);
+	p->fontColor = al_map_rgb(0, 100, 0);
 	p->timer = al_create_timer(1.0 / p->fps);
 	p->eventqueue = al_create_event_queue();
 	if (al_is_event_queue_empty(p->eventqueue) == false) {
@@ -2863,11 +2922,11 @@ bool initializeGraphics(GameData *p) {
 	} else
 		p->botTimer = NULL;
 
-	if (loadPlayerBitmap(&(p->player[bus_c]), p->p1BitmapName) == false) {
+	if (loadPlayerImage(&(p->player[bus_c]), p->busBitmapName) == false) {
 		FEXIT();
 		return false;
 	}
-	if (loadPlayerBitmap(&(p->player[lrt_c]), p->p2BitmapName) == false) {
+	if (loadPlayerImage(&(p->player[lrt_c]), p->lrtBitmapName) == false) {
 		FEXIT();
 		return false;
 	}
@@ -2888,18 +2947,18 @@ bool initializeGraphics(GameData *p) {
 		return false;
 	}
 
-	setBrickInfo(p);
+	setCarInfo(p);
 
 	loadAudio(&(p->player[bus_c]));
 	loadAudio(&(p->player[lrt_c]));
-	loadAudioWinner(p);
+	loadWinnerSound(p);
 
 	p->maxspeed.x = maxballspeed_c;
 	p->maxspeed.y = maxballspeed_c;
 
 	setInitialObjectPositions(p);
 
-	setBackgroundColor(*(p->bcolor));
+	setBackgroundColor(*(p->backgroundColor));
 	FEXIT();
 	return true;
 } // end-of-function InitGame
@@ -2918,7 +2977,7 @@ bool initializeGraphics(GameData *p) {
 void runGame(GameData *p) {
 	FENTRY();
 	TRACE();
-	setBackgroundColor(*(p->bcolor));
+	setBackgroundColor(*(p->backgroundColor));
 	if (drawTextAndWaitBegin(p) == true) {
 		gameMainLoop(p);
 	}

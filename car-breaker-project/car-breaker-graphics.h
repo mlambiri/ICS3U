@@ -222,8 +222,8 @@ typedef struct GameData {
 	ALLEGRO_TIMER *botTimer;
 	ALLEGRO_FONT *font[MAXFONTS];
 	ALLEGRO_COLOR bcolorarray[maxColors_c];
-	ALLEGRO_COLOR* bcolor;
-	ALLEGRO_COLOR fcolor;
+	ALLEGRO_COLOR* backgroundColor;
+	ALLEGRO_COLOR fontColor;
 	ALLEGRO_SAMPLE *startsample;
 	ALLEGRO_SAMPLE *winsample;
 
@@ -235,8 +235,8 @@ typedef struct GameData {
 	ALLEGRO_COLOR* initcolor;
 	uint scorePointsPerSmash;
 
-	char p1BitmapName[MAXNAME];
-	char p2BitmapName[MAXNAME];
+	char busBitmapName[MAXNAME];
+	char lrtBitmapName[MAXNAME];
 	char ballBitmapName[MAXNAME];
 	char gasBitmapName[MAXNAME];
 	char ecarBitmapName[MAXNAME];
@@ -262,6 +262,7 @@ typedef struct GameData {
 	DataRecorder path;
 	int botLevel[2];
 	BotControlArray *botControlPtr[2];
+	bool helpOn;
 
 } GameData;
 
@@ -279,11 +280,11 @@ bool drawTextAndWaitBegin(GameData *gptr);
 bool drawTextAndWaitRoundWin(GameData *gptr);
 bool gameMainLoop(GameData *gptr);
 bool loadAudio(GamePlayer *gptr);
-bool loadAudioWinner(GameData *gptr);
+bool loadWinnerSound(GameData *gptr);
 bool loadBitmap(GameBasicBlock *g, char* fname);
 bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
 bool loadFont(GameData *gptr, int size);
-bool loadPlayerBitmap(GamePlayer *p, char* fname);
+bool loadPlayerImage(GamePlayer *p, char* fname);
 bool pauseGame(GameData *gptr);
 bool pressAnyKeyToBeginGame(GameData *gptr);
 bool printRoundWinner(GameData *gptr);
@@ -297,14 +298,14 @@ void  drawBitmap(GameBasicBlock *g);
 void  drawBitmapSection(GameBasicBlock *g);
 void  drawObjects(GameData *gptr);
 void  exitGame(GameData *gptr);
-void  initBrickLayout(GameData*gptr);
+void  initializaCarLayout(GameData*gptr);
 void  movePlayers(GameData *gptr);
 void  playSound(ALLEGRO_SAMPLE *s);
 void  setBackgroundColor(ALLEGRO_COLOR color);
 void  setInitialObjectPositions(GameData *gptr);
 void  startTimers(GameData *gptr);
 void  stopTimers(GameData *gptr);
-void  setBrickInfo(GameData* p);
+void  setCarInfo(GameData* p);
 bool recordResult(char *p);
 
 //=====================
