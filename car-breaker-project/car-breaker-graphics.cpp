@@ -1263,6 +1263,9 @@ bool isKeyPressEvent(GameData *gptr) {
 		case ALLEGRO_KEY_H:
 			gptr->helpOn = !gptr->helpOn;
 			break;
+		case ALLEGRO_KEY_C:
+			gptr->cAlgoSelector = !gptr->cAlgoSelector;
+			break;
 		case ALLEGRO_KEY_G:
 			gptr->path.separateDisplay = !gptr->path.separateDisplay;
 			if(gptr->path.rec == true) {
