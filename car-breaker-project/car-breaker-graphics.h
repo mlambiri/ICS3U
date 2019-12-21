@@ -168,6 +168,12 @@ typedef struct DataRecorder {
 	bool separateDisplay;
 } DataRecorder;
 
+typedef struct BounceStatistics {
+	uint bounce[MAXBRICKCOLUMNS*MAXBRICKROWS];
+	uint totalBounce;
+	uint firstEmpty;
+} BounceStatistics;
+
 #define botArrays_c  5
 
 /*
@@ -263,6 +269,7 @@ typedef struct GameData {
 	int botLevel[2];
 	BotControlArray *botControlPtr[2];
 	bool helpOn;
+	BounceStatistics stats;
 
 } GameData;
 

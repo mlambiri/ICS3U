@@ -133,11 +133,11 @@ createTrajectoryDisplay(GameData* g) {
 		x += g->display.width;
 	}
 
-//	if(!g->trajectoryDisplay.display ) {
-//		ERROR("failed to create help display!");
-//		return;
-//	}
-//	al_set_window_position(g->trajectoryDisplay.display, x , y);
+	//	if(!g->trajectoryDisplay.display ) {
+	//		ERROR("failed to create help display!");
+	//		return;
+	//	}
+	//	al_set_window_position(g->trajectoryDisplay.display, x , y);
 
 	al_set_window_title(g->trajectoryDisplay.display, "Ball Trajectory");
 	al_register_event_source(g->eventqueue, al_get_display_event_source(g->trajectoryDisplay.display));
@@ -279,9 +279,9 @@ bool writeFile(GameData* g) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 18, 2019
- @mname   initBrickLAyout
+ @mname    initializaCarLayout
  @details
-   initializes the brick layout\n
+   initializes the car layout\n
  --------------------------------------------------------------------------
  */
 void  initializaCarLayout(GameData*gptr) {
@@ -392,7 +392,7 @@ void  initializaCarLayout(GameData*gptr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 24, 2019
- @mname   setBrickInfo
+ @mname   setCarInfo
  @details
    \n
  --------------------------------------------------------------------------
@@ -457,7 +457,7 @@ void  setCarInfo(GameData* p) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 19, 2019
- @mname   setPointsPerCarSmashed
+ @mname   setPointsPerSmash
  @details
    set an amount of points for each car smashed
    this will change based on the number of cars that
@@ -485,7 +485,7 @@ void  setPointsPerSmash(GameData*gptr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 30, 2019
- @mname   fastBall
+ @mname   increaseBallSpeed
  @details
    increase one component of the ball speed
    very useful when we get into an infinite ricochet loop\n
@@ -599,7 +599,7 @@ bool isPointInAnyCar(GameData* g,  int x, int y, int&row, int&column){
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 19, 2019
- @mname   isBallInArea
+ @mname   isBallInRegion
  @details
    check if the ball is in a particular rectangle
  --------------------------------------------------------------------------
@@ -720,7 +720,7 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 19, 2019
- @mname   ballBrickCollision
+ @mname   whenCollisionOccur
  @details
    this function returns true if the ball has collided with a brick
    and false otherwise\n
@@ -776,10 +776,14 @@ bool whenCollisionOccurs(GameData* gptr, int i, int j) {
 
 
 		recordPoint(&(gptr->path), &(gptr->ball.position));
+		gptr->stats.totalBounce++;
+		gptr->stats.bounce[gptr->stats.firstEmpty]++;
 
 		if(gptr->bricks[i][j].indestructible == false) {
 			gptr->bricks[i][j].onScreen = false;
 			gptr->remainingCars--;
+			gptr->stats.firstEmpty++;
+			gptr->stats.bounce[gptr->stats.firstEmpty] = 0;
 			if(gptr->turn)
 				gptr->turn->carsSmashed+= gptr->scorePointsPerSmash;
 			setPointsPerSmash(gptr);
@@ -803,7 +807,7 @@ bool whenCollisionOccurs(GameData* gptr, int i, int j) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 19, 2019
- @mname   ballBrickCollision
+ @mname   isBallBrickCollisionPossible
  @details
    this function returns true if the ball has collided with a brick
    and false otherwise\n
@@ -1005,7 +1009,7 @@ bool loadAudio(GamePlayer *gptr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 28, 2019
- @mname   loadAudioWinner
+ @mname   loadWinnerSound
  @details
  \n
  --------------------------------------------------------------------------
@@ -1021,7 +1025,7 @@ bool loadWinnerSound(GameData *gptr) {
 	}
 	FEXIT();
 	return true;
-} // end-of-function loadAudioWinner
+} // end-of-function loadWinnerSound
 
 /**
  ---------------------------------------------------------------------------
@@ -1345,8 +1349,8 @@ bool isKeyPressEvent(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Jun 3, 2019
- @mname   PressAnyKeyToBegin
+ @date    Dec 3, 2019
+ @mname   pressAnyKeyToBeginGame
  @details
  \n
  --------------------------------------------------------------------------
@@ -1388,7 +1392,7 @@ bool pressAnyKeyToBeginGame(GameData *gptr) {
 		}
 	}FEXIT();
 	return true;
-} // end-of-function PressAnyKeyToBegin
+} // end-of-function pressAnyKeyToBeginGame
 
 /**
  ---------------------------------------------------------------------------
@@ -1437,7 +1441,7 @@ void  movePlayers(GameData *gptr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   DrawText
+ @mname   drawTextOnScreen
  @details
  Displays text on screen using allegro
  Declared an enumeration of text sizes
@@ -1461,13 +1465,13 @@ int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size) {
 	} //end-switch(size)
 	FEXIT();
 	return y + fsize + 10;
-} // end-of-function DrawText
+} // end-of-function drawTextOnScreen
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   DisplayTextAndWaitBegin
+ @mname   drawTextAndWaitBegin
  @details
  Returns false if escape key is pressed
  This function displays the first screen that the user views in the game\n
@@ -1511,7 +1515,7 @@ bool drawTextAndWaitBegin(GameData *gptr) {
 	}
 	FEXIT();
 	return true;
-} // end-of-function DisplayTextAndWaitBegin
+} // end-of-function drawTextAndWaitBegin
 
 /**
  ---------------------------------------------------------------------------
@@ -1598,6 +1602,10 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 
 	gptr->path.rec = false;
 	gptr->path.used = 0;
+	gptr->stats.totalBounce = 0;
+	gptr->stats.firstEmpty = 0;
+	gptr->stats.bounce[gptr->stats.firstEmpty] = 0;
+
 	if (pressAnyKeyToBeginGame(gptr) == false) {
 		FEXIT();
 		return false;
@@ -1640,8 +1648,12 @@ bool displayScore(GameData *gptr) {
 			gptr->scorePointsPerSmash);
 	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
 			next, smallFont_c);
-	sprintf(textBuffer, "%d Points Penalty for LB",
-			gptr->penalty);
+	sprintf(textBuffer, "%d Bounces since Last Smash",
+			gptr->stats.bounce[gptr->stats.firstEmpty]);
+	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
+			next, smallFont_c);
+	sprintf(textBuffer, "%d Total Bounces",
+			gptr->stats.totalBounce);
 	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
 			next, smallFont_c);
 }
@@ -1691,7 +1703,7 @@ bool displayHelp(GameData *gptr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   DrawBitmap
+ @mname   drawBitmap
  @details
  \n
  --------------------------------------------------------------------------
@@ -1702,13 +1714,13 @@ void  drawBitmap(GameBasicBlock *g) {
 	al_draw_bitmap(g->bmap, g->position.x, g->position.y, 0);
 	FEXIT();
 
-} // end-of-function DrawBitmap
+} // end-of-function drawBitmap
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 28, 2019
- @mname   DrawBitmapSection
+ @mname   drawBitmapSection
  @details
  Draws only a selected portion of a bitmap.
  It is used to change the length of the pallete depending on the game level.\n
@@ -1720,13 +1732,13 @@ void  drawBitmapSection(GameBasicBlock *g) {
 	al_draw_bitmap_region(g->bmap, 0, 0, g->width, g->height, g->position.x,
 			g->position.y, 0);
 	FEXIT();
-} // end-of-function DrawBitmapSection
+} // end-of-function drawBitmapSection
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   DrawObjects
+ @mname   drawObjects
  @details
  This function sets the background color and draws the players and the ball
  Has to be called every time we want to refresh the display during gameplay\n
@@ -1756,7 +1768,7 @@ void  drawObjects(GameData *gptr) {
 		al_draw_line(gptr->path.point[gptr->path.used-1].x, gptr->path.point[gptr->path.used-1].y, gptr->ball.position.x, gptr->ball.position.y, al_map_rgb(255, 0,0), 1.0);
 	}
 	FEXIT();
-} // end-of-function DrawObjects
+} // end-of-function drawObjects
 
 /**
  ---------------------------------------------------------------------------
@@ -1776,6 +1788,8 @@ bool checkCollisionLeftRight(GameData *gptr) {
 		if (gptr->ball.speed.x > 0)
 			gptr->ball.speed.x *= -1;
 		recordPoint(&(gptr->path), &(gptr->ball.position));
+		gptr->stats.totalBounce++;
+		gptr->stats.bounce[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 	} else if (gptr->ball.position.x < 0) {
@@ -1783,6 +1797,8 @@ bool checkCollisionLeftRight(GameData *gptr) {
 		if (gptr->ball.speed.x < 0)
 			gptr->ball.speed.x *= -1;
 		recordPoint(&(gptr->path), &(gptr->ball.position));
+		gptr->stats.totalBounce++;
+		gptr->stats.bounce[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 	}
@@ -1809,6 +1825,8 @@ bool checkCollisionTopAndBottom(GameData *gptr) {
 		gptr->player[1].carsSmashed += gptr->penalty;
 		gptr->roundWinner = &(gptr->player[lrt_c]);
 		recordPoint(&(gptr->path), &(gptr->ball.position));
+		gptr->stats.totalBounce++;
+		gptr->stats.bounce[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 
@@ -1817,6 +1835,8 @@ bool checkCollisionTopAndBottom(GameData *gptr) {
 		gptr->player[bus_c].carsSmashed += gptr->penalty;
 		gptr->roundWinner = &(gptr->player[bus_c]);
 		recordPoint(&(gptr->path), &(gptr->ball.position));
+		gptr->stats.totalBounce++;
+		gptr->stats.bounce[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 	}
@@ -1846,7 +1866,7 @@ void  playSound(ALLEGRO_SAMPLE *s) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Jun 2, 2019
- @mname   StopTimers
+ @mname   stopTimers
  @details
  Stops all game timers \n
  --------------------------------------------------------------------------
@@ -1860,13 +1880,13 @@ void  stopTimers(GameData *gptr) {
 		al_stop_timer(gptr->botTimer);
 	FEXIT();
 
-} // end-of-function StopTimers
+} // end-of-function stopTimers
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Jun 2, 2019
- @mname   StartTimers
+ @mname   startTimers
  @details
  \n
  --------------------------------------------------------------------------
@@ -1879,13 +1899,13 @@ void  startTimers(GameData *gptr) {
 	if (gptr->gameMode != human_c)
 		al_start_timer(gptr->botTimer);
 	FEXIT();
-} // end-of-function StartTimers
+} // end-of-functions startTimers
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   PrintRoundWinner
+ @mname   printRoundWinner
  @details
  When the round ends, we need to stop the timers from firing unwanted events
  We do that at the beginning of the function
@@ -1910,7 +1930,7 @@ bool printRoundWinner(GameData *gptr) {
 	}
 	FEXIT();
 	return true;
-} // end-of-function PrintRoundWinner
+} // end-of-function printRoundWinner
 
 /**
  ---------------------------------------------------------------------------
@@ -1964,21 +1984,21 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 	}
 
 	switch (paddleZones) {
-		case 1:
-			ball->speed.x = (-5)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1));
-			break;
-		case 2:
-			ball->speed.x = (-5)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
-			break;
-		case 3:
-			ball->speed.x = (-4)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
-			break;
-		case 4:
-			ball->speed.x = (-3)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
-			break;
-		default:
-			ball->speed.x = (-2)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
-			break;
+	case 1:
+		ball->speed.x = (-5)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1));
+		break;
+	case 2:
+		ball->speed.x = (-5)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
+		break;
+	case 3:
+		ball->speed.x = (-4)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
+		break;
+	case 4:
+		ball->speed.x = (-3)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
+		break;
+	default:
+		ball->speed.x = (-2)* signOfNumber(ball->speed.x)*(rand()%(zoneHitByBall+1) - paddleZones/2);
+		break;
 	} //end-switch(paddleZones)
 
 	DEBUG2("speed.x", ball->speed.x);
@@ -2012,6 +2032,8 @@ bool checkBallCollisionWithPlayers(GameData *gptr) {
 		ballBounceOnPlayer(&(gptr->ball), &(gptr->player[bus_c]), gptr->maxballspeed);
 		gptr->turn = &gptr->player[bus_c];
 		recordPoint(&(gptr->path), &(gptr->ball.position));
+		gptr->stats.totalBounce++;
+		gptr->stats.bounce[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 	}
@@ -2021,6 +2043,8 @@ bool checkBallCollisionWithPlayers(GameData *gptr) {
 		ballBounceOnPlayer(&(gptr->ball), &(gptr->player[lrt_c]), gptr->maxballspeed);
 		gptr->turn = &gptr->player[lrt_c];
 		recordPoint(&(gptr->path), &(gptr->ball.position));
+		gptr->stats.totalBounce++;
+		gptr->stats.bounce[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 	}
@@ -2065,7 +2089,7 @@ uint min(uint a, uint b) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   UpdateBallPosition
+ @mname   updateBallPosition
  @details
  return true if no more gas cars remain to be smashed
  This function checks if there is a collision between the ball and an object
@@ -2246,6 +2270,10 @@ bool updateBallPosition(GameData *gptr) {
 			gptr->ball.position.x +=  gptr->ball.speed.x;
 			gptr->ball.position.y += gptr->ball.speed.y;
 		}
+		else {
+			FEXIT();
+			return false;
+		}
 	}
 
 	if (checkBallCollisionWithPlayers(gptr) == false) {
@@ -2253,11 +2281,16 @@ bool updateBallPosition(GameData *gptr) {
 			FEXIT();
 			return true;
 		}
+		else {
+			checkCollisionLeftRight(gptr);
+		}
 	}
-	checkCollisionLeftRight(gptr);
+	else {
+		checkCollisionLeftRight(gptr);
+	}
 	FEXIT();
 	return false;
-} // end-of-function UpdateBallPosition
+} // end-of-function updateBallPosition
 
 /**
  ---------------------------------------------------------------------------
@@ -2420,7 +2453,7 @@ void  busBotControl(GameData *gptr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   GameMainLoop
+ @mname   gameMainLoop
  @details
  Two dimensional games process events and screen updates in a continuous loop
  usually this loop is called a game loop
@@ -2525,7 +2558,7 @@ bool gameMainLoop(GameData *gptr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   GameExit
+ @mname   exitGame
  @details
  This function is called when the game terminates and it destroys all allegro resources
  \n
@@ -2549,7 +2582,7 @@ void  exitGame(GameData *gptr) {
 	al_destroy_bitmap(gptr->player[lrt_c].ge.bmap);
 	al_destroy_bitmap(gptr->ball.bmap);
 	FEXIT();
-} // end-of-function GameExit
+} // end-of-function exitGame
 
 //======== PUBLIC FUNCTIONS ===========
 //The functions below are called from the main function
@@ -2558,7 +2591,7 @@ void  exitGame(GameData *gptr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 17, 2019
- @mname   CreateGameData
+ @mname   initializeGameData
  @details
  This function gets the game config parameters as read from the config file
  In the same format as the parameters passes to the main file
@@ -2613,6 +2646,9 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	p->botLevel[lrt_c] = pro_c;
 
 	p->helpOn = false;
+	p->stats.totalBounce = 0;
+	p->stats.firstEmpty = 0;
+	p->stats.bounce[p->stats.firstEmpty] = 0;
 
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself
@@ -2835,13 +2871,13 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	initializaCarLayout(p);
 	FEXIT();
 	return true;
-} // end-of-function CreateGameData
+} // end-of-function initializeGameData
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   InitGame
+ @mname   initializeGraphics
  @details
  returns 1 if init ok, 0 otherwise
  This function does the following:
@@ -2970,7 +3006,7 @@ bool initializeGraphics(GameData *p) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 25, 2019
- @mname   GameRun
+ @mname   runGame
  @details
  This is the function called from the main function
  1. Displays the initial screen
@@ -2987,4 +3023,4 @@ void runGame(GameData *p) {
 
 	exitGame(p);
 	FEXIT();
-} // end-of-function GameRun
+} // end-of-function runGame
