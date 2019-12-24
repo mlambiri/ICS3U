@@ -1507,11 +1507,14 @@ bool drawTextAndWaitBegin(GameData *gptr) {
 
 	flipAllDisplays(gptr);
 
-	gptr->path.rec = false;
 	gptr->path.used = 0;
+
 	if (pressAnyKeyToBeginGame(gptr) == false) {
 		FEXIT();
 		return false;
+	}
+	if(gptr->path.rec == true && gptr->path.separateDisplay) {
+		createTrajectoryDisplay(gptr);
 	}
 	FEXIT();
 	return true;
@@ -1580,6 +1583,13 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 		gptr->backgroundColor = gptr->initcolor;
 		initializaCarLayout(gptr);
 		setCarInfo(gptr);
+		gptr->player[bus_c].carsSmashed = 0;
+		gptr->player[lrt_c].carsSmashed = 0;
+		//gptr->path.rec = false;
+		gptr->path.used = 0;
+		gptr->stats.totalBounce = 0;
+		gptr->stats.firstEmpty = 0;
+		gptr->stats.bounce[gptr->stats.firstEmpty] = 0;
 
 	} else {
 		sprintf(textBuffer, "Score: %s %d %s %d",
@@ -1594,12 +1604,6 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 	}
 
 	flipAllDisplays(gptr);
-
-	gptr->path.rec = false;
-	gptr->path.used = 0;
-	gptr->stats.totalBounce = 0;
-	gptr->stats.firstEmpty = 0;
-	gptr->stats.bounce[gptr->stats.firstEmpty] = 0;
 
 	if (pressAnyKeyToBeginGame(gptr) == false) {
 		FEXIT();
@@ -2668,9 +2672,14 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			if (++param < argc)
 				p->display.height = atoi(argv[param]);
 		}else if (strcmp(argv[param], "calgo") == 0) {
-			//display height
+			//algorithm selector
+			int v = 0;
 			if (++param < argc)
-				p->cAlgoSelector = (bool) atoi(argv[param]);
+				v = atoi(argv[param]);
+			if(v <= 1)
+				p->cAlgoSelector = false;
+			else
+				p->cAlgoSelector = true;
 		}else if (strcmp(argv[param], "year") == 0) {
 			//the year of play
 			// pre 2000 there are no electric cars
@@ -2822,6 +2831,12 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			if (++param < argc)
 				if(argv[param][0] == 'y' ) {
 					p->path.separateDisplay = true;
+				}
+		}else if (strcmp(argv[param], "record") == 0) {
+			//ball bitmap file name
+			if (++param < argc)
+				if(argv[param][0] == 'y' ) {
+					p->path.rec = true;
 				}
 		}else if (strcmp(argv[param], "colourscheme") == 0) {
 			//player 2 bitmap file name

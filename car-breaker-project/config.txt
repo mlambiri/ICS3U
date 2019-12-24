@@ -49,8 +49,8 @@ outfile = testout.txt
 penalty = 5
 
 #collision algorithm number to use 
-# 0 or 1 
-calgo = 0
+# 1 or 2 
+calgo = 1
 
 
 # possible values yellow, blue, white, green, q
@@ -78,3 +78,5 @@ fps = 60
 #by default it is done in the main window
 # y or n
 trajectorywindow = y
+#record trajectory y or n
+record = y
