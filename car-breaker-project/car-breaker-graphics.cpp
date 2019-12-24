@@ -1555,7 +1555,7 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 		}
 		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
 				gptr->carArea.position.y - 3*gptr->fontsize, largeFont_c);
-		sprintf(textBuffer, "Score: %s %d %s %d", gptr->player[1].name, gptr->player[1].carsSmashed,
+		sprintf(textBuffer, "Score: %s %d %s %d", gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
 				gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
 		next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2, next,
 				regularFont_c);
@@ -1564,24 +1564,19 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 				gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
 
 		playSound(gptr->winsample);
+		const char* mode;
 		if(gptr->gameMode == fullbot_c) {
-			sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
-					"Full Auto", gptr->player[1].name,
-					gptr->player[bus_c].name);
+					mode = "Full Auto";
 		}
 		else if (gptr->gameMode == arcade_c) {
-			sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
-					"Arcade", gptr->player[lrt_c].name,
-					gptr->player[bus_c].name);
+				mode = "Arcade";
 		} else {
-			sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
-					"Human", gptr->player[lrt_c].name,
-					gptr->player[bus_c].name);
+				mode = "Human";
 		}
-		sprintf(textBuffer, "[Mode: %s] [Score: %s %s]",
-				(gptr->gameMode ? "Arcade" : "Human"), gptr->player[lrt_c].name,
-				gptr->player[bus_c].name);
-		recordResult(textBuffer);
+		sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]", mode, gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
+				gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
+
+		recordResult(textBuffer, &(gptr->stats));
 		gptr->backgroundColor = gptr->initcolor;
 		initializaCarLayout(gptr);
 		setCarInfo(gptr);

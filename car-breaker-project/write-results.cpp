@@ -9,6 +9,7 @@
 #include <time.h>
 
 #include "game-debug.h"
+#include "car-breaker-graphics.h"
 
 
 static const char resultsFileName[] = "car-breaker-results.txt";
@@ -26,7 +27,7 @@ static const char resultsFileName[] = "car-breaker-results.txt";
   --------------------------------------------------------------------------
  */
 bool
-recordResult(char* p) {
+recordResult(char* p, BounceStatistics* stats) {
 
 	FENTRY();
 	TRACE();
@@ -47,6 +48,9 @@ recordResult(char* p) {
 	strftime (buffer,80,"%F %T ",timeinfo);
 
 	fprintf(fptr,"%s %s \n", buffer, p);
+	for (int i = 0; i < stats->firstEmpty; i++ ) {
+		fprintf(fptr,"%d %d \n", i, stats->bounce[i]);
+	} //end-of-for
 	fclose(fptr);
 	FEXIT();
 	return true;

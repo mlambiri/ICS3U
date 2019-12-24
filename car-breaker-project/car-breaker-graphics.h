@@ -313,7 +313,7 @@ void  setInitialObjectPositions(GameData *gptr);
 void  startTimers(GameData *gptr);
 void  stopTimers(GameData *gptr);
 void  setCarInfo(GameData* p);
-bool recordResult(char *p);
+bool recordResult(char *p, BounceStatistics* stats);
 
 //=====================
 bool initializeGraphics(GameData *p);
