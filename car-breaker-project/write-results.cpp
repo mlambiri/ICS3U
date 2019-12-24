@@ -24,6 +24,8 @@ static const char resultsFileName[] = "car-breaker-results.txt";
 	  a text file.
 	  This function opens resultsFileName[] and appends p.
 	  Then the textfile is closed. \n
+	  @mlambiri [Dec 24] i am writing the bounce
+	  statistics to the results file
   --------------------------------------------------------------------------
  */
 bool
