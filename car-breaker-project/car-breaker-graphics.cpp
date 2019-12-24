@@ -233,28 +233,26 @@ bool readFile(GameData* g, char* fileName) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 25, 2019
- @mname   writeFile
+ @mname   writeCarLayoutToFile
  @details
-   writes the brick layout to a file\n
+   writes the car layout to a file\n
  --------------------------------------------------------------------------
  */
-bool writeFile(GameData* g) {
+bool writeCarLayoutToFile(GameData* g) {
 
 	FENTRY();
 	TRACE();
 	char text[MAXBUFFER];
 
 	FILE* fptr = NULL;
-	if (g->outLayout[0] == 0) {
+
+	char filename[MAXBUFFER];
+	sprintf(filename, "layout%d.txt", rand()%10000);
+	fptr = fopen( filename, "w");
+	if (fptr == NULL) {
 		FEXIT();
 		return false;
-	} else {
-		fptr = fopen( g->outLayout, "w");
-		if (fptr == NULL) {
-			FEXIT();
-			return false;
-		} //end-of-if(fptr == NULL)
-	}
+	} //end-of-if(fptr == NULL)
 
 	for (int i = 0; i < g->maxRows; i++ ) {
 		for (int j = 0; j < g->maxColumns; j++ ) {
@@ -272,7 +270,7 @@ bool writeFile(GameData* g) {
 	fclose(fptr);
 	FEXIT();
 	return true;
-}
+} //end-of-writeCarLayoutToFile
 
 
 /**
@@ -1336,7 +1334,7 @@ bool isKeyPressEvent(GameData *gptr) {
 			}
 			break;
 		case ALLEGRO_KEY_W:
-			writeFile(gptr);
+			writeCarLayoutToFile(gptr);
 			break;
 		case ALLEGRO_KEY_ESCAPE:
 			//exit game
@@ -1514,6 +1512,7 @@ bool drawTextAndWaitBegin(GameData *gptr) {
 		FEXIT();
 		return false;
 	}
+	writeCarLayoutToFile(gptr);
 	if(gptr->path.rec == true && gptr->path.separateDisplay) {
 		createTrajectoryDisplay(gptr);
 	}
@@ -1570,12 +1569,12 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 		playSound(gptr->winsample);
 		const char* mode;
 		if(gptr->gameMode == fullbot_c) {
-					mode = "Full Auto";
+			mode = "Full Auto";
 		}
 		else if (gptr->gameMode == arcade_c) {
-				mode = "Arcade";
+			mode = "Arcade";
 		} else {
-				mode = "Human";
+			mode = "Human";
 		}
 		sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]", mode, gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
 				gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
@@ -1584,6 +1583,7 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 		gptr->backgroundColor = gptr->initcolor;
 		initializaCarLayout(gptr);
 		setCarInfo(gptr);
+		writeCarLayoutToFile(gptr);
 		gptr->player[bus_c].carsSmashed = 0;
 		gptr->player[lrt_c].carsSmashed = 0;
 		//gptr->path.rec = false;
@@ -1591,6 +1591,7 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 		gptr->stats.totalBounce = 0;
 		gptr->stats.firstEmpty = 0;
 		gptr->stats.bounce[gptr->stats.firstEmpty] = 0;
+		recordPoint(&(gptr->path), &(gptr->ball.position));
 
 	} else {
 		sprintf(textBuffer, "Score: %s %d %s %d",
