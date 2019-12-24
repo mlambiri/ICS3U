@@ -1136,6 +1136,8 @@ void  setInitialObjectPositions(GameData *gptr) {
 		gptr->startsample = gptr->player[bus_c].sample;
 	}
 
+	recordPoint(&(gptr->path), &(gptr->ball.position));
+
 	int ypos = (gptr->display.height - gptr->bricks[0][0].height*gptr->maxRows)/2;
 	//printf("Max Rows = %d, Max Columns = %d", gptr->maxRows, gptr->maxColumns);
 	for (int i = 0; i < gptr->maxRows; i++) {
@@ -1507,7 +1509,6 @@ bool drawTextAndWaitBegin(GameData *gptr) {
 
 	flipAllDisplays(gptr);
 
-	gptr->path.used = 0;
 
 	if (pressAnyKeyToBeginGame(gptr) == false) {
 		FEXIT();
