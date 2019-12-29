@@ -776,13 +776,13 @@ bool whenCollisionOccurs(GameData* gptr, int i, int j) {
 
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
-		gptr->stats.bounce[gptr->stats.firstEmpty]++;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
 
 		if(gptr->bricks[i][j].indestructible == false) {
 			gptr->bricks[i][j].onScreen = false;
 			gptr->remainingCars--;
 			gptr->stats.firstEmpty++;
-			gptr->stats.bounce[gptr->stats.firstEmpty] = 0;
+			gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty] = 0;
 			if(gptr->turn)
 				gptr->turn->carsSmashed+= gptr->scorePointsPerSmash;
 			setPointsPerSmash(gptr);
@@ -1543,7 +1543,7 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
 		gptr->path.used = 0;
 		gptr->stats.totalBounce = 0;
 		gptr->stats.firstEmpty = 0;
-		gptr->stats.bounce[gptr->stats.firstEmpty] = 0;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty] = 0;
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 
 	} else {
@@ -1603,7 +1603,7 @@ bool displayScore(GameData *gptr) {
 	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
 			next, smallFont_c);
 	sprintf(textBuffer, "%d Bounces since Last Smash",
-			gptr->stats.bounce[gptr->stats.firstEmpty]);
+			gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]);
 	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
 			next, smallFont_c);
 	sprintf(textBuffer, "%d Total Bounces",
@@ -1748,7 +1748,7 @@ bool checkCollisionLeftRight(GameData *gptr) {
 			gptr->ball.speed.x *= -1;
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
-		gptr->stats.bounce[gptr->stats.firstEmpty]++;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 	} else if (gptr->ball.position.x < 0) {
@@ -1757,7 +1757,7 @@ bool checkCollisionLeftRight(GameData *gptr) {
 			gptr->ball.speed.x *= -1;
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
-		gptr->stats.bounce[gptr->stats.firstEmpty]++;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 	}
@@ -1785,7 +1785,7 @@ bool checkCollisionTopAndBottom(GameData *gptr) {
 		gptr->roundWinner = &(gptr->player[lrt_c]);
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
-		gptr->stats.bounce[gptr->stats.firstEmpty]++;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 
@@ -1795,7 +1795,7 @@ bool checkCollisionTopAndBottom(GameData *gptr) {
 		gptr->roundWinner = &(gptr->player[bus_c]);
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
-		gptr->stats.bounce[gptr->stats.firstEmpty]++;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 	}
@@ -1992,7 +1992,7 @@ bool checkBallCollisionWithPlayers(GameData *gptr) {
 		gptr->turn = &gptr->player[bus_c];
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
-		gptr->stats.bounce[gptr->stats.firstEmpty]++;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 	}
@@ -2003,7 +2003,7 @@ bool checkBallCollisionWithPlayers(GameData *gptr) {
 		gptr->turn = &gptr->player[lrt_c];
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
-		gptr->stats.bounce[gptr->stats.firstEmpty]++;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
 		FEXIT();
 		return true;
 	}
@@ -2607,7 +2607,7 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	p->helpOn = false;
 	p->stats.totalBounce = 0;
 	p->stats.firstEmpty = 0;
-	p->stats.bounce[p->stats.firstEmpty] = 0;
+	p->stats.bounceUntilSmash[p->stats.firstEmpty] = 0;
 
 	p->gamePaused = false;
 

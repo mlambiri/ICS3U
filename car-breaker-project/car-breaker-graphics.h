@@ -169,7 +169,7 @@ typedef struct DataRecorder {
 } DataRecorder;
 
 typedef struct BounceStatistics {
-	uint bounce[MAXBRICKCOLUMNS*MAXBRICKROWS];
+	uint bounceUntilSmash[MAXBRICKCOLUMNS*MAXBRICKROWS];
 	uint totalBounce;
 	uint firstEmpty;
 } BounceStatistics;

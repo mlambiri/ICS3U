@@ -2,18 +2,18 @@
 # no '"' characters are allowed
 
 #screenwidth sets the width of the screen, it is in pixels
-screenwidth = 900
+screenwidth = 1000
 
-screenheight = 700
+#screenheight sets the height of the screen, it is in pixels
+screenheight = 1000
 fontsize = 34
 
 # number of rounds to play before a winner is declared
-# a round ends when the ball exits through the top/bottom lines
+# a round ends when the ball touches the top or bottom of the screen
 maxrounds = 5
 
 #maximum number of pixels the ball advances in one direction 
 #per frame [2, 7]
-
 maxballspeed =  7
 
 # gamemode is one of: human, arcade, auto

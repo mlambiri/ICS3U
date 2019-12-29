@@ -51,8 +51,9 @@ recordResult(char* p, BounceStatistics* stats) {
 
 	fprintf(fptr,"%s %s \n", buffer, p);
 	for (int i = 0; i < stats->firstEmpty; i++ ) {
-		fprintf(fptr,"%d %d \n", i, stats->bounce[i]);
+		fprintf(fptr,"%d %d \n", i, stats->bounceUntilSmash[i]);
 	} //end-of-for
+	fprintf(fptr,"\n");
 	fclose(fptr);
 	FEXIT();
 	return true;
