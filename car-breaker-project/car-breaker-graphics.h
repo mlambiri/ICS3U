@@ -270,6 +270,7 @@ typedef struct GameData {
 	BotControlArray *botControlPtr[2];
 	bool helpOn;
 	BounceStatistics stats;
+	bool gamePaused;
 
 } GameData;
 
@@ -292,7 +293,6 @@ bool loadBitmap(GameBasicBlock *g, char* fname);
 bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
 bool loadFont(GameData *gptr, int size);
 bool loadPlayerImage(GamePlayer *p, char* fname);
-bool pauseGame(GameData *gptr);
 bool pressAnyKeyToBeginGame(GameData *gptr);
 bool printRoundWinner(GameData *gptr);
 bool isKeyPressEvent(GameData *gptr);

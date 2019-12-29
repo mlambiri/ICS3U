@@ -42,8 +42,7 @@ lrtsound = cardoor.wav
 
 #input file name for car setup
 pattern = testout.txt
-#output file name for saving car setup
-outfile = testout.txt
+
 
 # points penalty for losing the ball
 penalty = 5

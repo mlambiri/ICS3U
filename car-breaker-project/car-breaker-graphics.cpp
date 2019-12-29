@@ -33,6 +33,7 @@ static const char defaultFont[] = "pirulen.ttf";
 //========VARIABLE DECLARATIONS=====
 //declaring the main data variable of the game
 //usually passed to functions using a pointer
+
 GameData carBreaker = {
 		{INITPLAYER, INITPLAYER},
 		INITGBB,
@@ -1158,60 +1159,6 @@ void  setInitialObjectPositions(GameData *gptr) {
 
 } // end-of-function setInitialObjectPositions
 
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Jun 3, 2019
- @mname   pauseGame
- @details
- Wait for P or ESC to be pressed again\n
- --------------------------------------------------------------------------
- */
-bool pauseGame(GameData *gptr) {
-
-	//To pause the game we need to stop the timers
-	FENTRY();
-	TRACE();
-	stopTimers(gptr);
-	while (true) {
-		TRACE();
-		//wait for an event
-		al_wait_for_event(gptr->eventqueue, &(gptr->ev));
-		//check if the event is a key press
-		//can be something else as the event queue
-		//has other sources
-		if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-			switch (gptr->ev.keyboard.keycode) {
-			case ALLEGRO_KEY_ESCAPE:
-				//exit game
-				FEXIT();
-				return false;
-			case ALLEGRO_KEY_P:
-				//P was pressed again
-				//we want no events in the queue
-				//and we want to start the timers
-				al_flush_event_queue(gptr->eventqueue);
-				startTimers(gptr);
-				FEXIT();
-				return true;
-			}
-		}
-		//close the display with the mouse
-		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-			if(gptr->ev.any.source == al_get_display_event_source(gptr->trajectoryDisplay.display)) {
-				DEBUG("one");
-				al_destroy_display(gptr->trajectoryDisplay.display);
-				gptr->trajectoryDisplay.display = NULL;
-			} else {
-				DEBUG("one");
-				FEXIT();
-				return false;
-			}
-		}
-	}FEXIT();
-	return true;
-
-} // end-of-function pauseGame
 
 /**
  ---------------------------------------------------------------------------
@@ -1228,6 +1175,7 @@ bool isKeyPressEvent(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+
 	if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
 		switch (gptr->ev.keyboard.keycode) {
 		case ALLEGRO_KEY_LEFT:
@@ -1259,9 +1207,14 @@ bool isKeyPressEvent(GameData *gptr) {
 			gptr->player[lrt_c].keyPress[0] = false;
 			break;
 		case ALLEGRO_KEY_P:
-			if (pauseGame(gptr) == false) {
-				FEXIT();
-				return false;
+			if(gptr->gamePaused == false ) {
+				gptr->gamePaused = true;
+				stopTimers(gptr);
+			}
+			else {
+				gptr->gamePaused = false;
+				al_flush_event_queue(gptr->eventqueue);
+				startTimers(gptr);
 			}
 			break;
 		case ALLEGRO_KEY_H:
@@ -1657,6 +1610,11 @@ bool displayScore(GameData *gptr) {
 			gptr->stats.totalBounce);
 	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
 			next, smallFont_c);
+	if(gptr->gamePaused == true) {
+		sprintf(textBuffer, "** Game is Paused! Press P to resume **");
+		next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
+				next, smallFont_c);
+	}
 }
 
 /**
@@ -2650,6 +2608,8 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	p->stats.totalBounce = 0;
 	p->stats.firstEmpty = 0;
 	p->stats.bounce[p->stats.firstEmpty] = 0;
+
+	p->gamePaused = false;
 
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself
