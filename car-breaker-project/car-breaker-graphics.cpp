@@ -2097,6 +2097,7 @@ bool updateBallPosition(GameData *gptr) {
 		return true;
 	}
 
+	bool ballUpdated = false;
 
 	// there are 2 algorithms coded
 	// i could not get rid of the tunnelling effect with either of them
@@ -2117,17 +2118,12 @@ bool updateBallPosition(GameData *gptr) {
 		if(isBallInRegion(&tmpBall, &(gptr->carArea)) == true) {
 			// check collision with cars only if ball will be in the car area
 			// update the actual ball position and speed
-			if(abs(gptr->ball.speed.x) > gptr->maxspeed.x) {
-				gptr->ball.speed.x = signOfNumber(gptr->ball.speed.x)*gptr->maxspeed.x;
-			}
+			ballSpeedLimiter(gptr);
 			gptr->ball.prevposition.x = gptr->ball.position.x;
-			gptr->ball.position.x += gptr->ball.speed.x;
-
-			if(abs(gptr->ball.speed.y) > gptr->maxspeed.y) {
-				gptr->ball.speed.y += signOfNumber(gptr->ball.speed.y)*gptr->maxspeed.y;
-			}
 			gptr->ball.prevposition.y = gptr->ball.position.y;
+			gptr->ball.position.x += gptr->ball.speed.x;
 			gptr->ball.position.y += gptr->ball.speed.y;
+			ballUpdated = true;
 
 
 			// this collision detection checks all rows and columns
@@ -2170,16 +2166,17 @@ bool updateBallPosition(GameData *gptr) {
 		}
 	}
 	else { // 'calgo = 2'
-		uint maxxspeedy = max(abs(gptr->ball.speed.x), abs(gptr->ball.speed.y));
-		float xplus = (float) gptr->ball.speed.x / maxxspeedy;
-		float yplus = (float)  gptr->ball.speed.y / maxxspeedy;
+		ballSpeedLimiter(gptr);
+		uint maxOfxy = max(abs(gptr->ball.speed.x), abs(gptr->ball.speed.y));
+		float xplus = (float) gptr->ball.speed.x / maxOfxy;
+		float yplus = (float)  gptr->ball.speed.y / maxOfxy;
 		bool collision = false;
 
 		// use a temporary ball to do the checks
 		GameBasicBlock tmpBall = gptr->ball;
 
 		//printf("%d\n", maxxspeed.y);
-		for (int i = 0; i < maxxspeedy; i++ ) {
+		for (int i = 0; i < maxOfxy; i++ ) {
 
 			float txf = tmpBall.position.x + i*xplus;
 			float tyf = tmpBall.position.y + i*yplus;
@@ -2213,12 +2210,10 @@ bool updateBallPosition(GameData *gptr) {
 			int minColumn = (column-d_c)<0?0:column-d_c;
 			int maxColumn = (column+d_c) >gptr->maxColumns?gptr->maxColumns:column+d_c;
 			bool possible = false;
-			//printf("%d %d %d %d\n", minRow, maxRow, minColumn, maxColumn);
+
 			for (int i = minRow; i < maxRow; i++) {
 				for (int j = minColumn; j < maxColumn; j++) {
 					if(isBallBrickCollisionPossible(gptr, &tmpBall, i, j)) {
-						//printf("**  xn = %d, yn = %d \n", tmpBall.position.x , tmpBall.position.y);
-						//printf("**  coll  row = %d, col = %d\n", i ,j);
 						possible = true;
 						row = i;
 						column = j;
@@ -2233,20 +2228,14 @@ bool updateBallPosition(GameData *gptr) {
 				gptr->ball.prevposition.y = gptr->ball.position.y;
 				gptr->ball.position.x = tmpBall.position.x;
 				gptr->ball.position.y = tmpBall.position.y;
+				ballUpdated = true;
 
 				if(whenCollisionOccurs(gptr, row, column)) {
 					collision = true;
-					//printf("**  xn = %d, yn = %d \n", gptr->ball.position.x , gptr->ball.position.y);
-					//printf("**  coll  row = %d, col = %d\n", row ,column);
-					if(abs(gptr->ball.speed.x) > gptr->maxspeed.x) {
-						gptr->ball.speed.x = signOfNumber(gptr->ball.speed.x)*gptr->maxspeed.x;
-					}
-					if(abs(gptr->ball.speed.y) >= gptr->maxspeed.y) {
-						gptr->ball.speed.y += signOfNumber(gptr->ball.speed.y)*gptr->maxspeed.y;
-					}
-					//gptr->ball.position.x = gptr->ball.prevposition.x +  gptr->ball.speed.x;
-					//gptr->ball.position.y = gptr->ball.prevposition.y + gptr->ball.speed.y;
 					break;
+				}
+				else {
+					ballSpeedLimiter(gptr);
 				}
 			}
 		} //end-of-for
@@ -2257,12 +2246,14 @@ bool updateBallPosition(GameData *gptr) {
 		}
 	} // end-of-collision algorithms
 
-	ballSpeedLimiter(gptr);
-	// update the ball position
-	gptr->ball.prevposition.x = gptr->ball.position.x;
-	gptr->ball.prevposition.y = gptr->ball.position.y;
-	gptr->ball.position.x +=  gptr->ball.speed.x;
-	gptr->ball.position.y += gptr->ball.speed.y;
+	if(ballUpdated == false) {
+		ballSpeedLimiter(gptr);
+		// update the ball position
+		gptr->ball.prevposition.x = gptr->ball.position.x;
+		gptr->ball.prevposition.y = gptr->ball.position.y;
+		gptr->ball.position.x +=  gptr->ball.speed.x;
+		gptr->ball.position.y += gptr->ball.speed.y;
+	}
 
 	if (checkBallCollisionWithPlayers(gptr) == false) {
 		if (checkCollisionTopAndBottom(gptr) == true) {
