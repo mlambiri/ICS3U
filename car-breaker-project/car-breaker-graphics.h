@@ -311,7 +311,7 @@ bool initializeGraphics(GameData *p);
 void initializeCarLayout(GameData*gptr);
 
 
-// === Collisions ======
+//===== Ball Movement and Collisions ('Physics') ===========
 bool checkCollisionLeftRight(GameData *gptr);
 bool checkCollisionTopAndBottom(GameData *gptr);
 bool checkBallCollisionWithPlayers(GameData *gptr);
