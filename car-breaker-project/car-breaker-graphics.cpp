@@ -44,7 +44,7 @@ GameData carBreaker = {
 
 //It is an array that stores several sets of conditions and values
 //The values make the Bot more responsive as the index in the array increases
-BotControlArray lrtBotArray[pro_c + 1] = {
+BotControlInfo lrtBotArray[pro_c + 1] = {
 		{ { 2, 2, 3, 4, 8 }, { 0.25, 0.25, 0.25, 0.25,0.25 }, (int) PLAYERSPEED },
 		{ { 2, 2, 3, 4, 8 }, { 0.5, 0.5, 0.5, 0.5, 0.5 }, (int) PLAYERSPEED },
 		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED },
@@ -52,7 +52,7 @@ BotControlArray lrtBotArray[pro_c + 1] = {
 
 //It is an array that stores several sets of conditions and values
 //The values make the Bot more responsive as the index in the array increases
-BotControlArray busBotArray[pro_c + 1] = {
+BotControlInfo busBotArray[pro_c + 1] = {
 		{ { 2, 2, 3, 4, 8 }, { 0.25, 0.25, 0.25, 0.25,0.25 }, (int) PLAYERSPEED },
 		{ { 2, 2, 3, 4, 8 }, { 0.5, 0.5, 0.5, 0.5, 0.5 }, (int) PLAYERSPEED },
 		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED },
@@ -357,8 +357,8 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 	lrtBotArray[2].paddlespeed = (3 * p->player[lrt_c].paddleSpeed) / 2;
 	lrtBotArray[3].paddlespeed = p->player[lrt_c].paddleSpeed * 2;
 
-	p->botControlPtr[bus_c] = &(busBotArray[p->botLevel[bus_c]]);
-	p->botControlPtr[lrt_c] = &(lrtBotArray[p->botLevel[lrt_c]]);
+	p->botControl[bus_c] = &(busBotArray[p->botLevel[bus_c]]);
+	p->botControl[lrt_c] = &(lrtBotArray[p->botLevel[lrt_c]]);
 
 	initializeCarLayout(p);
 	FEXIT();
@@ -2744,12 +2744,12 @@ void  movePlayers(GameData *gptr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 14, 2019
- @mname   lrtBotControl
+ @mname   botControl
  @details
- This function controls the LRT bot.\n
+ This function controls the the bus and lrt bots.\n
  --------------------------------------------------------------------------
  */
-void  lrtBotControl(GameData *gptr) {
+void  botControl(GameData *gptr, uint botNumber) {
 
 	FENTRY();
 	TRACE();
@@ -2758,27 +2758,49 @@ void  lrtBotControl(GameData *gptr) {
 	// if Y speed > 0 it means the ball is moving downward
 	//If the Y speed < 0 it means the ball is moving upwards
 	//bot 1 is at the top
-	uint botNumber = lrt_c;
+	//bot 0 is at the bottom
 
-	if (gptr->ball.speed.y > 0) {
+	if ((botNumber == lrt_c) && gptr->ball.speed.y > 0) {
+		FEXIT();
+		return;
+	}
+
+	if ((botNumber == bus_c) && gptr->ball.speed.y < 0) {
 		FEXIT();
 		return;
 	}
 
 	float mult = 1;
-	if (gptr->ball.position.y > gptr->display.height / gptr->botControlPtr[lrt_c]->cond[0])
-		mult = gptr->botControlPtr[lrt_c]->val[0];
-	if (gptr->ball.position.y <= gptr->display.height / gptr->botControlPtr[lrt_c]->cond[1])
-		mult = gptr->botControlPtr[lrt_c]->val[1];
-	if (gptr->ball.position.y <= gptr->display.height / gptr->botControlPtr[lrt_c]->cond[2])
-		mult = gptr->botControlPtr[lrt_c]->val[2];
-	if (gptr->ball.position.y <= gptr->display.height / gptr->botControlPtr[lrt_c]->cond[3])
-		mult = gptr->botControlPtr[lrt_c]->val[3];
-	if (gptr->ball.position.y <= gptr->display.height / gptr->botControlPtr[lrt_c]->cond[4])
-		mult = gptr->botControlPtr[lrt_c]->val[4];
+	if(botNumber == lrt_c) {
+		if (gptr->ball.position.y > gptr->display.height / gptr->botControl[botNumber]->cond[0])
+			mult = gptr->botControl[botNumber]->val[0];
+		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->cond[1])
+			mult = gptr->botControl[botNumber]->val[1];
+		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->cond[2])
+			mult = gptr->botControl[botNumber]->val[2];
+		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->cond[3])
+			mult = gptr->botControl[botNumber]->val[3];
+		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->cond[4])
+			mult = gptr->botControl[botNumber]->val[4];
 
-	if(gptr->ball.position.y > gptr->display.height/2)
-		mult = 0;
+		if(gptr->ball.position.y > gptr->display.height/2)
+			mult = 0;
+	}
+	else {
+		if ((gptr->display.height - gptr->ball.position.y) > gptr->display.height / gptr->botControl[botNumber]->cond[0])
+			mult = gptr->botControl[botNumber]->val[0];
+		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->cond[1])
+			mult = gptr->botControl[botNumber]->val[1];
+		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->cond[2])
+			mult = gptr->botControl[botNumber]->val[2];
+		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->cond[3])
+			mult = gptr->botControl[botNumber]->val[3];
+		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->cond[4])
+			mult = gptr->botControl[botNumber]->val[4];
+
+		if(gptr->ball.position.y< gptr->display.height/2)
+			mult = 0;
+	}
 
 
 	float f = gptr->player[botNumber].paddleSpeed * mult;
@@ -2814,85 +2836,6 @@ void  lrtBotControl(GameData *gptr) {
 		gptr->player[botNumber].ge.position.x = (gptr->display.width - gptr->player[botNumber].ge.width);
 		gptr->player[botNumber].ge.speed.x = 0;
 	}
-	FEXIT();
-} // end-of-function botControl
-
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 19, 2019
- @mname   busBotControl
- @details
-  This function controls the bus Bot\n
- --------------------------------------------------------------------------
- */
-void  busBotControl(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	//update only when ball moves towards the player
-	//We decide to move up based on the ball Y speed
-	// if Y speed > 0 it means the ball is moving downward
-	//If the Y speed < 0 it means the ball is moving upwards
-	uint botNumber = bus_c;
-
-	//bot 0 is at the bottom
-	if (gptr->ball.speed.y < 0) {
-		FEXIT();
-		return;
-	}
-
-	float mult = 1;
-	if ((gptr->display.height - gptr->ball.position.y) > gptr->display.height / gptr->botControlPtr[bus_c]->cond[0])
-		mult = gptr->botControlPtr[bus_c]->val[0];
-	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControlPtr[bus_c]->cond[1])
-		mult = gptr->botControlPtr[bus_c]->val[1];
-	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControlPtr[bus_c]->cond[2])
-		mult = gptr->botControlPtr[bus_c]->val[2];
-	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControlPtr[bus_c]->cond[3])
-		mult = gptr->botControlPtr[bus_c]->val[3];
-	if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControlPtr[bus_c]->cond[4])
-		mult = gptr->botControlPtr[bus_c]->val[4];
-
-	if(gptr->ball.position.y< gptr->display.height/2)
-		mult = 0;
-
-
-	float f = gptr->player[botNumber].paddleSpeed * mult;
-	if (gptr->ball.speed.x > 0) {
-		if (gptr->ball.position.x > (gptr->player[botNumber].ge.position.x + gptr->player[botNumber].ge.width)) {
-			//gptr->ball.prevposition.x = gptr->ball.position.x;
-			gptr->player[botNumber].ge.position.x += (int) f;
-			gptr->player[botNumber].ge.speed.x = (int) f;
-		} else if (gptr->ball.position.x < gptr->player[botNumber].ge.position.x) {
-			//gptr->ball.prevposition.x = gptr->ball.position.x;
-			gptr->player[botNumber].ge.position.x -= (int) f;
-			gptr->player[botNumber].ge.speed.x = (int) (-1)*f;
-		}
-	} else {
-		if (gptr->ball.position.x < gptr->player[botNumber].ge.position.x) {
-			//gptr->ball.prevposition.x = gptr->ball.position.x;
-			gptr->player[botNumber].ge.position.x -= (int) f;
-			gptr->player[botNumber].ge.speed.x = (int) (-1)*f;
-		} else if (gptr->ball.position.x  > (gptr->player[botNumber].ge.position.x + gptr->player[botNumber].ge.width)) {
-			//gptr->ball.prevposition.x = gptr->ball.position.x;
-			gptr->player[botNumber].ge.position.x += (int) f;
-			gptr->player[botNumber].ge.speed.x = (int) f;
-		}
-	}
-
-	//end of display to the left
-	if (gptr->player[botNumber].ge.position.x < 0) {
-		gptr->player[botNumber].ge.position.x = 0;
-		gptr->player[botNumber].ge.speed.x = 0;
-	}
-	//end of display to the right
-	if (gptr->player[botNumber].ge.position.x >= (gptr->display.width - gptr->player[botNumber].ge.width)) {
-		gptr->player[botNumber].ge.position.x = (gptr->display.width - gptr->player[botNumber].ge.width);
-		gptr->player[botNumber].ge.speed.x = 0;
-	}
-
 	FEXIT();
 } // end-of-function botControl
 
@@ -2971,9 +2914,9 @@ bool gameMainLoop(GameData *gptr) {
 					&& gptr->ev.timer.source == gptr->botTimer) {
 				//if we are in arcade mode and the timer event belongs to the Bot timer then
 				// we have to run the bot control logic
-				lrtBotControl(gptr);
+				botControl(gptr, lrt_c);
 				if(gptr->gameMode == fullbot_c)
-					busBotControl(gptr);
+					botControl(gptr, bus_c);
 			} else {
 				//check if escape key has been pressed
 				if (isKeyPressEvent(gptr) == false) {

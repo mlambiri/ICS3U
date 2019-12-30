@@ -190,14 +190,14 @@ typedef struct BounceStatistics {
  *  Therefore placing all zeroes in Bot will render him immobile at the center
  *
  */
-typedef struct BotControlArray {
+typedef struct BotControlInfo {
 	//first array represents where in the field Bot will start to move
 	int cond[botArrays_c];
 	//This array is a multiplier to determine how much Bot should move
 	//setting an entry to zero will prevent Bot from moving
 	float val[botArrays_c];
 	int paddlespeed;
-} BotControlArray;
+} BotControlInfo;
 
 /**
   ---------------------------------------------------------------------------
@@ -267,7 +267,7 @@ typedef struct GameData {
 	GameDisplay trajectoryDisplay;
 	DataRecorder path;
 	int botLevel[2];
-	BotControlArray *botControlPtr[2];
+	BotControlInfo *botControl[2];
 	bool helpOn;
 	BounceStatistics stats;
 	bool gamePaused;
@@ -333,8 +333,7 @@ void runGame(GameData *p);
 bool gameMainLoop(GameData *gptr);
 bool isKeyPressEvent(GameData *gptr);
 bool pressAnyKeyToBeginGame(GameData *gptr);
-void lrtBotControl(GameData *gptr, uint botNumber);
-void busBotControl(GameData *gptr, uint botNumber);
+void botControl(GameData *gptr, uint botNumber);
 void exitGame(GameData *gptr);
 void movePlayers(GameData *gptr);
 void playSound(ALLEGRO_SAMPLE *s);
