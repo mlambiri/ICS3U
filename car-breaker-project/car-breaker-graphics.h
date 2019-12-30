@@ -174,29 +174,30 @@ typedef struct BounceStatistics {
 	uint firstEmpty;
 } BounceStatistics;
 
-#define botArrays_c  5
+#define screenHeightZones_c  4
 
 /*
  * @author   mlambiri
  * @date     Dec 1, 2019
- *  Bot needs two arrays of values to decide when and how fast to move
- *  This structure stores them in one group both arrays.
- *  Bot adapts his own skill to match the level of skill of the human player
- *  This is done by keeping several sets of variables for Bot's AI.
- *  cond is a divisor of the field length
- *  Because Bot plays the side x = 0 The greater the divisor the closer the ball is to him
- *  val is a multiplier that will make Bot move faster or slower between two frames
- *  If the value of n == 0 Bot will not move
- *  Therefore placing all zeroes in Bot will render him immobile at the center
+ *  The display is split in zones obtained by dividing display.height
+ *  by one of the heightDivisor values
+ *  A larger divisor denotes a zone closes to the player
+ *
+ *  The speed multiplier will enhance or decrease the
+ *  mobility of the player
+ *
+ *  Setting the multiplier to zero for a zone will make
+ *  the player immobile when the ball is in that zone
+ *
  *
  */
 typedef struct BotControlInfo {
 	//first array represents where in the field Bot will start to move
-	int cond[botArrays_c];
+	int heightDivisor[screenHeightZones_c];
 	//This array is a multiplier to determine how much Bot should move
-	//setting an entry to zero will prevent Bot from moving
-	float val[botArrays_c];
-	int paddlespeed;
+	//setting an entry to zero will prevent Bot from moving when
+	//the ball is in the corresponding region
+	float speedMultiplier[screenHeightZones_c];
 } BotControlInfo;
 
 /**

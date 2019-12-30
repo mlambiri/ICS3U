@@ -42,21 +42,25 @@ GameData carBreaker = {
 
 };
 
-//It is an array that stores several sets of conditions and values
-//The values make the Bot more responsive as the index in the array increases
+//It is an array that stores several sets of height divisors and player speed multiplier
+//The divisors should be in increasing order as they are checked
+//starting with the smallest index
+// lrt moves faster when the ball is further
 BotControlInfo lrtBotArray[pro_c + 1] = {
-		{ { 2, 2, 3, 4, 8 }, { 0.25, 0.25, 0.25, 0.25,0.25 }, (int) PLAYERSPEED },
-		{ { 2, 2, 3, 4, 8 }, { 0.5, 0.5, 0.5, 0.5, 0.5 }, (int) PLAYERSPEED + 5 },
-		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED +10 },
-		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, (int) PLAYERSPEED + 15} };
+		{ { 2, 3, 4, 8 }, { 0.8, 0.6, 0.4, 0.2 }},
+		{ { 2, 3, 4, 8 }, { 1.25, 1, 0.75, 0.5 }},
+		{ { 2, 3, 4, 8 }, { 2, 1.5, 1.25, 1  }},
+		{ { 2, 3, 4, 8 }, { 3, 2, 1.5, 1.3 } } };
 
-//It is an array that stores several sets of conditions and values
-//The values make the Bot more responsive as the index in the array increases
+//It is an array that stores several sets of height divisors and player speed multiplier
+//The divisors should be in increasing order as they are checked
+//starting with the smallest index
+// bus moves faster when the ball is closer
 BotControlInfo busBotArray[pro_c + 1] = {
-		{ { 2, 2, 3, 4, 8 }, { 0.25, 0.25, 0.25, 0.25,0.25 }, (int) PLAYERSPEED },
-		{ { 2, 2, 3, 4, 8 }, { 0.5, 0.5, 0.5, 0.5, 0.5 }, (int) PLAYERSPEED + 5},
-		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED +10 },
-		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, (int) PLAYERSPEED + 15 } };
+		{ { 2, 3, 4, 8 }, { 0.2, 0.4, 0.6, 0.8 }},
+		{ { 2, 3, 4, 8 }, { 0.5, 0.75, 1, 1.25 }},
+		{ { 2, 3, 4, 8 }, { 1, 1.25, 1.5, 2 }},
+		{ { 2, 3, 4, 8 }, { 1.3, 1.5, 2, 3 } } };
 
 //====== Game Initialization ================
 /*
@@ -346,16 +350,6 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			}
 		}
 	} //end-of-for
-
-	busBotArray[0].paddlespeed = p->player[bus_c].paddleSpeed / 2;
-	busBotArray[1].paddlespeed = p->player[bus_c].paddleSpeed;
-	busBotArray[2].paddlespeed = (3 * p->player[bus_c].paddleSpeed) / 2;
-	busBotArray[3].paddlespeed = p->player[bus_c].paddleSpeed * 2;
-
-	lrtBotArray[0].paddlespeed = p->player[lrt_c].paddleSpeed / 2;
-	lrtBotArray[1].paddlespeed = p->player[lrt_c].paddleSpeed;
-	lrtBotArray[2].paddlespeed = (3 * p->player[lrt_c].paddleSpeed) / 2;
-	lrtBotArray[3].paddlespeed = p->player[lrt_c].paddleSpeed * 2;
 
 	p->botControl[bus_c] = &(busBotArray[p->botLevel[bus_c]]);
 	p->botControl[lrt_c] = &(lrtBotArray[p->botLevel[lrt_c]]);
@@ -2760,6 +2754,8 @@ void  botControl(GameData *gptr, uint botNumber) {
 	//bot 1 is at the top
 	//bot 0 is at the bottom
 
+	const int doNotMoveLimit_c = 2;
+
 	if ((botNumber == lrt_c) && gptr->ball.speed.y > 0) {
 		FEXIT();
 		return;
@@ -2772,33 +2768,29 @@ void  botControl(GameData *gptr, uint botNumber) {
 
 	float mult = 1;
 	if(botNumber == lrt_c) {
-		if (gptr->ball.position.y > gptr->display.height / gptr->botControl[botNumber]->cond[0])
-			mult = gptr->botControl[botNumber]->val[0];
-		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->cond[1])
-			mult = gptr->botControl[botNumber]->val[1];
-		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->cond[2])
-			mult = gptr->botControl[botNumber]->val[2];
-		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->cond[3])
-			mult = gptr->botControl[botNumber]->val[3];
-		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->cond[4])
-			mult = gptr->botControl[botNumber]->val[4];
+		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->heightDivisor[0])
+			mult = gptr->botControl[botNumber]->speedMultiplier[0];
+		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->heightDivisor[1])
+			mult = gptr->botControl[botNumber]->speedMultiplier[1];
+		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->heightDivisor[2])
+			mult = gptr->botControl[botNumber]->speedMultiplier[2];
+		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->heightDivisor[3])
+			mult = gptr->botControl[botNumber]->speedMultiplier[3];
 
-		if(gptr->ball.position.y > gptr->display.height/2)
+		if(gptr->ball.position.y > gptr->display.height/doNotMoveLimit_c)
 			mult = 0;
 	}
 	else {
-		if ((gptr->display.height - gptr->ball.position.y) > gptr->display.height / gptr->botControl[botNumber]->cond[0])
-			mult = gptr->botControl[botNumber]->val[0];
-		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->cond[1])
-			mult = gptr->botControl[botNumber]->val[1];
-		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->cond[2])
-			mult = gptr->botControl[botNumber]->val[2];
-		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->cond[3])
-			mult = gptr->botControl[botNumber]->val[3];
-		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->cond[4])
-			mult = gptr->botControl[botNumber]->val[4];
+		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->heightDivisor[0])
+			mult = gptr->botControl[botNumber]->speedMultiplier[0];
+		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->heightDivisor[1])
+			mult = gptr->botControl[botNumber]->speedMultiplier[1];
+		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->heightDivisor[2])
+			mult = gptr->botControl[botNumber]->speedMultiplier[2];
+		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->heightDivisor[3])
+			mult = gptr->botControl[botNumber]->speedMultiplier[3];
 
-		if(gptr->ball.position.y< gptr->display.height/2)
+		if(gptr->ball.position.y< gptr->display.height/doNotMoveLimit_c)
 			mult = 0;
 	}
 
