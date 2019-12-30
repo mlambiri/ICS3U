@@ -46,17 +46,17 @@ GameData carBreaker = {
 //The values make the Bot more responsive as the index in the array increases
 BotControlInfo lrtBotArray[pro_c + 1] = {
 		{ { 2, 2, 3, 4, 8 }, { 0.25, 0.25, 0.25, 0.25,0.25 }, (int) PLAYERSPEED },
-		{ { 2, 2, 3, 4, 8 }, { 0.5, 0.5, 0.5, 0.5, 0.5 }, (int) PLAYERSPEED },
-		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED },
-		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, 40 } };
+		{ { 2, 2, 3, 4, 8 }, { 0.5, 0.5, 0.5, 0.5, 0.5 }, (int) PLAYERSPEED + 5 },
+		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED +10 },
+		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, (int) PLAYERSPEED + 15} };
 
 //It is an array that stores several sets of conditions and values
 //The values make the Bot more responsive as the index in the array increases
 BotControlInfo busBotArray[pro_c + 1] = {
 		{ { 2, 2, 3, 4, 8 }, { 0.25, 0.25, 0.25, 0.25,0.25 }, (int) PLAYERSPEED },
-		{ { 2, 2, 3, 4, 8 }, { 0.5, 0.5, 0.5, 0.5, 0.5 }, (int) PLAYERSPEED },
-		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED },
-		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, 40 } };
+		{ { 2, 2, 3, 4, 8 }, { 0.5, 0.5, 0.5, 0.5, 0.5 }, (int) PLAYERSPEED + 5},
+		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED +10 },
+		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, (int) PLAYERSPEED + 15 } };
 
 //====== Game Initialization ================
 /*
