@@ -188,16 +188,19 @@ bool readFile(GameData* g, char* fileName) {
 
 	FILE* fptr = NULL;
 	if (fileName == NULL) {
+		DEBUG("Null layout file name");
 		FEXIT();
 		return false;
 	} else {
 		fptr = fopen(fileName, "r");
 		if (fptr == NULL) {
+			DEBUG("Layout file not found");
 			FEXIT();
 			return false;
 		} //end-of-if(fptr == NULL)
 	}
 
+	DEBUG("Layout file found. Loading data ....");
 	char* buffer = text;
 	int i = 0;
 
@@ -1640,8 +1643,8 @@ bool displayHelp(GameData *gptr) {
 	int next = drawTextOnScreen(gptr, textBuffer, xpos_c,
 			30, smallFont_c);
 
-	sprintf(textBuffer, "Collision Algo: %d",
-			gptr->cAlgoSelector);
+	sprintf(textBuffer, "Collision Algo: %d (C)",
+			gptr->cAlgoSelector?2:1);
 	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
 			next, smallFont_c);
 
@@ -1650,8 +1653,13 @@ bool displayHelp(GameData *gptr) {
 	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
 			next, smallFont_c);
 
-	sprintf(textBuffer, "New Window: %s",
+	sprintf(textBuffer, "New Window: %s (G)",
 			gptr->path.separateDisplay?"Y":"N");
+	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
+			next, smallFont_c);
+
+	sprintf(textBuffer, "Trajectory On: %s (T)",
+			gptr->path.rec?"Y":"N");
 	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
 			next, smallFont_c);
 }
@@ -2718,23 +2726,20 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 			if (++param < argc)
 				strcpy(p->player[lrt_c].audioFileName, argv[param]);
 		} else if (strcmp(argv[param], "pattern") == 0) {
-			//player 2 sound file name
+			// car layout
 			if (++param < argc) {
 				p->validLayout = readFile(p, argv[param]);
-				strcpy(p->inLayout, argv[param]);
-			}
-		} else if (strcmp(argv[param], "outfile") == 0) {
-			//player 2 sound file name
-			if (++param < argc) {
-				strcpy(p->outLayout, argv[param]);
+				if( p->validLayout) {
+					strcpy(p->inLayout, argv[param]);
+				}
 			}
 		} else if (strcmp(argv[param], "busspeed") == 0) {
-			//player 1 paddle speed
+			//bus paddle speed
 			if (++param < argc) {
 				p->player[bus_c].paddleSpeed = atoi(argv[param]);
 			}
 		} else if (strcmp(argv[param], "lrtspeed") == 0) {
-			//player 2 paddle speed
+			//lrt paddle speed
 			if (++param < argc) {
 				p->player[lrt_c].paddleSpeed = atoi(argv[param]);
 			}

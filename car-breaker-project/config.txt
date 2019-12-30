@@ -2,10 +2,10 @@
 # no '"' characters are allowed
 
 #screenwidth sets the width of the screen, it is in pixels
-screenwidth = 1000
+screenwidth = 900
 
 #screenheight sets the height of the screen, it is in pixels
-screenheight = 1000
+screenheight = 700
 fontsize = 34
 
 # number of rounds to play before a winner is declared
@@ -41,7 +41,7 @@ bussound = cardoor.wav
 lrtsound = cardoor.wav
 
 #input file name for car setup
-pattern = testout.txt
+#pattern = layout5506.txt
 
 
 # points penalty for losing the ball
