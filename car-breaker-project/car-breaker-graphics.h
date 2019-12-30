@@ -314,6 +314,7 @@ void  startTimers(GameData *gptr);
 void  stopTimers(GameData *gptr);
 void  setCarInfo(GameData* p);
 bool recordResult(char *p, BounceStatistics* stats);
+void ballSpeedLimiter(GameData* gptr);
 
 //=====================
 bool initializeGraphics(GameData *p);

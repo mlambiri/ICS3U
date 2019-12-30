@@ -776,6 +776,7 @@ bool whenCollisionOccurs(GameData* gptr, int i, int j) {
 			break;
 		}
 
+		ballSpeedLimiter(gptr);
 
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
@@ -2053,6 +2054,27 @@ uint min(uint a, uint b) {
 }
 
 /**
+  ---------------------------------------------------------------------------
+   @author  elambiri
+   @date    Dec. 30, 2019
+   @mname   ballSpeedLimiter
+   @details
+	  \n
+  --------------------------------------------------------------------------
+ */
+void
+ballSpeedLimiter(GameData* gptr) {
+	if(abs(gptr->ball.speed.x) > gptr->maxspeed.x) {
+		gptr->ball.speed.x = signOfNumber(gptr->ball.speed.x)*gptr->maxspeed.x;
+	}
+	if(abs(gptr->ball.speed.y) > gptr->maxspeed.y) {
+		gptr->ball.speed.y += signOfNumber(gptr->ball.speed.y)*gptr->maxspeed.y;
+	}
+} // end-of-method ballSpeedLimiter
+
+
+
+/**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
@@ -2081,13 +2103,20 @@ bool updateBallPosition(GameData *gptr) {
 	// it happens in some cases in both but the conditions are
 	// different. the algo selection is done through the
 	// configuration file using the 'calgo' variable
-	if(gptr->cAlgoSelector == false) {
+	// when 'calgo = 1' then cAlgoSelector is set to 'false'
+	// when 'calgo = 2' then cAlgoSelector is set to 'true'
+	if(gptr->cAlgoSelector == false) { // 'calgo = 1'
+
+		// use a temporary ball object
 		GameBasicBlock tmpBall = gptr->ball;
 
+		// update the temporary ball object and use that to check new location
 		tmpBall.position.x = gptr->ball.position.x + gptr->ball.speed.x;
 		tmpBall.position.y = gptr->ball.position.y + gptr->ball.speed.y;
 
 		if(isBallInRegion(&tmpBall, &(gptr->carArea)) == true) {
+			// check collision with cars only if ball will be in the car area
+			// update the actual ball position and speed
 			if(abs(gptr->ball.speed.x) > gptr->maxspeed.x) {
 				gptr->ball.speed.x = signOfNumber(gptr->ball.speed.x)*gptr->maxspeed.x;
 			}
@@ -2130,26 +2159,23 @@ bool updateBallPosition(GameData *gptr) {
 					} //end-of-for
 					if(done) break;
 				} //end-of-for
+
+				// if a collision with a car occured we can exit
+				// there is no need to check for collisions with the rest of the items
+				if(done) {
+					FEXIT();
+					return false;
+				}
 			}
-		}
-		else {
-			if(abs(gptr->ball.speed.x) > gptr->maxspeed.x) {
-				gptr->ball.speed.x = signOfNumber(gptr->ball.speed.x)*gptr->maxspeed.x;
-			}
-			if(abs(gptr->ball.speed.y) > gptr->maxspeed.y) {
-				gptr->ball.speed.y += signOfNumber(gptr->ball.speed.y)*gptr->maxspeed.y;
-			}
-			gptr->ball.prevposition.x = gptr->ball.position.x;
-			gptr->ball.prevposition.y = gptr->ball.position.y;
-			gptr->ball.position.x +=  gptr->ball.speed.x;
-			gptr->ball.position.y += gptr->ball.speed.y;
 		}
 	}
-	else {
+	else { // 'calgo = 2'
 		uint maxxspeedy = max(abs(gptr->ball.speed.x), abs(gptr->ball.speed.y));
 		float xplus = (float) gptr->ball.speed.x / maxxspeedy;
 		float yplus = (float)  gptr->ball.speed.y / maxxspeedy;
 		bool collision = false;
+
+		// use a temporary ball to do the checks
 		GameBasicBlock tmpBall = gptr->ball;
 
 		//printf("%d\n", maxxspeed.y);
@@ -2225,23 +2251,18 @@ bool updateBallPosition(GameData *gptr) {
 			}
 		} //end-of-for
 
-		if(collision == false) {
-			if(abs(gptr->ball.speed.x) > gptr->maxspeed.x) {
-				gptr->ball.speed.x = signOfNumber(gptr->ball.speed.x)*gptr->maxspeed.x;
-			}
-			if(abs(gptr->ball.speed.y) > gptr->maxspeed.y) {
-				gptr->ball.speed.y += signOfNumber(gptr->ball.speed.y)*gptr->maxspeed.y;
-			}
-			gptr->ball.prevposition.x = gptr->ball.position.x;
-			gptr->ball.prevposition.y = gptr->ball.position.y;
-			gptr->ball.position.x +=  gptr->ball.speed.x;
-			gptr->ball.position.y += gptr->ball.speed.y;
-		}
-		else {
+		if(collision == true) {
 			FEXIT();
 			return false;
 		}
-	}
+	} // end-of-collision algorithms
+
+	ballSpeedLimiter(gptr);
+	// update the ball position
+	gptr->ball.prevposition.x = gptr->ball.position.x;
+	gptr->ball.prevposition.y = gptr->ball.position.y;
+	gptr->ball.position.x +=  gptr->ball.speed.x;
+	gptr->ball.position.y += gptr->ball.speed.y;
 
 	if (checkBallCollisionWithPlayers(gptr) == false) {
 		if (checkCollisionTopAndBottom(gptr) == true) {
