@@ -59,6 +59,15 @@ BotControlArray busBotArray[pro_c + 1] = {
 		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, 40 } };
 
 //====== Game Initialization ================
+/*
+ * @author   elambiri
+ * @date     Dec. 30, 2019
+ *  This set of functions reads game assets from files
+ *  It loads fonts, bitmaps for various objects, sound files ...
+ *  It also reads the car layout from a file
+ *  It also reads in the config file
+ */
+
 
 /**
  ---------------------------------------------------------------------------
@@ -234,7 +243,7 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 		} else if (strcmp(argv[param], "pattern") == 0) {
 			// car layout
 			if (++param < argc) {
-				p->validLayout = readFile(p, argv[param]);
+				p->validLayout = readCarLayoutFromFile(p, argv[param]);
 				if( p->validLayout) {
 					strcpy(p->inLayout, argv[param]);
 				}
@@ -361,12 +370,12 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 25, 2019
- @mname   readLayoutFile
+ @mname   readCarLayoutFromFile
  @details
     reads the brick layout from a file\n
  --------------------------------------------------------------------------
  */
-bool readFile(GameData* g, char* fileName) {
+bool readCarLayoutFromFile(GameData* g, char* fileName) {
 
 	FENTRY();
 	TRACE();
@@ -416,167 +425,15 @@ bool readFile(GameData* g, char* fileName) {
 	fclose(fptr);
 	FEXIT();
 	return true;
-}
+} //end-readCarLayoutFromFile
 
-
-/**
-  ---------------------------------------------------------------------------
-   @author  mlambiri
-   @date    Dec. 1, 2019
-   @mname   createTrajectoryDisplay
-   @details
-	  \n
-  --------------------------------------------------------------------------
- */
-void
-createTrajectoryDisplay(GameData* g) {
-
-	if(g->trajectoryDisplay.display != NULL) {
-		return;
-	}
-
-	g->trajectoryDisplay.width = g->display.width/2;
-	g->trajectoryDisplay.height = g->display.height/2;
-	int x = 100;
-	int y = 200;
-
-	g->trajectoryDisplay.display = al_create_display(g->trajectoryDisplay.width, g->trajectoryDisplay.height);
-	if(g->display.display) {
-		al_get_window_position(g->display.display, &x, &y);
-		x += g->display.width;
-	}
-
-	//	if(!g->trajectoryDisplay.display ) {
-	//		ERROR("failed to create help display!");
-	//		return;
-	//	}
-	//	al_set_window_position(g->trajectoryDisplay.display, x , y);
-
-	al_set_window_title(g->trajectoryDisplay.display, "Ball Trajectory");
-	al_register_event_source(g->eventqueue, al_get_display_event_source(g->trajectoryDisplay.display));
-	writeTrajectoryToWindow(g);
-} // end-of-method createTrajectoryDisplay
-
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 18, 2019
- @mname    initializeCarLayout
- @details
-   initializes the car layout\n
- --------------------------------------------------------------------------
- */
-void  initializeCarLayout(GameData*gptr) {
-
-	FENTRY();
-	TRACE();
-	gptr->remainingCars = 0;
-
-	if(gptr->validLayout == true) {
-		// use it once
-		gptr->validLayout = false;
-		for(int i = 0; i < gptr->maxRows; i++) {
-			for (int j = 0; j < gptr->maxColumns; j++) {
-				switch(gptr->layout[i][j]) {
-				case 'x':
-				case 'X':
-					gptr->bricks[i][j].onScreen = false;
-					gptr->bricks[i][j].indestructible = false;
-					break;
-				case 'e':
-				case 'E':
-					gptr->bricks[i][j].onScreen = true;
-					gptr->bricks[i][j].indestructible = true;
-					break;
-				case 'g':
-				case 'G':
-					gptr->bricks[i][j].onScreen = true;
-					gptr->bricks[i][j].indestructible = false;
-					gptr->remainingCars++;
-					break;
-				default:
-					break;
-				}
-			}
-		}
-	}
-	else {
-
-		int year = (gptr->year > 2080)?2080:gptr->year;
-		uint rNumber = (year > 2020)? (2100- year )/10:10;
-		uint maxCars = gptr->maxRows * gptr->maxColumns;
-
-		if(year > 2020) {
-			maxCars -= (2080-year)*maxCars/160;
-		}
-
-
-		// number of smashable cars in top and bottom row must be similar
-		// othewise there is in an advantage to one player
-		int topCount = 0;
-
-		int totalCount = 0;
-
-		for(int i = 0; i < gptr->maxRows; i++) {
-			for (int j = 0; j < gptr->maxColumns; j++) {
-				gptr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
-				if(gptr->bricks[i][j].onScreen == true ) {
-					// ecars are 'indestructible'
-					// as times goes by more are ecars
-					// but also less cars on road
-					totalCount++;
-					if(gptr->year >= 2000) {
-						if(i == gptr->maxRows - 1) {
-							if(topCount-- > 0) {
-								gptr->remainingCars++;
-								continue;
-							}
-						}
-						gptr->bricks[i][j].indestructible = (totalCount % rNumber)?false:true;
-					}
-					if(gptr->bricks[i][j].indestructible  == false) {
-						gptr->remainingCars++;
-						if(i == 0) {
-							topCount++;
-						}
-					}
-				}
-			} //end-of-for
-		} //end-of-for
-
-		for(int i = 1; i < gptr->maxRows-1; i++) {
-			for (int j = 1; j < gptr->maxColumns-1; j++) {
-				if(gptr->bricks[i][j].indestructible  == false) {
-					// do not allow gas cars to be surrounded by ecars
-					// in that case the cars cannot be smashed
-					// check if the gas car is surrounded and if it is, make it an ecar
-					if((gptr->bricks[i-1][j].indestructible == true)
-							&& (gptr->bricks[i][j-1].indestructible == true)
-							&& (gptr->bricks[i][j+1].indestructible == true)
-							&& (gptr->bricks[i+1][j].indestructible == true)
-					){
-						gptr->bricks[i][j].indestructible = true;
-						if(gptr->bricks[i][j].onScreen == true)
-							gptr->remainingCars--;
-						else
-							gptr->bricks[i][j].onScreen = true;
-					}
-				}
-			} //end-of-for
-		} //end-of-for
-	}
-	gptr->gameNumber++;
-
-	FEXIT();
-} //end-init-car-layoyut
 
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 28, 2019
- @mname   LoadPlayerBitmap
+ @mname   loadPlayerBitmap
  @details
    this function loads a bitmap for the player from a file\n
  --------------------------------------------------------------------------
@@ -702,6 +559,158 @@ bool loadFont(GameData *gptr, int size) {
 
 
 //==== Graphics ======
+/*
+ * @author   elambiri
+ * @date     Dec. 30, 2019
+ *  This section contains functions that draw items on screen
+ */
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 18, 2019
+ @mname    initializeCarLayout
+ @details
+   initializes the car layout\n
+ --------------------------------------------------------------------------
+ */
+void  initializeCarLayout(GameData*gptr) {
+
+	FENTRY();
+	TRACE();
+	gptr->remainingCars = 0;
+
+	if(gptr->validLayout == true) {
+		// use it once
+		gptr->validLayout = false;
+		for(int i = 0; i < gptr->maxRows; i++) {
+			for (int j = 0; j < gptr->maxColumns; j++) {
+				switch(gptr->layout[i][j]) {
+				case 'x':
+				case 'X':
+					gptr->bricks[i][j].onScreen = false;
+					gptr->bricks[i][j].indestructible = false;
+					break;
+				case 'e':
+				case 'E':
+					gptr->bricks[i][j].onScreen = true;
+					gptr->bricks[i][j].indestructible = true;
+					break;
+				case 'g':
+				case 'G':
+					gptr->bricks[i][j].onScreen = true;
+					gptr->bricks[i][j].indestructible = false;
+					gptr->remainingCars++;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
+	else {
+
+		int year = (gptr->year > 2080)?2080:gptr->year;
+		uint rNumber = (year > 2020)? (2100- year )/10:10;
+		uint maxCars = gptr->maxRows * gptr->maxColumns;
+
+		if(year > 2020) {
+			maxCars -= (2080-year)*maxCars/160;
+		}
+
+
+		// number of smashable cars in top and bottom row must be similar
+		// othewise there is in an advantage to one player
+		int topCount = 0;
+
+		int totalCount = 0;
+
+		for(int i = 0; i < gptr->maxRows; i++) {
+			for (int j = 0; j < gptr->maxColumns; j++) {
+				gptr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
+				if(gptr->bricks[i][j].onScreen == true ) {
+					// ecars are 'indestructible'
+					// as times goes by more are ecars
+					// but also less cars on road
+					totalCount++;
+					if(gptr->year >= 2000) {
+						if(i == gptr->maxRows - 1) {
+							if(topCount-- > 0) {
+								gptr->remainingCars++;
+								continue;
+							}
+						}
+						gptr->bricks[i][j].indestructible = (totalCount % rNumber)?false:true;
+					}
+					if(gptr->bricks[i][j].indestructible  == false) {
+						gptr->remainingCars++;
+						if(i == 0) {
+							topCount++;
+						}
+					}
+				}
+			} //end-of-for
+		} //end-of-for
+
+		for(int i = 1; i < gptr->maxRows-1; i++) {
+			for (int j = 1; j < gptr->maxColumns-1; j++) {
+				if(gptr->bricks[i][j].indestructible  == false) {
+					// do not allow gas cars to be surrounded by ecars
+					// in that case the cars cannot be smashed
+					// check if the gas car is surrounded and if it is, make it an ecar
+					if((gptr->bricks[i-1][j].indestructible == true)
+							&& (gptr->bricks[i][j-1].indestructible == true)
+							&& (gptr->bricks[i][j+1].indestructible == true)
+							&& (gptr->bricks[i+1][j].indestructible == true)
+					){
+						gptr->bricks[i][j].indestructible = true;
+						if(gptr->bricks[i][j].onScreen == true)
+							gptr->remainingCars--;
+						else
+							gptr->bricks[i][j].onScreen = true;
+					}
+				}
+			} //end-of-for
+		} //end-of-for
+	}
+	gptr->gameNumber++;
+
+	FEXIT();
+} //end-init-car-layoyut
+
+/**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Dec. 1, 2019
+   @mname   createTrajectoryDisplay
+   @details
+	  \n
+  --------------------------------------------------------------------------
+ */
+void
+createTrajectoryDisplay(GameData* g) {
+
+	if(g->trajectoryDisplay.display != NULL) {
+		return;
+	}
+
+	g->trajectoryDisplay.width = g->display.width/2;
+	g->trajectoryDisplay.height = g->display.height/2;
+	int x = 100;
+	int y = 200;
+
+	g->trajectoryDisplay.display = al_create_display(g->trajectoryDisplay.width, g->trajectoryDisplay.height);
+	if(g->display.display) {
+		al_get_window_position(g->display.display, &x, &y);
+		x += g->display.width;
+	}
+
+	al_set_window_title(g->trajectoryDisplay.display, "Ball Trajectory");
+	al_register_event_source(g->eventqueue, al_get_display_event_source(g->trajectoryDisplay.display));
+	writeTrajectoryToWindow(g);
+} // end-of-method createTrajectoryDisplay
+
 
 /**
   ---------------------------------------------------------------------------
@@ -756,48 +765,6 @@ flipAllDisplays(GameData* g) {
 } // end-of-method flipAllDisplays
 
 
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 25, 2019
- @mname   writeCarLayoutToFile
- @details
-   writes the car layout to a file\n
- --------------------------------------------------------------------------
- */
-bool writeCarLayoutToFile(GameData* g) {
-
-	FENTRY();
-	TRACE();
-	char text[MAXBUFFER];
-
-	FILE* fptr = NULL;
-
-	char filename[MAXBUFFER];
-	sprintf(filename, "layout%d.txt", rand()%10000);
-	fptr = fopen( filename, "w");
-	if (fptr == NULL) {
-		FEXIT();
-		return false;
-	} //end-of-if(fptr == NULL)
-
-	for (int i = 0; i < g->maxRows; i++ ) {
-		for (int j = 0; j < g->maxColumns; j++ ) {
-			if( g->bricks[i][j].onScreen == false) {
-				fprintf(fptr, "x");
-			}else if(g->bricks[i][j].indestructible == false) {
-				fprintf(fptr, "g");
-			} else {
-				fprintf(fptr, "e");
-			}
-		} //end-of-for
-		fprintf(fptr, "\n");
-	} //end-of-for
-
-	fclose(fptr);
-	FEXIT();
-	return true;
-} //end-of-writeCarLayoutToFile
 
 
 /**
@@ -864,33 +831,6 @@ void  setCarInfo(GameData* p) {
 	FEXIT();
 	return;
 }
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 19, 2019
- @mname   setPointsPerSmash
- @details
-   set an amount of points for each car smashed
-   this will change based on the number of cars that
-   are still present on screen\n
- --------------------------------------------------------------------------
- */
-void  setPointsPerSmash(GameData*gptr) {
-	FENTRY();
-	TRACE();
-	if(gptr->remainingCars<= level6_c){
-		gptr->scorePointsPerSmash = 10;
-	}else if (gptr->remainingCars< level5_c) {
-		gptr->scorePointsPerSmash = 3;
-	}else if (gptr->remainingCars< level4_c) {
-		gptr->scorePointsPerSmash = 2;
-	}else {
-		gptr->scorePointsPerSmash = 1;
-	}
-
-	FEXIT();
-} //end of setPointsPerSmash
 
 
 /**
@@ -1534,7 +1474,15 @@ bool initializeGraphics(GameData *p) {
 } // end-of-function InitGame
 
 
-//===== Collisions ==========================
+//===== Ball Movement and Collisions  ('Physics') ===========
+/*
+ * @author   elambiri
+ * @date     Dec. 30, 2019
+ *  This section contains the functions that deal with the
+ *  ball movement and collisions
+ *
+ */
+
 
 /**
  ---------------------------------------------------------------------------
@@ -1556,13 +1504,13 @@ void increaseBallSpeed(GameData* g) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 30, 2019
- @mname   slowBall
+ @mname   decreaseBallSpeed
  @details
     decrease the largest component of speed
     very useful to get out of infinite ricochet loops\n
  --------------------------------------------------------------------------
  */
-void slowBall(GameData* g) {
+void decreaseBallSpeed(GameData* g) {
 	g->maxspeed.x -= 2;
 	g->maxspeed.y -= 2;
 }
@@ -2403,6 +2351,85 @@ bool updateBallPosition(GameData *gptr) {
 
 
 //=========== Game Controls =======================
+/*
+ * @author   elambiri
+ * @date     Dec. 30, 2019
+ *  This section groups the functions that deal with the control of
+ *  the game by the users (either bots or human)
+ *  This section contains the main game loop, timers, keyboard event
+ *  processing, writing to files, game termination, etc
+ */
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 19, 2019
+ @mname   setPointsPerSmash
+ @details
+   set an amount of points for each car smashed
+   this will change based on the number of cars that
+   are still present on screen\n
+ --------------------------------------------------------------------------
+ */
+void  setPointsPerSmash(GameData*gptr) {
+	FENTRY();
+	TRACE();
+	if(gptr->remainingCars<= level6_c){
+		gptr->scorePointsPerSmash = 10;
+	}else if (gptr->remainingCars< level5_c) {
+		gptr->scorePointsPerSmash = 3;
+	}else if (gptr->remainingCars< level4_c) {
+		gptr->scorePointsPerSmash = 2;
+	}else {
+		gptr->scorePointsPerSmash = 1;
+	}
+
+	FEXIT();
+} //end of setPointsPerSmash
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 25, 2019
+ @mname   writeCarLayoutToFile
+ @details
+   writes the car layout to a file\n
+ --------------------------------------------------------------------------
+ */
+bool writeCarLayoutToFile(GameData* g) {
+
+	FENTRY();
+	TRACE();
+	char text[MAXBUFFER];
+
+	FILE* fptr = NULL;
+
+	char filename[MAXBUFFER];
+	sprintf(filename, "layout%d.txt", rand()%10000);
+	fptr = fopen( filename, "w");
+	if (fptr == NULL) {
+		FEXIT();
+		return false;
+	} //end-of-if(fptr == NULL)
+
+	for (int i = 0; i < g->maxRows; i++ ) {
+		for (int j = 0; j < g->maxColumns; j++ ) {
+			if( g->bricks[i][j].onScreen == false) {
+				fprintf(fptr, "x");
+			}else if(g->bricks[i][j].indestructible == false) {
+				fprintf(fptr, "g");
+			} else {
+				fprintf(fptr, "e");
+			}
+		} //end-of-for
+		fprintf(fptr, "\n");
+	} //end-of-for
+
+	fclose(fptr);
+	FEXIT();
+	return true;
+} //end-of-writeCarLayoutToFile
 
 /**
   ---------------------------------------------------------------------------
@@ -2517,7 +2544,7 @@ bool isKeyPressEvent(GameData *gptr) {
 			increaseBallSpeed(gptr);
 			break;
 		case ALLEGRO_KEY_S:
-			slowBall(gptr);
+			decreaseBallSpeed(gptr);
 			break;
 		case ALLEGRO_KEY_ESCAPE:
 			//exit game

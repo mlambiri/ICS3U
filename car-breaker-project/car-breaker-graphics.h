@@ -287,48 +287,64 @@ bool loadBitmap(GameBasicBlock *g, char* fname);
 bool loadFont(GameData *gptr, int size);
 bool loadPlayerImage(GamePlayer *p, char* fname);
 bool initializeGameData(GameData *p, int argc, char **argv);
+bool readCarLayoutFromFile(GameData* g, char* fileName);
 
 // === Graphics ======
+void createTrajectoryDisplay(GameData* g);
 bool displayScore(GameData *gptr);
+bool displayHelp(GameData *gptr);
 bool drawTextAndWaitBegin(GameData *gptr);
 bool drawTextAndWaitRoundWin(GameData *gptr);
 int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size);
 void writeTrajectoryToWindow(GameData* g);
 bool printRoundWinner(GameData *gptr);
 bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
-void  initializeCarLayout(GameData*gptr);
+void flipAllDisplays(GameData* g);
+void setCarInfo(GameData* p);
+void drawBitmapSection(GameBasicBlock *g);
+void drawObjects(GameData *gptr);
+void setBackgroundColor(ALLEGRO_COLOR color);
+void setInitialObjectPositions(GameData *gptr);
+void drawBitmap(GameBasicBlock *g);
+void drawBitmapSection(GameBasicBlock *g);
+bool initializeGraphics(GameData *p);
+void initializeCarLayout(GameData*gptr);
+
 
 // === Collisions ======
 bool checkCollisionLeftRight(GameData *gptr);
 bool checkCollisionTopAndBottom(GameData *gptr);
 bool checkBallCollisionWithPlayers(GameData *gptr);
-void  drawBitmapSection(GameBasicBlock *g);
-void  drawObjects(GameData *gptr);
-void  setBackgroundColor(ALLEGRO_COLOR color);
-void  setInitialObjectPositions(GameData *gptr);
-void  drawBitmap(GameBasicBlock *g);
-bool initializeGraphics(GameData *p);
 void ballSpeedLimiter(GameData* gptr);
 bool updateBallPosition(GameData *gptr);
 int signOfNumber(int value);
-void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int);
+void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int);
+void increaseBallSpeed(GameData* g);
+void decreaseBallSpeed(GameData* g);
+bool isPointInObject(GameBasicBlock* b, int x, int y);
+bool isPointInAnyCar(GameData* g,  int x, int y, int&row, int&column);
+bool isBallInRegion(GameBasicBlock* ball, GameBasicBlock* obj);
+bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSIDE& side);
+bool whenCollisionOccurs(GameData* gptr, int i, int j) ;
+bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i, int j);
 
 // === Game Control ====
 void runGame(GameData *p);
 bool gameMainLoop(GameData *gptr);
 bool isKeyPressEvent(GameData *gptr);
 bool pressAnyKeyToBeginGame(GameData *gptr);
-void  lrtBotControl(GameData *gptr, uint botNumber);
-void  busBotControl(GameData *gptr, uint botNumber);
-void  exitGame(GameData *gptr);
-void  movePlayers(GameData *gptr);
-void  playSound(ALLEGRO_SAMPLE *s);
-void  startTimers(GameData *gptr);
-void  stopTimers(GameData *gptr);
-void  setCarInfo(GameData* p);
+void lrtBotControl(GameData *gptr, uint botNumber);
+void busBotControl(GameData *gptr, uint botNumber);
+void exitGame(GameData *gptr);
+void movePlayers(GameData *gptr);
+void playSound(ALLEGRO_SAMPLE *s);
+void startTimers(GameData *gptr);
+void stopTimers(GameData *gptr);
+void setCarInfo(GameData* p);
 bool recordResult(char *p, BounceStatistics* stats);
 bool recordPoint(DataRecorder* r, Point* p);
-bool readFile(GameData* g, char* fileName);
+bool writeCarLayoutToFile(GameData* g);
+void setPointsPerSmash(GameData*gptr) ;
 
 //============================
 
