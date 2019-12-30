@@ -58,117 +58,303 @@ BotControlArray busBotArray[pro_c + 1] = {
 		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1, 2, 2 }, (int) PLAYERSPEED },
 		{ { 2, 2, 3, 4, 8 }, { 1, 1, 1.5, 2, 3 }, 40 } };
 
-/**
-  ---------------------------------------------------------------------------
-   @author  mlambiri
-   @date    Dec. 2, 2019
-   @mname   recordPoint
-   @details
-	  \n
-  --------------------------------------------------------------------------
- */
-bool
-recordPoint(DataRecorder* r, Point* p) {
-	// recorder not on
-	if(r->rec == false) return false;
-	// recorder full
-	if(r->used >= MAXRECORDING-1) return false;
-	r->point[r->used++] = *p;
+//====== Game Initialization ================
 
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 17, 2019
+ @mname   initializeGameData
+ @details
+ This function gets the game config parameters as read from the config file
+ In the same format as the parameters passes to the main file
+ argv is an array of character pointers and argc is the is number of entries in the array
+ Processing is done in the same style as the main command line arguments\n
+ --------------------------------------------------------------------------
+ */
+bool initializeGameData(GameData *p, int argc, char **argv) {
+
+	FENTRY();
+	TRACE();
+
+	srand(time(0));
+
+	strcpy(p->player[bus_c].name, "Bus");
+	strcpy(p->player[lrt_c].name, "LRT");
+	strcpy(p->fontFileName, defaultFont);
+	strcpy(p->player[bus_c].audioFileName, busSound);
+	strcpy(p->player[lrt_c].audioFileName, lrtSound);
+	strcpy(p->busBitmapName, busPngName);
+	strcpy(p->lrtBitmapName, lrtPngName);
+	strcpy(p->ballBitmapName, ballPngName);
+	strcpy(p->gasBitmapName, gasPngName);
+	strcpy(p->ecarBitmapName, electricPngName);
+
+	// today
+	p->year = 2019;
+
+	p->validLayout = false;
+	p->penalty = POINTSFORLOSTBALL;
+	p->inLayout[0] = 0;
+	p->outLayout[0] = 0;
+
+	p->maxRows = MAXBRICKROWS;
+	p->maxColumns = MAXBRICKCOLUMNS;
+
+	p->gameNumber = 1;
+	p->roundNumber = 1;
+	p->backgroundColor = &(p->bcolorarray[yellow_c]);
+
+	p->scorePointsPerSmash = 1;
+	p->cAlgoSelector = false;
+	p->player[bus_c].paddleSpeed = initPaddleSpeed_c;
+	p->player[lrt_c].paddleSpeed = initPaddleSpeed_c;
+
+	p->trajectoryDisplay.display = NULL;
+	p->path.rec = false;
+	p->path.used = 0;
+	p->path.separateDisplay = false;
+
+	p->botLevel[bus_c] = pro_c;
+	p->botLevel[lrt_c] = pro_c;
+
+	p->helpOn = false;
+	p->stats.totalBounce = 0;
+	p->stats.firstEmpty = 0;
+	p->stats.bounceUntilSmash[p->stats.firstEmpty] = 0;
+
+	p->gamePaused = false;
+
+	//loop that processes the command line arguments.
+	//argc is the size of the argument's array and argv is the array itself
+	for (int param = 0; param < argc; param++) {
+		if (strcmp(argv[param], "gamemode") == 0) {
+			//arcade mode
+			//LRT (ie player2) is computer controlled
+			if (++param < argc ){
+				if (strcmp(argv[param], "arcade") == 0)
+					p->gameMode = arcade_c;
+				else if (strcmp(argv[param], "auto") == 0)
+					p->gameMode = fullbot_c;
+				else
+					p->gameMode = human_c;
+			}
+		} else if (strcmp(argv[param], "screenwidth") == 0) {
+			//display width
+			if (++param < argc)
+				p->display.width = atoi(argv[param]);
+		} else if (strcmp(argv[param], "screenheight") == 0) {
+			//display height
+			if (++param < argc)
+				p->display.height = atoi(argv[param]);
+		}else if (strcmp(argv[param], "calgo") == 0) {
+			//algorithm selector
+			int v = 0;
+			if (++param < argc)
+				v = atoi(argv[param]);
+			if(v <= 1)
+				p->cAlgoSelector = false;
+			else
+				p->cAlgoSelector = true;
+		}else if (strcmp(argv[param], "year") == 0) {
+			//the year of play
+			// pre 2000 there are no electric cars
+			if (++param < argc)
+				p->year = atoi(argv[param]);
+		} else if (strcmp(argv[param], "maxrows") == 0) {
+			//the number of rows of cars, max is MAXBRICKROWS
+			if (++param < argc) {
+				p->maxRows = atoi(argv[param]);
+				if(p->maxRows > MAXBRICKROWS)
+					p->maxRows = MAXBRICKROWS;
+			}
+		}else if (strcmp(argv[param], "maxcolumns") == 0) {
+			//the number of rows of cars, max is MAXBRICKCOLUMNS
+			if (++param < argc) {
+				p->maxColumns = atoi(argv[param]);
+				if(p->maxColumns > MAXBRICKCOLUMNS)
+					p->maxColumns = MAXBRICKCOLUMNS;
+			}
+		}  else if (strcmp(argv[param], "fontsize") == 0) {
+			//font size
+			if (++param < argc)
+				p->fontsize = atoi(argv[param]);
+		} else if (strcmp(argv[param], "maxballspeed") == 0) {
+			// maximum number of pixels the ball will move between frames
+			if (++param < argc) {
+				int maxballspeed = atoi(argv[param]);
+				if(maxballspeed <= 0)
+					maxballspeed = minballspeed_c;
+				if (maxballspeed >= maxballspeed_c)
+					maxballspeed = maxballspeed_c;
+				p->maxspeed.x = maxballspeed;
+				p->maxspeed.y = maxballspeed;
+				p->maxballspeed = maxballspeed;
+			}
+		} else if (strcmp(argv[param], "maxrounds") == 0) {
+			//maxscore
+			if (++param < argc)
+				p->maxRounds = atoi(argv[param]);
+		} else if (strcmp(argv[param], "fontfile") == 0) {
+			//font file name
+			if (++param < argc)
+				strcpy(p->fontFileName, argv[param]);
+		} else if (strcmp(argv[param], "winSound") == 0) {
+			//font file name
+			if (++param < argc)
+				strcpy(p->winSoundFile, argv[param]);
+		} else if (strcmp(argv[param], "busbmp") == 0) {
+			//player 1 bitmap file name
+			if (++param < argc)
+				strcpy(p->busBitmapName, argv[param]);
+		} else if (strcmp(argv[param], "lrtbmp") == 0) {
+			//player 2 bitmap file name
+			if (++param < argc)
+				strcpy(p->lrtBitmapName, argv[param]);
+		} else if (strcmp(argv[param], "ballbmp") == 0) {
+			//ball bitmap file name
+			if (++param < argc)
+				strcpy(p->ballBitmapName, argv[param]);
+		} else if (strcmp(argv[param], "gascarbmp") == 0) {
+			//gas car bitmap file name
+			if (++param < argc)
+				strcpy(p->gasBitmapName, argv[param]);
+		} else if (strcmp(argv[param], "ecarbmp") == 0) {
+			//ecar bitmap file name
+			if (++param < argc)
+				strcpy(p->ecarBitmapName, argv[param]);
+		} else if (strcmp(argv[param], "bussound") == 0) {
+			//player 1 sound file name
+			if (++param < argc)
+				strcpy(p->player[bus_c].audioFileName, argv[param]);
+		} else if (strcmp(argv[param], "lrtsound") == 0) {
+			//player 2 sound file name
+			if (++param < argc)
+				strcpy(p->player[lrt_c].audioFileName, argv[param]);
+		} else if (strcmp(argv[param], "pattern") == 0) {
+			// car layout
+			if (++param < argc) {
+				p->validLayout = readFile(p, argv[param]);
+				if( p->validLayout) {
+					strcpy(p->inLayout, argv[param]);
+				}
+			}
+		} else if (strcmp(argv[param], "busspeed") == 0) {
+			//bus paddle speed
+			if (++param < argc) {
+				p->player[bus_c].paddleSpeed = atoi(argv[param]);
+			}
+		} else if (strcmp(argv[param], "lrtspeed") == 0) {
+			//lrt paddle speed
+			if (++param < argc) {
+				p->player[lrt_c].paddleSpeed = atoi(argv[param]);
+			}
+		}else if (strcmp(argv[param], "buslevel") == 0) {
+			//player 2 paddle speed
+			if (++param < argc) {
+				p->botLevel[bus_c] = atoi(argv[param]) - 1;
+				if(p->botLevel[bus_c] < 0 )
+					p->botLevel[bus_c] = 0;
+				if(p->botLevel[bus_c] > 3 )
+					p->botLevel[bus_c] = 3;
+			}
+		}else if (strcmp(argv[param], "lrtlevel") == 0) {
+			//player 2 paddle speed
+			if (++param < argc) {
+				p->botLevel[lrt_c] = atoi(argv[param]) -1;
+			}
+			if(p->botLevel[lrt_c] < 0 )
+				p->botLevel[lrt_c] = 0;
+			if(p->botLevel[lrt_c] > 3 )
+				p->botLevel[lrt_c] = 3;
+		} else if (strcmp(argv[param], "buslength") == 0) {
+			//level (controls the paddle size)
+			if (++param < argc) {
+				p->player[bus_c].paddleSize = atoi(argv[param]);
+				if (p->player[bus_c].paddleSize > maxPaddleSize_c)
+					p->player[bus_c].paddleSize = maxPaddleSize_c;
+				if (p->player[bus_c].paddleSize < 1)
+					p->player[bus_c].paddleSize = 1;
+			}
+		} else if (strcmp(argv[param], "lrtlength") == 0) {
+			//level (controls the paddle size)
+			if (++param < argc) {
+				p->player[lrt_c].paddleSize = atoi(argv[param]);
+				if (p->player[lrt_c].paddleSize > maxPaddleSize_c)
+					p->player[lrt_c].paddleSize = maxPaddleSize_c;
+				if (p->player[lrt_c].paddleSize < 1)
+					p->player[lrt_c].paddleSize = 1;
+			}
+		} else if (strcmp(argv[param], "fps") == 0) {
+			//display fps
+			if (++param < argc) {
+				p->fps = atof(argv[param]);
+				if (p->fps < MINFPS)
+					p->fps = MINFPS;
+				if (p->fps > MAXFPS)
+					p->fps = MAXFPS;
+			}
+		} else if (strcmp(argv[param], "penalty") == 0) {
+			//display penalty
+			if (++param < argc) {
+				p->penalty = atoi(argv[param]);
+			}
+		} else if (strcmp(argv[param], "trajectorywindow") == 0) {
+			//ball bitmap file name
+			if (++param < argc)
+				if(argv[param][0] == 'y' ) {
+					p->path.separateDisplay = true;
+				}
+		}else if (strcmp(argv[param], "record") == 0) {
+			//ball bitmap file name
+			if (++param < argc)
+				if(argv[param][0] == 'y' ) {
+					p->path.rec = true;
+				}
+		}else if (strcmp(argv[param], "colourscheme") == 0) {
+			//player 2 bitmap file name
+			if (++param < argc) {
+				switch (argv[param][0]) {
+				case 'y':
+					p->backgroundColor = &(p->bcolorarray[yellow_c]);
+					break;
+				case 'b':
+					p->backgroundColor = &(p->bcolorarray[blue_c]);
+					break;
+				case 'w':
+					p->backgroundColor = &(p->bcolorarray[white_c]);
+					break;
+				case 'g':
+					p->backgroundColor = &(p->bcolorarray[green_c]);
+					break;
+				case 'q':
+					p->backgroundColor = &(p->bcolorarray[grey_c]);
+					break;
+				default:
+					break;
+				} //end-switch(argv[param][0])
+				p->initcolor = p->backgroundColor;
+			}
+		}
+	} //end-of-for
+
+	busBotArray[0].paddlespeed = p->player[bus_c].paddleSpeed / 2;
+	busBotArray[1].paddlespeed = p->player[bus_c].paddleSpeed;
+	busBotArray[2].paddlespeed = (3 * p->player[bus_c].paddleSpeed) / 2;
+	busBotArray[3].paddlespeed = p->player[bus_c].paddleSpeed * 2;
+
+	lrtBotArray[0].paddlespeed = p->player[lrt_c].paddleSpeed / 2;
+	lrtBotArray[1].paddlespeed = p->player[lrt_c].paddleSpeed;
+	lrtBotArray[2].paddlespeed = (3 * p->player[lrt_c].paddleSpeed) / 2;
+	lrtBotArray[3].paddlespeed = p->player[lrt_c].paddleSpeed * 2;
+
+	p->botControlPtr[bus_c] = &(busBotArray[p->botLevel[bus_c]]);
+	p->botControlPtr[lrt_c] = &(lrtBotArray[p->botLevel[lrt_c]]);
+
+	initializeCarLayout(p);
+	FEXIT();
 	return true;
-} // end-of-method recordPoint
-
-
-/**
-  ---------------------------------------------------------------------------
-   @author  mlambiri
-   @date    Dec. 4, 2019
-   @mname   writeTrajectoryToWindow
-   @details
-	  \n
-  --------------------------------------------------------------------------
- */
-void
-writeTrajectoryToWindow(GameData* g) {
-	if(g->trajectoryDisplay.display  == NULL) return;
-	if(g->path.separateDisplay == false) return;
-	al_set_target_backbuffer(g->trajectoryDisplay.display );
-	al_clear_to_color(al_map_rgb(255,255,255));
-
-	if(g->path.rec == true) {
-		for (int i = 1; i < g->path.used; i++ ) {
-			al_draw_line(g->path.point[i-1].x/2, g->path.point[i-1].y/2, g->path.point[i].x/2, g->path.point[i].y/2, al_map_rgb(255, 0,0), 1.0);
-		} //end-of-for
-		al_draw_line(g->path.point[g->path.used-1].x/2, g->path.point[g->path.used-1].y/2, g->ball.position.x/2, g->ball.position.y/2, al_map_rgb(255, 0,0), 1.0);
-	}
-
-	al_set_target_backbuffer(g->display.display);
-
-} // end-of-method writeTrajectoryToWindow
-
-
-/**
-  ---------------------------------------------------------------------------
-   @author  mlambiri
-   @date    Dec. 1, 2019
-   @mname   createTrajectoryDisplay
-   @details
-	  \n
-  --------------------------------------------------------------------------
- */
-void
-createTrajectoryDisplay(GameData* g) {
-
-	if(g->trajectoryDisplay.display != NULL) {
-		return;
-	}
-
-	g->trajectoryDisplay.width = g->display.width/2;
-	g->trajectoryDisplay.height = g->display.height/2;
-	int x = 100;
-	int y = 200;
-
-	g->trajectoryDisplay.display = al_create_display(g->trajectoryDisplay.width, g->trajectoryDisplay.height);
-	if(g->display.display) {
-		al_get_window_position(g->display.display, &x, &y);
-		x += g->display.width;
-	}
-
-	//	if(!g->trajectoryDisplay.display ) {
-	//		ERROR("failed to create help display!");
-	//		return;
-	//	}
-	//	al_set_window_position(g->trajectoryDisplay.display, x , y);
-
-	al_set_window_title(g->trajectoryDisplay.display, "Ball Trajectory");
-	al_register_event_source(g->eventqueue, al_get_display_event_source(g->trajectoryDisplay.display));
-	writeTrajectoryToWindow(g);
-} // end-of-method createTrajectoryDisplay
-
-
-/**
-  ---------------------------------------------------------------------------
-   @author  mlambiri
-   @date    Dec. 4, 2019
-   @mname   flipAllDisplays
-   @details
-	  \n
-  --------------------------------------------------------------------------
- */
-void
-flipAllDisplays(GameData* g) {
-
-	if(g->trajectoryDisplay.display) {
-		al_set_target_backbuffer(g->trajectoryDisplay.display );
-		al_flip_display();
-	}
-	if(g->display.display) {
-		al_set_target_backbuffer(g->display.display);
-		al_flip_display();
-	}
-
-} // end-of-method flipAllDisplays
-
+} // end-of-function initializeGameData
 
 
 /**
@@ -234,59 +420,54 @@ bool readFile(GameData* g, char* fileName) {
 
 
 /**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 25, 2019
- @mname   writeCarLayoutToFile
- @details
-   writes the car layout to a file\n
- --------------------------------------------------------------------------
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Dec. 1, 2019
+   @mname   createTrajectoryDisplay
+   @details
+	  \n
+  --------------------------------------------------------------------------
  */
-bool writeCarLayoutToFile(GameData* g) {
+void
+createTrajectoryDisplay(GameData* g) {
 
-	FENTRY();
-	TRACE();
-	char text[MAXBUFFER];
+	if(g->trajectoryDisplay.display != NULL) {
+		return;
+	}
 
-	FILE* fptr = NULL;
+	g->trajectoryDisplay.width = g->display.width/2;
+	g->trajectoryDisplay.height = g->display.height/2;
+	int x = 100;
+	int y = 200;
 
-	char filename[MAXBUFFER];
-	sprintf(filename, "layout%d.txt", rand()%10000);
-	fptr = fopen( filename, "w");
-	if (fptr == NULL) {
-		FEXIT();
-		return false;
-	} //end-of-if(fptr == NULL)
+	g->trajectoryDisplay.display = al_create_display(g->trajectoryDisplay.width, g->trajectoryDisplay.height);
+	if(g->display.display) {
+		al_get_window_position(g->display.display, &x, &y);
+		x += g->display.width;
+	}
 
-	for (int i = 0; i < g->maxRows; i++ ) {
-		for (int j = 0; j < g->maxColumns; j++ ) {
-			if( g->bricks[i][j].onScreen == false) {
-				fprintf(fptr, "x");
-			}else if(g->bricks[i][j].indestructible == false) {
-				fprintf(fptr, "g");
-			} else {
-				fprintf(fptr, "e");
-			}
-		} //end-of-for
-		fprintf(fptr, "\n");
-	} //end-of-for
+	//	if(!g->trajectoryDisplay.display ) {
+	//		ERROR("failed to create help display!");
+	//		return;
+	//	}
+	//	al_set_window_position(g->trajectoryDisplay.display, x , y);
 
-	fclose(fptr);
-	FEXIT();
-	return true;
-} //end-of-writeCarLayoutToFile
+	al_set_window_title(g->trajectoryDisplay.display, "Ball Trajectory");
+	al_register_event_source(g->eventqueue, al_get_display_event_source(g->trajectoryDisplay.display));
+	writeTrajectoryToWindow(g);
+} // end-of-method createTrajectoryDisplay
 
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 18, 2019
- @mname    initializaCarLayout
+ @mname    initializeCarLayout
  @details
    initializes the car layout\n
  --------------------------------------------------------------------------
  */
-void  initializaCarLayout(GameData*gptr) {
+void  initializeCarLayout(GameData*gptr) {
 
 	FENTRY();
 	TRACE();
@@ -388,7 +569,236 @@ void  initializaCarLayout(GameData*gptr) {
 	gptr->gameNumber++;
 
 	FEXIT();
-}
+} //end-init-car-layoyut
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 28, 2019
+ @mname   LoadPlayerBitmap
+ @details
+   this function loads a bitmap for the player from a file\n
+ --------------------------------------------------------------------------
+ */
+bool loadPlayerImage(GamePlayer *p, char* fname) {
+	FENTRY();
+	TRACE();
+	if ((p->ge.bmap = al_load_bitmap(fname)) == NULL) {
+		ERROR2("cannot load player bitmap", fname);
+		FEXIT();
+		return false;
+	}
+	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (p->paddleSize))/ maxPaddleSize_c;
+	p->ge.height = al_get_bitmap_height(p->ge.bmap);
+	FEXIT();
+	return true;
+} // end-of-function loadPlayerBitmap
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   loadBitmap
+ @details
+ return true if ok false otherwise\n
+ --------------------------------------------------------------------------
+ */
+bool loadBitmap(GameBasicBlock *g, char* fname) {
+	FENTRY();
+	TRACE();
+	if ((g->bmap = al_load_bitmap(fname)) == NULL) {
+		ERROR2("cannot load bitmap", fname);
+		FEXIT();
+		return false;
+	}
+	g->width = al_get_bitmap_width(g->bmap);
+	g->height = al_get_bitmap_height(g->bmap);
+
+	FEXIT();
+	return true;
+} // end-of-function loadBitmap
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 27, 2019
+ @mname   loadAudio
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+bool loadAudio(GamePlayer *gptr) {
+	FENTRY();
+	TRACE();
+	gptr->sample = al_load_sample(gptr->audioFileName);
+	if (gptr->sample == NULL) {
+		ERROR2("Audio clip sample not loaded: ", gptr->audioFileName);
+		FEXIT();
+		return false;
+	}FEXIT();
+	return true;
+} // end-of-function loadAudio
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 28, 2019
+ @mname   loadWinnerSound
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+bool loadWinnerSound(GameData *gptr) {
+	FENTRY();
+	TRACE();
+	gptr->winsample = al_load_sample(gptr->winSoundFile);
+	if (gptr->winsample == NULL) {
+		ERROR2("Audio clip sample not loaded: ", gptr->winSoundFile);
+		FEXIT();
+		return false;
+	}
+	FEXIT();
+	return true;
+} // end-of-function loadWinnerSound
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 27, 2019
+ @mname   loadFont
+ @details
+   this function will load fonts for the text used to print
+   the various graphics\n
+ --------------------------------------------------------------------------
+ */
+bool loadFont(GameData *gptr, int size) {
+
+	FENTRY();
+	TRACE();
+	int fontSize = gptr->fontsize;
+	switch (size) {
+	case smallFont_c:
+		fontSize /= 2;
+		break;
+	case largeFont_c:
+		fontSize *= 2;
+		break;
+	default:
+		break;
+	} //end-switch(size)
+	gptr->font[size] = al_load_ttf_font(gptr->fontFileName, fontSize, 0);
+
+	//error message if the font file is NULL
+	if (gptr->font[size] == NULL) {
+		ERROR2("Could not load: ", gptr->fontFileName);
+		FEXIT();
+		return false;
+	}
+	FEXIT();
+	return true;
+} // end-of-function loadFont
+
+
+//==== Graphics ======
+
+/**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Dec. 4, 2019
+   @mname   writeTrajectoryToWindow
+   @details
+	  \n
+  --------------------------------------------------------------------------
+ */
+void
+writeTrajectoryToWindow(GameData* g) {
+	if(g->trajectoryDisplay.display  == NULL) return;
+	if(g->path.separateDisplay == false) return;
+	al_set_target_backbuffer(g->trajectoryDisplay.display );
+	al_clear_to_color(al_map_rgb(255,255,255));
+
+	if(g->path.rec == true) {
+		for (int i = 1; i < g->path.used; i++ ) {
+			al_draw_line(g->path.point[i-1].x/2, g->path.point[i-1].y/2, g->path.point[i].x/2, g->path.point[i].y/2, al_map_rgb(255, 0,0), 1.0);
+		} //end-of-for
+		al_draw_line(g->path.point[g->path.used-1].x/2, g->path.point[g->path.used-1].y/2, g->ball.position.x/2, g->ball.position.y/2, al_map_rgb(255, 0,0), 1.0);
+	}
+
+	al_set_target_backbuffer(g->display.display);
+
+} // end-of-method writeTrajectoryToWindow
+
+
+
+/**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Dec. 4, 2019
+   @mname   flipAllDisplays
+   @details
+	  \n
+  --------------------------------------------------------------------------
+ */
+void
+flipAllDisplays(GameData* g) {
+
+	if(g->trajectoryDisplay.display) {
+		al_set_target_backbuffer(g->trajectoryDisplay.display );
+		al_flip_display();
+	}
+	if(g->display.display) {
+		al_set_target_backbuffer(g->display.display);
+		al_flip_display();
+	}
+
+} // end-of-method flipAllDisplays
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 25, 2019
+ @mname   writeCarLayoutToFile
+ @details
+   writes the car layout to a file\n
+ --------------------------------------------------------------------------
+ */
+bool writeCarLayoutToFile(GameData* g) {
+
+	FENTRY();
+	TRACE();
+	char text[MAXBUFFER];
+
+	FILE* fptr = NULL;
+
+	char filename[MAXBUFFER];
+	sprintf(filename, "layout%d.txt", rand()%10000);
+	fptr = fopen( filename, "w");
+	if (fptr == NULL) {
+		FEXIT();
+		return false;
+	} //end-of-if(fptr == NULL)
+
+	for (int i = 0; i < g->maxRows; i++ ) {
+		for (int j = 0; j < g->maxColumns; j++ ) {
+			if( g->bricks[i][j].onScreen == false) {
+				fprintf(fptr, "x");
+			}else if(g->bricks[i][j].indestructible == false) {
+				fprintf(fptr, "g");
+			} else {
+				fprintf(fptr, "e");
+			}
+		} //end-of-for
+		fprintf(fptr, "\n");
+	} //end-of-for
+
+	fclose(fptr);
+	FEXIT();
+	return true;
+} //end-of-writeCarLayoutToFile
+
 
 /**
  ---------------------------------------------------------------------------
@@ -486,6 +896,649 @@ void  setPointsPerSmash(GameData*gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   setBackgroundColor
+ @details
+   this function sets the background color for the display\n
+ --------------------------------------------------------------------------
+ */
+void  setBackgroundColor(ALLEGRO_COLOR color) {
+	FENTRY();
+	TRACE();
+	al_clear_to_color(color);
+	FEXIT();
+} // end-of-function setBackgroundColor
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   setBitmap
+ @details
+ return true if ok false otherwise\n
+ --------------------------------------------------------------------------
+ */
+bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
+	FENTRY();
+	TRACE();
+	g->bmap = b;
+	g->width = al_get_bitmap_width(g->bmap);
+	g->height = al_get_bitmap_height(g->bmap);
+	FEXIT();
+	return true;
+} // end-of-function setBitmap
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   setInitialObjectPositions
+ @details
+ This function sets the players in the middle of the Y axis and provides
+ the ball to one of the players
+ If it is the first round, the player who has the ball is chosen at random.
+ After a round win the round winner gets the serve.\n
+ --------------------------------------------------------------------------
+ */
+void  setInitialObjectPositions(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	gptr->ball.speed.y = minballspeed_c + rand() % 3;
+	if (gptr->roundWinner) {
+		gptr->turn = gptr->roundWinner;
+		if (gptr->roundWinner == &(gptr->player[bus_c])) {
+			gptr->ball.speed.y *= -1;
+		} //end-of-if(p->roundWinner == &(p->player[0]))
+	} else {
+		//if there is no roundwinnner, it is the first serve of the game
+		//we need to pick at random a starting player
+		switch (rand() % 2) {
+		case 0:
+			// player 1
+			gptr->ball.speed.y *= -1;
+			gptr->turn = &gptr->player[bus_c];
+			break;
+		default:
+			//player 2
+			gptr->turn = &gptr->player[lrt_c];
+			break;
+		} //end-switch(rand() %2)
+	} //end-of-if(p->roundWinner)
+
+	gptr->ball.speed.x = rand() % 5;
+	if (gptr->ball.speed.x == 0)
+		gptr->ball.speed.x = 3;
+	switch (rand() % 2) {
+	case 0:
+		//serve up
+		gptr->ball.speed.x *= -1;
+		break;
+	default:
+		break;
+	} //end-switch(rand() %2)
+
+	gptr->player[bus_c].ge.position.x = gptr->display.width / 2 - gptr->player[0].ge.width / 2;
+	gptr->player[bus_c].ge.position.y = gptr->display.height - gptr->player[0].ge.height;
+	gptr->player[bus_c].ge.speed.x = 0;
+	gptr->player[lrt_c].ge.position.x = gptr->display.width / 2 - gptr->player[1].ge.width / 2;
+	gptr->player[lrt_c].ge.position.y = 0;
+	gptr->player[lrt_c].ge.speed.x = 0;
+
+	if (gptr->ball.speed.y > 0) {
+		gptr->ball.prevposition.y = gptr->ball.position.y;
+		gptr->ball.position.y = gptr->player[lrt_c].ge.position.y + gptr->player[1].ge.height;
+	}else {
+		gptr->ball.prevposition.y = gptr->ball.position.y;
+		gptr->ball.position.y = gptr->player[bus_c].ge.position.y - gptr->ball.height;
+	}
+	gptr->ball.prevposition.x = gptr->ball.position.x;
+	gptr->ball.position.x = gptr->display.width / 2 - (gptr->ball.width / 2);
+	if (gptr->ball.speed.y > 0) {
+		gptr->startsample = gptr->player[lrt_c].sample;
+	} else {
+		gptr->startsample = gptr->player[bus_c].sample;
+	}
+
+	recordPoint(&(gptr->path), &(gptr->ball.position));
+
+	int ypos = (gptr->display.height - gptr->bricks[0][0].height*gptr->maxRows)/2;
+	//printf("Max Rows = %d, Max Columns = %d", gptr->maxRows, gptr->maxColumns);
+	for (int i = 0; i < gptr->maxRows; i++) {
+		int xpos = (gptr->display.width - gptr->bricks[0][0].width*gptr->maxColumns)/2;
+		if(xpos < 0) {
+			xpos = 0;
+		}
+		for (int j = 0; j < gptr->maxColumns; j++) {
+			gptr->bricks[i][j].position.y = ypos;
+			gptr->bricks[i][j].position.x = xpos;
+			xpos += gptr->bricks[i][j].width;
+		} //end-of-for
+		ypos += gptr->bricks[i][0].height;
+	} //end-of-for
+
+	gptr->carArea.position.x = gptr->bricks[0][0].position.x;
+	gptr->carArea.position.y = gptr->bricks[0][0].position.y;
+
+	FEXIT();
+
+} // end-of-function setInitialObjectPositions
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   drawTextOnScreen
+ @details
+ Displays text on screen using allegro
+ Declared an enumeration of text sizes
+ Different text sizes are used for different messages \n
+ --------------------------------------------------------------------------
+ */
+int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size) {
+	FENTRY();
+	TRACE();
+	al_draw_text(gptr->font[size], gptr->fontColor, x, y, ALLEGRO_ALIGN_CENTRE, text);
+	int fsize = gptr->fontsize;
+	switch (size) {
+	case smallFont_c:
+		fsize /= 2;
+		break;
+	case largeFont_c:
+		fsize *= 2;
+		break;
+	default:
+		break;
+	} //end-switch(size)
+	FEXIT();
+	return y + fsize + 10;
+} // end-of-function drawTextOnScreen
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   drawTextAndWaitBegin
+ @details
+ Returns false if escape key is pressed
+ This function displays the first screen that the user views in the game\n
+ --------------------------------------------------------------------------
+ */
+bool drawTextAndWaitBegin(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+
+	int next = drawTextOnScreen(gptr, (char*) "Welcome to Car Smasher", gptr->display.width / 2,
+			gptr->display.height / 4, largeFont_c);
+	al_flush_event_queue(gptr->eventqueue);
+	drawTextOnScreen(gptr, (char*) "(c) mlambiri 2019", gptr->display.width / 2, next,
+			smallFont_c);
+
+	if(gptr->gameMode == fullbot_c) {
+		next = drawTextOnScreen(gptr, (char*) "Full Auto Mode (Bot v Bot)", gptr->display.width / 2,
+				gptr->display.height / 2, regularFont_c);
+	}
+	else if (gptr->gameMode == arcade_c) {
+		next = drawTextOnScreen(gptr, (char*) "Arcade Mode (Bot Controls LRT)",
+				gptr->display.width / 2, gptr->display.height / 2, regularFont_c);
+	} else {
+		next = drawTextOnScreen(gptr, (char*) "Two Player Mode", gptr->display.width / 2,
+				gptr->display.height / 2, regularFont_c);
+	}
+	char buffer[100];
+	sprintf(buffer, "Most points after %d rounds wins!", gptr->maxRounds);
+	next = drawTextOnScreen(gptr, buffer, gptr->display.width / 2, next, regularFont_c);
+	next = drawTextOnScreen(gptr, (char*) "Press a key to begin", gptr->display.width / 2,
+			next, regularFont_c);
+
+	flipAllDisplays(gptr);
+
+
+	if (pressAnyKeyToBeginGame(gptr) == false) {
+		FEXIT();
+		return false;
+	}
+	writeCarLayoutToFile(gptr);
+	if(gptr->path.rec == true && gptr->path.separateDisplay) {
+		createTrajectoryDisplay(gptr);
+	}
+	FEXIT();
+	return true;
+} // end-of-function drawTextAndWaitBegin
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   drawTextAndWaitRoundWin
+ @details
+ Returns false if escape key is pressed
+ This function displays a screen when a round or game is won
+ The text for the two conditions will be different
+ We declare the temporary variable next to position text messages one on top of another
+ We do this by adding a value to the y coordinate of the message\n
+ --------------------------------------------------------------------------
+ */
+bool drawTextAndWaitRoundWin(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	char textBuffer[MAXBUFFER];
+	if ((gptr->roundNumber == gptr->maxRounds) || (gptr->remainingCars == 0)){
+		gptr->roundNumber = 1;
+		GamePlayer* ptr;
+		if(gptr->player[bus_c].carsSmashed > gptr->player[lrt_c].carsSmashed) {
+			ptr = &gptr->player[bus_c];
+		}
+		else if(gptr->player[bus_c].carsSmashed < gptr->player[lrt_c].carsSmashed) {
+			ptr = &gptr->player[lrt_c];
+		}
+		else {
+			ptr= NULL;
+		}
+		if(ptr == NULL) {
+			sprintf(textBuffer, "It's a Draw!!!!");
+		}
+		else {
+			sprintf(textBuffer, "%s Wins The Game!!", ptr->name);
+		}
+		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
+				gptr->carArea.position.y - 3*gptr->fontsize, largeFont_c);
+		sprintf(textBuffer, "Score: %s %d %s %d", gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
+				gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
+		next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2, next,
+				regularFont_c);
+
+		drawTextOnScreen(gptr, (char*) "Press a key to begin or ESC to exit",
+				gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
+
+		playSound(gptr->winsample);
+		const char* mode;
+		if(gptr->gameMode == fullbot_c) {
+			mode = "Full Auto";
+		}
+		else if (gptr->gameMode == arcade_c) {
+			mode = "Arcade";
+		} else {
+			mode = "Human";
+		}
+		sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]", mode, gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
+				gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
+
+		recordResult(textBuffer, &(gptr->stats));
+		gptr->backgroundColor = gptr->initcolor;
+		initializeCarLayout(gptr);
+		setCarInfo(gptr);
+		writeCarLayoutToFile(gptr);
+		gptr->player[bus_c].carsSmashed = 0;
+		gptr->player[lrt_c].carsSmashed = 0;
+		//gptr->path.rec = false;
+		gptr->path.used = 0;
+		gptr->stats.totalBounce = 0;
+		gptr->stats.firstEmpty = 0;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty] = 0;
+		recordPoint(&(gptr->path), &(gptr->ball.position));
+
+	} else {
+		sprintf(textBuffer, "Score: %s %d %s %d",
+				gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed, gptr->player[bus_c].name,
+				gptr->player[bus_c].carsSmashed);
+		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
+				gptr->carArea.position.y - gptr->fontsize, regularFont_c);
+		char buffer[100];
+		sprintf(buffer, "Press a key to begin Round %d of %d or ESC to exit", ++gptr->roundNumber, gptr->maxRounds);
+		drawTextOnScreen(gptr, buffer, gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
+		//DEBUG(" =======\n");
+	}
+
+	flipAllDisplays(gptr);
+
+	if (pressAnyKeyToBeginGame(gptr) == false) {
+		FEXIT();
+		return false;
+	}
+
+	for (int i = 0; i < 2; i++) {
+		gptr->player[bus_c].keyPress[i] = false;
+		gptr->player[lrt_c].keyPress[i] = false;
+	} //end-of-for
+	al_flush_event_queue(gptr->eventqueue);
+
+	FEXIT();
+	return true;
+} // end-of-function drawTextAndWaitRoundWin
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   printRoundWinner
+ @details
+ When the round ends, we need to stop the timers from firing unwanted events
+ We do that at the beginning of the function
+ Prints a message and play a sound
+ Then we wait for user input to restart the game\n
+ --------------------------------------------------------------------------
+ */
+bool printRoundWinner(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	stopTimers(gptr);
+	setInitialObjectPositions(gptr);
+	drawObjects(gptr);
+
+	if (drawTextAndWaitRoundWin(gptr) == false) {
+		FEXIT();
+		return false;
+	} else {
+		startTimers(gptr);
+		playSound(gptr->startsample);
+	}
+	FEXIT();
+	return true;
+} // end-of-function printRoundWinner
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 18, 2019
+ @mname   displayScore
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+bool displayScore(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	char textBuffer[MAXBUFFER];
+	sprintf(textBuffer, "Score: %s %d %s %d",
+			gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed, gptr->player[bus_c].name,
+			gptr->player[bus_c].carsSmashed);
+	int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
+			30, smallFont_c);
+	sprintf(textBuffer, "Remain: %d",
+			gptr->remainingCars);
+	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
+			next, smallFont_c);
+	sprintf(textBuffer, "%d Points Per Smash",
+			gptr->scorePointsPerSmash);
+	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
+			next, smallFont_c);
+	sprintf(textBuffer, "%d Bounces since Last Smash",
+			gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]);
+	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
+			next, smallFont_c);
+	sprintf(textBuffer, "%d Total Bounces",
+			gptr->stats.totalBounce);
+	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
+			next, smallFont_c);
+	if(gptr->gamePaused == true) {
+		sprintf(textBuffer, "** Game is Paused! Press P to resume **");
+		next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
+				next, smallFont_c);
+	}
+}
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 18, 2019
+ @mname
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+bool displayHelp(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	char textBuffer[MAXBUFFER];
+	const int xpos_c = 100;
+	sprintf(textBuffer, "Level: %s %d %s %d",
+			gptr->player[lrt_c].name,
+			gptr->botLevel[lrt_c]+1,
+			gptr->player[bus_c].name,
+			gptr->botLevel[bus_c]+1);
+	int next = drawTextOnScreen(gptr, textBuffer, xpos_c,
+			30, smallFont_c);
+
+	sprintf(textBuffer, "Collision Algo: %d (C)",
+			gptr->cAlgoSelector?2:1);
+	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
+			next, smallFont_c);
+
+	sprintf(textBuffer, "Game Mode: %d",
+			gptr->gameMode);
+	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
+			next, smallFont_c);
+
+	sprintf(textBuffer, "New Window: %s (G)",
+			gptr->path.separateDisplay?"Y":"N");
+	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
+			next, smallFont_c);
+
+	sprintf(textBuffer, "Trajectory On: %s (T)",
+			gptr->path.rec?"Y":"N");
+	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
+			next, smallFont_c);
+}
+
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   drawBitmap
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+void  drawBitmap(GameBasicBlock *g) {
+	FENTRY();
+	TRACE();
+	al_draw_bitmap(g->bmap, g->position.x, g->position.y, 0);
+	FEXIT();
+
+} // end-of-function drawBitmap
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 28, 2019
+ @mname   drawBitmapSection
+ @details
+ Draws only a selected portion of a bitmap.
+ It is used to change the length of the pallete depending on the game level.\n
+ --------------------------------------------------------------------------
+ */
+void  drawBitmapSection(GameBasicBlock *g) {
+	FENTRY();
+	TRACE();
+	al_draw_bitmap_region(g->bmap, 0, 0, g->width, g->height, g->position.x,
+			g->position.y, 0);
+	FEXIT();
+} // end-of-function drawBitmapSection
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   drawObjects
+ @details
+ This function sets the background color and draws the players and the ball
+ Has to be called every time we want to refresh the display during gameplay\n
+ --------------------------------------------------------------------------
+ */
+void  drawObjects(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	setBackgroundColor(*(gptr->backgroundColor));
+	drawBitmapSection(&(gptr->player[bus_c].ge));
+	drawBitmapSection(&(gptr->player[lrt_c].ge));
+	drawBitmap(&(gptr->ball));
+	for (int i = 0; i < gptr->maxRows; i++) {
+		for (int j = 0; j < gptr->maxColumns; j++) {
+			if (gptr->bricks[i][j].onScreen == true) {
+				drawBitmap(&(gptr->bricks[i][j]));
+			}//end-of-if
+		} //end-of-for
+	} //end-of-for
+	displayScore(gptr);
+	if(gptr->helpOn) displayHelp(gptr);
+	if(gptr->path.rec == true && gptr->path.separateDisplay == false) {
+		for (int i = 1; i < gptr->path.used; i++ ) {
+			al_draw_line(gptr->path.point[i-1].x, gptr->path.point[i-1].y, gptr->path.point[i].x, gptr->path.point[i].y, al_map_rgb(255, 0,0), 1.0);
+		} //end-of-for
+		al_draw_line(gptr->path.point[gptr->path.used-1].x, gptr->path.point[gptr->path.used-1].y, gptr->ball.position.x, gptr->ball.position.y, al_map_rgb(255, 0,0), 1.0);
+	}
+	FEXIT();
+} // end-of-function drawObjects
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   initializeGraphics
+ @details
+ returns 1 if init ok, 0 otherwise
+ This function does the following:
+ 1. Initializes all allegro resources
+ 2. Loads all game resources (fonts, bitmaps, sounds)
+ --------------------------------------------------------------------------
+ */
+bool initializeGraphics(GameData *p) {
+	FENTRY();
+	TRACE();
+	//seed random number generator with time
+	srand (time(NULL));
+	//initiallises allegro libraries
+	if(al_init() == 0) {
+		ERROR("Cannot init allegro");
+		FEXIT();
+		return false;
+	} //end-of-if(al_init() == 0)
+	TRACE();
+	al_init_primitives_addon();
+	al_init_image_addon();
+	al_install_keyboard();
+	al_install_mouse();
+	al_init_font_addon(); // initialize the font addon
+	al_init_ttf_addon(); // initialize the ttf (True Type Font) addon
+	al_install_audio();
+	al_init_acodec_addon();
+	//al_reserve_samples(2);
+
+
+	//tries to load font file
+	if (loadFont(p, smallFont_c) == false) {
+		FEXIT();
+		return false;
+	} //end-of-if(LoadFont(p, smallFont_c) == false)
+
+
+	if (loadFont(p, regularFont_c) == false) {
+		FEXIT();
+		return false;
+	} //end-of-if(LoadFont(p, regularFont_c) == false)
+
+
+	if (loadFont(p, largeFont_c) == false) {
+		FEXIT();
+		return false;
+	} //end-of-if(LoadFont(p, largeFont_c) == false)
+
+
+	if ((p->display.display = al_create_display(p->display.width,
+			p->display.height)) == NULL) {
+		ERROR("Cannot init display");
+		FEXIT();
+		return false;
+	}
+
+	//TRACE();
+	p->bcolorarray[yellow_c] = al_map_rgb(255, 255, 0);
+	p->bcolorarray[blue_c] = al_map_rgb(200, 200, 255);
+	p->bcolorarray[grey_c] = al_map_rgb(180, 180, 180);
+	p->bcolorarray[white_c] = al_map_rgb(255, 255, 255);
+	p->bcolorarray[green_c] = al_map_rgb(0, 180, 0);
+
+	p->fontColor = al_map_rgb(0, 100, 0);
+	p->timer = al_create_timer(1.0 / p->fps);
+	p->eventqueue = al_create_event_queue();
+	if (al_is_event_queue_empty(p->eventqueue) == false) {
+		ERROR("Event queue not empty after creation");
+	}
+
+	al_register_event_source(p->eventqueue, al_get_keyboard_event_source());
+	al_register_event_source(p->eventqueue,
+			al_get_display_event_source(p->display.display));
+	al_register_event_source(p->eventqueue,
+			al_get_timer_event_source(p->timer));
+	if (p->gameMode == arcade_c || p->gameMode == fullbot_c) {
+		INFO("Arcade/Full Auto Modes Detected\n");
+		p->botTimer = al_create_timer(1.0 / (float) p->player[lrt_c].paddleSpeed);
+		al_register_event_source(p->eventqueue,
+				al_get_timer_event_source(p->botTimer));
+	} else
+		p->botTimer = NULL;
+
+	if (loadPlayerImage(&(p->player[bus_c]), p->busBitmapName) == false) {
+		FEXIT();
+		return false;
+	}
+	if (loadPlayerImage(&(p->player[lrt_c]), p->lrtBitmapName) == false) {
+		FEXIT();
+		return false;
+	}
+	if (loadBitmap(&(p->ball), p->ballBitmapName) == false) {
+		FEXIT();
+		return false;
+	}
+
+	if ((p->gasBitmap = al_load_bitmap(p->gasBitmapName)) == NULL) {
+		ERROR2("cannot load", p->gasBitmapName);
+		FEXIT();
+		return false;
+	}
+
+	if ((p->ecarBitmap = al_load_bitmap(p->ecarBitmapName)) == NULL) {
+		ERROR2("cannot load", p->ecarBitmapName);
+		FEXIT();
+		return false;
+	}
+
+	setCarInfo(p);
+
+	loadAudio(&(p->player[bus_c]));
+	loadAudio(&(p->player[lrt_c]));
+	loadWinnerSound(p);
+
+	p->maxspeed.x = maxballspeed_c;
+	p->maxspeed.y = maxballspeed_c;
+
+	setInitialObjectPositions(p);
+
+	setBackgroundColor(*(p->backgroundColor));
+	FEXIT();
+	return true;
+} // end-of-function InitGame
+
+
+//===== Collisions ==========================
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
  @date    Nov 30, 2019
  @mname   increaseBallSpeed
  @details
@@ -514,6 +1567,98 @@ void slowBall(GameData* g) {
 	g->maxspeed.y -= 2;
 }
 
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 17, 2019
+ @mname   checkCollisionLeftRight
+ @details
+ true if there is a collision with top or bottom\n
+ --------------------------------------------------------------------------
+ */
+bool checkCollisionLeftRight(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	if (gptr->ball.position.x > (gptr->display.width - gptr->ball.width)) {
+		gptr->ball.position.x = gptr->display.width - gptr->ball.width;
+		if (gptr->ball.speed.x > 0)
+			gptr->ball.speed.x *= -1;
+		recordPoint(&(gptr->path), &(gptr->ball.position));
+		gptr->stats.totalBounce++;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
+		FEXIT();
+		return true;
+	} else if (gptr->ball.position.x < 0) {
+		gptr->ball.position.x = 0;
+		if (gptr->ball.speed.x < 0)
+			gptr->ball.speed.x *= -1;
+		recordPoint(&(gptr->path), &(gptr->ball.position));
+		gptr->stats.totalBounce++;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
+		FEXIT();
+		return true;
+	}
+
+	FEXIT();
+	return false;
+} // end-of-function checkCollisionLeftRight
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 17, 2019
+ @mname   checkCollisionTopAndBottom
+ @details
+ Checks if the ball hits either player's side of the field and grants a roundwin\n
+ --------------------------------------------------------------------------
+ */
+bool checkCollisionTopAndBottom(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	if ((gptr->ball.position.y >= (gptr->display.height - gptr->ball.height))
+			&& (gptr->ball.speed.y > 0)) {
+		gptr->player[1].carsSmashed += gptr->penalty;
+		gptr->roundWinner = &(gptr->player[lrt_c]);
+		recordPoint(&(gptr->path), &(gptr->ball.position));
+		gptr->stats.totalBounce++;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
+		FEXIT();
+		return true;
+
+	} else if ((gptr->ball.position.y <= 0) && (gptr->ball.speed.y < 0)) {
+		TRACE();
+		gptr->player[bus_c].carsSmashed += gptr->penalty;
+		gptr->roundWinner = &(gptr->player[bus_c]);
+		recordPoint(&(gptr->path), &(gptr->ball.position));
+		gptr->stats.totalBounce++;
+		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
+		FEXIT();
+		return true;
+	}
+	FEXIT();
+	return false;
+} // end-of-function checkCollisionTopAndBottom
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 28, 2019
+ @mname   signOfNumber
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+int signOfNumber(int value) {
+
+	if (value >= 0) {
+		return 1;
+	} //end-of-if(value > 0)
+	return -1;
+} // end-of-function signOfNumber
 
 /**
  ---------------------------------------------------------------------------
@@ -902,1021 +2047,6 @@ bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i
 	return false;
 }
 
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   setBackgroundColor
- @details
-   this function sets the background color for the display\n
- --------------------------------------------------------------------------
- */
-void  setBackgroundColor(ALLEGRO_COLOR color) {
-	FENTRY();
-	TRACE();
-	al_clear_to_color(color);
-	FEXIT();
-} // end-of-function setBackgroundColor
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 28, 2019
- @mname   LoadPlayerBitmap
- @details
-   this function loads a bitmap for the player from a file\n
- --------------------------------------------------------------------------
- */
-bool loadPlayerImage(GamePlayer *p, char* fname) {
-	FENTRY();
-	TRACE();
-	if ((p->ge.bmap = al_load_bitmap(fname)) == NULL) {
-		ERROR2("cannot load player bitmap", fname);
-		FEXIT();
-		return false;
-	}
-	p->ge.width = (al_get_bitmap_width(p->ge.bmap)* (p->paddleSize))/ maxPaddleSize_c;
-	p->ge.height = al_get_bitmap_height(p->ge.bmap);
-	FEXIT();
-	return true;
-} // end-of-function loadPlayerBitmap
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   loadBitmap
- @details
- return true if ok false otherwise\n
- --------------------------------------------------------------------------
- */
-bool loadBitmap(GameBasicBlock *g, char* fname) {
-	FENTRY();
-	TRACE();
-	if ((g->bmap = al_load_bitmap(fname)) == NULL) {
-		ERROR2("cannot load bitmap", fname);
-		FEXIT();
-		return false;
-	}
-	g->width = al_get_bitmap_width(g->bmap);
-	g->height = al_get_bitmap_height(g->bmap);
-
-	FEXIT();
-	return true;
-} // end-of-function loadBitmap
-
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   setBitmap
- @details
- return true if ok false otherwise\n
- --------------------------------------------------------------------------
- */
-bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
-	FENTRY();
-	TRACE();
-	g->bmap = b;
-	g->width = al_get_bitmap_width(g->bmap);
-	g->height = al_get_bitmap_height(g->bmap);
-	FEXIT();
-	return true;
-} // end-of-function setBitmap
-
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 27, 2019
- @mname   loadAudio
- @details
- \n
- --------------------------------------------------------------------------
- */
-bool loadAudio(GamePlayer *gptr) {
-	FENTRY();
-	TRACE();
-	gptr->sample = al_load_sample(gptr->audioFileName);
-	if (gptr->sample == NULL) {
-		ERROR2("Audio clip sample not loaded: ", gptr->audioFileName);
-		FEXIT();
-		return false;
-	}FEXIT();
-	return true;
-} // end-of-function loadAudio
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 28, 2019
- @mname   loadWinnerSound
- @details
- \n
- --------------------------------------------------------------------------
- */
-bool loadWinnerSound(GameData *gptr) {
-	FENTRY();
-	TRACE();
-	gptr->winsample = al_load_sample(gptr->winSoundFile);
-	if (gptr->winsample == NULL) {
-		ERROR2("Audio clip sample not loaded: ", gptr->winSoundFile);
-		FEXIT();
-		return false;
-	}
-	FEXIT();
-	return true;
-} // end-of-function loadWinnerSound
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 27, 2019
- @mname   loadFont
- @details
-   this function will load fonts for the text used to print
-   the various graphics\n
- --------------------------------------------------------------------------
- */
-bool loadFont(GameData *gptr, int size) {
-
-	FENTRY();
-	TRACE();
-	int fontSize = gptr->fontsize;
-	switch (size) {
-	case smallFont_c:
-		fontSize /= 2;
-		break;
-	case largeFont_c:
-		fontSize *= 2;
-		break;
-	default:
-		break;
-	} //end-switch(size)
-	gptr->font[size] = al_load_ttf_font(gptr->fontFileName, fontSize, 0);
-
-	//error message if the font file is NULL
-	if (gptr->font[size] == NULL) {
-		ERROR2("Could not load: ", gptr->fontFileName);
-		FEXIT();
-		return false;
-	}
-	FEXIT();
-	return true;
-} // end-of-function loadFont
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   setInitialObjectPositions
- @details
- This function sets the players in the middle of the Y axis and provides
- the ball to one of the players
- If it is the first round, the player who has the ball is chosen at random.
- After a round win the round winner gets the serve.\n
- --------------------------------------------------------------------------
- */
-void  setInitialObjectPositions(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	gptr->ball.speed.y = minballspeed_c + rand() % 3;
-	if (gptr->roundWinner) {
-		gptr->turn = gptr->roundWinner;
-		if (gptr->roundWinner == &(gptr->player[bus_c])) {
-			gptr->ball.speed.y *= -1;
-		} //end-of-if(p->roundWinner == &(p->player[0]))
-	} else {
-		//if there is no roundwinnner, it is the first serve of the game
-		//we need to pick at random a starting player
-		switch (rand() % 2) {
-		case 0:
-			// player 1
-			gptr->ball.speed.y *= -1;
-			gptr->turn = &gptr->player[bus_c];
-			break;
-		default:
-			//player 2
-			gptr->turn = &gptr->player[lrt_c];
-			break;
-		} //end-switch(rand() %2)
-	} //end-of-if(p->roundWinner)
-
-	gptr->ball.speed.x = rand() % 5;
-	if (gptr->ball.speed.x == 0)
-		gptr->ball.speed.x = 3;
-	switch (rand() % 2) {
-	case 0:
-		//serve up
-		gptr->ball.speed.x *= -1;
-		break;
-	default:
-		break;
-	} //end-switch(rand() %2)
-
-	gptr->player[bus_c].ge.position.x = gptr->display.width / 2 - gptr->player[0].ge.width / 2;
-	gptr->player[bus_c].ge.position.y = gptr->display.height - gptr->player[0].ge.height;
-	gptr->player[bus_c].ge.speed.x = 0;
-	gptr->player[lrt_c].ge.position.x = gptr->display.width / 2 - gptr->player[1].ge.width / 2;
-	gptr->player[lrt_c].ge.position.y = 0;
-	gptr->player[lrt_c].ge.speed.x = 0;
-
-	if (gptr->ball.speed.y > 0) {
-		gptr->ball.prevposition.y = gptr->ball.position.y;
-		gptr->ball.position.y = gptr->player[lrt_c].ge.position.y + gptr->player[1].ge.height;
-	}else {
-		gptr->ball.prevposition.y = gptr->ball.position.y;
-		gptr->ball.position.y = gptr->player[bus_c].ge.position.y - gptr->ball.height;
-	}
-	gptr->ball.prevposition.x = gptr->ball.position.x;
-	gptr->ball.position.x = gptr->display.width / 2 - (gptr->ball.width / 2);
-	if (gptr->ball.speed.y > 0) {
-		gptr->startsample = gptr->player[lrt_c].sample;
-	} else {
-		gptr->startsample = gptr->player[bus_c].sample;
-	}
-
-	recordPoint(&(gptr->path), &(gptr->ball.position));
-
-	int ypos = (gptr->display.height - gptr->bricks[0][0].height*gptr->maxRows)/2;
-	//printf("Max Rows = %d, Max Columns = %d", gptr->maxRows, gptr->maxColumns);
-	for (int i = 0; i < gptr->maxRows; i++) {
-		int xpos = (gptr->display.width - gptr->bricks[0][0].width*gptr->maxColumns)/2;
-		if(xpos < 0) {
-			xpos = 0;
-		}
-		for (int j = 0; j < gptr->maxColumns; j++) {
-			gptr->bricks[i][j].position.y = ypos;
-			gptr->bricks[i][j].position.x = xpos;
-			xpos += gptr->bricks[i][j].width;
-		} //end-of-for
-		ypos += gptr->bricks[i][0].height;
-	} //end-of-for
-
-	gptr->carArea.position.x = gptr->bricks[0][0].position.x;
-	gptr->carArea.position.y = gptr->bricks[0][0].position.y;
-
-	FEXIT();
-
-} // end-of-function setInitialObjectPositions
-
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   isKeyPressEvent
- @details
- This function checks for keyboard input
- This function reacts to both keydown events and keyup events
- When a key is pushed down a boolean is set to keep the keep down as it is pressed\n
- --------------------------------------------------------------------------
- */
-bool isKeyPressEvent(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-
-	if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-		switch (gptr->ev.keyboard.keycode) {
-		case ALLEGRO_KEY_LEFT:
-			if (gptr->gameMode != fullbot_c)
-				gptr->player[bus_c].keyPress[0] = true;
-			else
-				gptr->player[bus_c].keyPress[0] = false;
-			gptr->player[bus_c].keyPress[1] = false;
-			break;
-		case ALLEGRO_KEY_RIGHT:
-			if (gptr->gameMode != fullbot_c)
-				gptr->player[bus_c].keyPress[1] = true;
-			else
-				gptr->player[bus_c].keyPress[1] = false;
-			gptr->player[bus_c].keyPress[0] = false;
-			break;
-		case ALLEGRO_KEY_Q:
-			if (gptr->gameMode == human_c)
-				gptr->player[lrt_c].keyPress[0] = true;
-			else
-				gptr->player[lrt_c].keyPress[0] = false;
-			gptr->player[lrt_c].keyPress[1] = false;
-			break;
-		case ALLEGRO_KEY_E:
-			if (gptr->gameMode == human_c)
-				gptr->player[lrt_c].keyPress[1] = true;
-			else
-				gptr->player[lrt_c].keyPress[1] = false;
-			gptr->player[lrt_c].keyPress[0] = false;
-			break;
-		case ALLEGRO_KEY_P:
-			if(gptr->gamePaused == false ) {
-				gptr->gamePaused = true;
-				stopTimers(gptr);
-			}
-			else {
-				gptr->gamePaused = false;
-				al_flush_event_queue(gptr->eventqueue);
-				startTimers(gptr);
-			}
-			break;
-		case ALLEGRO_KEY_H:
-			gptr->helpOn = !gptr->helpOn;
-			break;
-		case ALLEGRO_KEY_C:
-			gptr->cAlgoSelector = !gptr->cAlgoSelector;
-			break;
-		case ALLEGRO_KEY_G:
-			gptr->path.separateDisplay = !gptr->path.separateDisplay;
-			if(gptr->path.rec == true) {
-				if(gptr->path.separateDisplay) {
-					createTrajectoryDisplay(gptr);
-				}
-				else {
-					al_destroy_display(gptr->trajectoryDisplay.display);
-					gptr->trajectoryDisplay.display = NULL;
-				}
-			}
-			break;
-		case ALLEGRO_KEY_T:
-			if(gptr->path.rec == false) {
-				if(gptr->path.separateDisplay) {
-					createTrajectoryDisplay(gptr);
-				}
-				gptr->path.rec = true;
-			}
-			else {
-				al_destroy_display(gptr->trajectoryDisplay.display);
-				gptr->trajectoryDisplay.display = NULL;
-				gptr->path.rec = false;
-				gptr->path.used = 0;
-			}
-			break;
-		case ALLEGRO_KEY_F:
-			increaseBallSpeed(gptr);
-			break;
-		case ALLEGRO_KEY_S:
-			slowBall(gptr);
-			break;
-		case ALLEGRO_KEY_ESCAPE:
-			//exit game
-			FEXIT();
-			return false;
-		}
-	} else if (gptr->ev.type == ALLEGRO_EVENT_KEY_UP) {
-		switch (gptr->ev.keyboard.keycode) {
-		case ALLEGRO_KEY_LEFT:
-			if (gptr->gameMode != fullbot_c) {
-				gptr->player[bus_c].keyPress[0] = false;
-				gptr->player[bus_c].ge.speed.x = 0;
-			}
-			break;
-		case ALLEGRO_KEY_RIGHT:
-			if (gptr->gameMode != fullbot_c) {
-				gptr->player[bus_c].keyPress[1] = false;
-				gptr->player[bus_c].ge.speed.x = 0;
-			}
-			break;
-		case ALLEGRO_KEY_Q:
-			if (gptr->gameMode == human_c) {
-				gptr->player[lrt_c].keyPress[0] = false;
-				gptr->player[lrt_c].ge.speed.x = 0;
-			}
-			break;
-		case ALLEGRO_KEY_E:
-			if (gptr->gameMode == human_c) {
-				gptr->player[lrt_c].keyPress[1] = false;
-				gptr->player[lrt_c].ge.speed.x = 0;
-			}
-			break;
-		case ALLEGRO_KEY_W:
-			writeCarLayoutToFile(gptr);
-			break;
-		case ALLEGRO_KEY_ESCAPE:
-			//exit game
-			FEXIT();
-			return false;
-		}
-	}
-	FEXIT();
-	return true;
-} // end-of-function isKeyPressEvent
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Dec 3, 2019
- @mname   pressAnyKeyToBeginGame
- @details
- \n
- --------------------------------------------------------------------------
- */
-bool pressAnyKeyToBeginGame(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	al_flush_event_queue(gptr->eventqueue);
-
-	while (true) {
-		TRACE();
-		//wait for an event
-		al_wait_for_event(gptr->eventqueue, &(gptr->ev));
-		//check if the event is a key press
-		//can be something else as the event queue
-		//has other sources
-		if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-			FEXIT();
-			//exits either way
-			switch (gptr->ev.keyboard.keycode) {
-			case ALLEGRO_KEY_ESCAPE:
-				//exit game
-				return false;
-			default:
-				return true;
-			}
-		}
-		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-			if(gptr->ev.any.source == al_get_display_event_source(gptr->trajectoryDisplay.display)) {
-				DEBUG("three");
-				al_destroy_display(gptr->trajectoryDisplay.display);
-				gptr->trajectoryDisplay.display = NULL;
-			} else {
-				DEBUG("three");
-				FEXIT();
-				return false;
-			}
-		}
-	}FEXIT();
-	return true;
-} // end-of-function pressAnyKeyToBeginGame
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 27, 2019
- @mname   movePlayers
- @details
- This function calculates the new positions of the paddles after the keys are pressed\n
- --------------------------------------------------------------------------
- */
-void  movePlayers(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	if (gptr->player[bus_c].keyPress[0] == true) {
-		gptr->player[bus_c].ge.position.x -= gptr->player[bus_c].paddleSpeed;
-		gptr->player[bus_c].ge.speed.x = (-1)*gptr->player[bus_c].paddleSpeed;
-		if (gptr->player[bus_c].ge.position.x < 0)
-			gptr->player[bus_c].ge.position.x = 0;
-	}
-	if (gptr->player[bus_c].keyPress[1] == true) {
-		gptr->player[bus_c].ge.position.x += gptr->player[bus_c].paddleSpeed;
-		gptr->player[bus_c].ge.speed.x = gptr->player[bus_c].paddleSpeed;
-		if (gptr->player[bus_c].ge.position.x >= (gptr->display.width - gptr->player[bus_c].ge.width))
-			gptr->player[bus_c].ge.position.x = (gptr->display.width - gptr->player[bus_c].ge.width);
-	} //end-of-if(p->player[0].keyPress[1] ==true)
-
-	if (gptr->player[lrt_c].keyPress[0] == true) {
-		gptr->player[lrt_c].ge.position.x -= gptr->player[lrt_c].paddleSpeed;
-		gptr->player[lrt_c].ge.speed.x = (-1)* gptr->player[lrt_c].paddleSpeed;
-		if (gptr->player[lrt_c].ge.position.x < 0)
-			gptr->player[lrt_c].ge.position.x = 0;
-	} //end-of-if(p->player[1].keyPress[0] == true)
-
-	if (gptr->player[lrt_c].keyPress[1] == true) {
-		gptr->player[lrt_c].ge.position.x += gptr->player[lrt_c].paddleSpeed;
-		gptr->player[lrt_c].ge.speed.x = gptr->player[lrt_c].paddleSpeed;
-		if (gptr->player[lrt_c].ge.position.x >= (gptr->display.width - gptr->player[lrt_c].ge.width))
-			gptr->player[lrt_c].ge.position.x = (gptr->display.width - gptr->player[lrt_c].ge.width);
-	} //end-of-if(p->player[1].keyPress[1] == true)
-
-	FEXIT();
-} // end-of-function movePlayers
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   drawTextOnScreen
- @details
- Displays text on screen using allegro
- Declared an enumeration of text sizes
- Different text sizes are used for different messages \n
- --------------------------------------------------------------------------
- */
-int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size) {
-	FENTRY();
-	TRACE();
-	al_draw_text(gptr->font[size], gptr->fontColor, x, y, ALLEGRO_ALIGN_CENTRE, text);
-	int fsize = gptr->fontsize;
-	switch (size) {
-	case smallFont_c:
-		fsize /= 2;
-		break;
-	case largeFont_c:
-		fsize *= 2;
-		break;
-	default:
-		break;
-	} //end-switch(size)
-	FEXIT();
-	return y + fsize + 10;
-} // end-of-function drawTextOnScreen
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   drawTextAndWaitBegin
- @details
- Returns false if escape key is pressed
- This function displays the first screen that the user views in the game\n
- --------------------------------------------------------------------------
- */
-bool drawTextAndWaitBegin(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-
-	int next = drawTextOnScreen(gptr, (char*) "Welcome to Car Smasher", gptr->display.width / 2,
-			gptr->display.height / 4, largeFont_c);
-	al_flush_event_queue(gptr->eventqueue);
-	drawTextOnScreen(gptr, (char*) "(c) mlambiri 2019", gptr->display.width / 2, next,
-			smallFont_c);
-
-	if(gptr->gameMode == fullbot_c) {
-		next = drawTextOnScreen(gptr, (char*) "Full Auto Mode (Bot v Bot)", gptr->display.width / 2,
-				gptr->display.height / 2, regularFont_c);
-	}
-	else if (gptr->gameMode == arcade_c) {
-		next = drawTextOnScreen(gptr, (char*) "Arcade Mode (Bot Controls LRT)",
-				gptr->display.width / 2, gptr->display.height / 2, regularFont_c);
-	} else {
-		next = drawTextOnScreen(gptr, (char*) "Two Player Mode", gptr->display.width / 2,
-				gptr->display.height / 2, regularFont_c);
-	}
-	char buffer[100];
-	sprintf(buffer, "Most points after %d rounds wins!", gptr->maxRounds);
-	next = drawTextOnScreen(gptr, buffer, gptr->display.width / 2, next, regularFont_c);
-	next = drawTextOnScreen(gptr, (char*) "Press a key to begin", gptr->display.width / 2,
-			next, regularFont_c);
-
-	flipAllDisplays(gptr);
-
-
-	if (pressAnyKeyToBeginGame(gptr) == false) {
-		FEXIT();
-		return false;
-	}
-	writeCarLayoutToFile(gptr);
-	if(gptr->path.rec == true && gptr->path.separateDisplay) {
-		createTrajectoryDisplay(gptr);
-	}
-	FEXIT();
-	return true;
-} // end-of-function drawTextAndWaitBegin
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   drawTextAndWaitRoundWin
- @details
- Returns false if escape key is pressed
- This function displays a screen when a round or game is won
- The text for the two conditions will be different
- We declare the temporary variable next to position text messages one on top of another
- We do this by adding a value to the y coordinate of the message\n
- --------------------------------------------------------------------------
- */
-bool drawTextAndWaitRoundWin(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	char textBuffer[MAXBUFFER];
-	if ((gptr->roundNumber == gptr->maxRounds) || (gptr->remainingCars == 0)){
-		gptr->roundNumber = 1;
-		GamePlayer* ptr;
-		if(gptr->player[bus_c].carsSmashed > gptr->player[lrt_c].carsSmashed) {
-			ptr = &gptr->player[bus_c];
-		}
-		else if(gptr->player[bus_c].carsSmashed < gptr->player[lrt_c].carsSmashed) {
-			ptr = &gptr->player[lrt_c];
-		}
-		else {
-			ptr= NULL;
-		}
-		if(ptr == NULL) {
-			sprintf(textBuffer, "It's a Draw!!!!");
-		}
-		else {
-			sprintf(textBuffer, "%s Wins The Game!!", ptr->name);
-		}
-		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
-				gptr->carArea.position.y - 3*gptr->fontsize, largeFont_c);
-		sprintf(textBuffer, "Score: %s %d %s %d", gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
-				gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
-		next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2, next,
-				regularFont_c);
-
-		drawTextOnScreen(gptr, (char*) "Press a key to begin or ESC to exit",
-				gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
-
-		playSound(gptr->winsample);
-		const char* mode;
-		if(gptr->gameMode == fullbot_c) {
-			mode = "Full Auto";
-		}
-		else if (gptr->gameMode == arcade_c) {
-			mode = "Arcade";
-		} else {
-			mode = "Human";
-		}
-		sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]", mode, gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
-				gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
-
-		recordResult(textBuffer, &(gptr->stats));
-		gptr->backgroundColor = gptr->initcolor;
-		initializaCarLayout(gptr);
-		setCarInfo(gptr);
-		writeCarLayoutToFile(gptr);
-		gptr->player[bus_c].carsSmashed = 0;
-		gptr->player[lrt_c].carsSmashed = 0;
-		//gptr->path.rec = false;
-		gptr->path.used = 0;
-		gptr->stats.totalBounce = 0;
-		gptr->stats.firstEmpty = 0;
-		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty] = 0;
-		recordPoint(&(gptr->path), &(gptr->ball.position));
-
-	} else {
-		sprintf(textBuffer, "Score: %s %d %s %d",
-				gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed, gptr->player[bus_c].name,
-				gptr->player[bus_c].carsSmashed);
-		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
-				gptr->carArea.position.y - gptr->fontsize, regularFont_c);
-		char buffer[100];
-		sprintf(buffer, "Press a key to begin Round %d of %d or ESC to exit", ++gptr->roundNumber, gptr->maxRounds);
-		drawTextOnScreen(gptr, buffer, gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
-		//DEBUG(" =======\n");
-	}
-
-	flipAllDisplays(gptr);
-
-	if (pressAnyKeyToBeginGame(gptr) == false) {
-		FEXIT();
-		return false;
-	}
-
-	for (int i = 0; i < 2; i++) {
-		gptr->player[bus_c].keyPress[i] = false;
-		gptr->player[lrt_c].keyPress[i] = false;
-	} //end-of-for
-	al_flush_event_queue(gptr->eventqueue);
-
-	FEXIT();
-	return true;
-} // end-of-function drawTextAndWaitRoundWin
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 18, 2019
- @mname   displayScore
- @details
- \n
- --------------------------------------------------------------------------
- */
-bool displayScore(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	char textBuffer[MAXBUFFER];
-	sprintf(textBuffer, "Score: %s %d %s %d",
-			gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed, gptr->player[bus_c].name,
-			gptr->player[bus_c].carsSmashed);
-	int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
-			30, smallFont_c);
-	sprintf(textBuffer, "Remain: %d",
-			gptr->remainingCars);
-	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
-			next, smallFont_c);
-	sprintf(textBuffer, "%d Points Per Smash",
-			gptr->scorePointsPerSmash);
-	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
-			next, smallFont_c);
-	sprintf(textBuffer, "%d Bounces since Last Smash",
-			gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]);
-	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
-			next, smallFont_c);
-	sprintf(textBuffer, "%d Total Bounces",
-			gptr->stats.totalBounce);
-	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
-			next, smallFont_c);
-	if(gptr->gamePaused == true) {
-		sprintf(textBuffer, "** Game is Paused! Press P to resume **");
-		next = drawTextOnScreen(gptr, textBuffer, gptr->display.width -100,
-				next, smallFont_c);
-	}
-}
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 18, 2019
- @mname
- @details
- \n
- --------------------------------------------------------------------------
- */
-bool displayHelp(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	char textBuffer[MAXBUFFER];
-	const int xpos_c = 100;
-	sprintf(textBuffer, "Level: %s %d %s %d",
-			gptr->player[lrt_c].name,
-			gptr->botLevel[lrt_c]+1,
-			gptr->player[bus_c].name,
-			gptr->botLevel[bus_c]+1);
-	int next = drawTextOnScreen(gptr, textBuffer, xpos_c,
-			30, smallFont_c);
-
-	sprintf(textBuffer, "Collision Algo: %d (C)",
-			gptr->cAlgoSelector?2:1);
-	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
-			next, smallFont_c);
-
-	sprintf(textBuffer, "Game Mode: %d",
-			gptr->gameMode);
-	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
-			next, smallFont_c);
-
-	sprintf(textBuffer, "New Window: %s (G)",
-			gptr->path.separateDisplay?"Y":"N");
-	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
-			next, smallFont_c);
-
-	sprintf(textBuffer, "Trajectory On: %s (T)",
-			gptr->path.rec?"Y":"N");
-	next = drawTextOnScreen(gptr, textBuffer, xpos_c,
-			next, smallFont_c);
-}
-
-
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   drawBitmap
- @details
- \n
- --------------------------------------------------------------------------
- */
-void  drawBitmap(GameBasicBlock *g) {
-	FENTRY();
-	TRACE();
-	al_draw_bitmap(g->bmap, g->position.x, g->position.y, 0);
-	FEXIT();
-
-} // end-of-function drawBitmap
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 28, 2019
- @mname   drawBitmapSection
- @details
- Draws only a selected portion of a bitmap.
- It is used to change the length of the pallete depending on the game level.\n
- --------------------------------------------------------------------------
- */
-void  drawBitmapSection(GameBasicBlock *g) {
-	FENTRY();
-	TRACE();
-	al_draw_bitmap_region(g->bmap, 0, 0, g->width, g->height, g->position.x,
-			g->position.y, 0);
-	FEXIT();
-} // end-of-function drawBitmapSection
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   drawObjects
- @details
- This function sets the background color and draws the players and the ball
- Has to be called every time we want to refresh the display during gameplay\n
- --------------------------------------------------------------------------
- */
-void  drawObjects(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	setBackgroundColor(*(gptr->backgroundColor));
-	drawBitmapSection(&(gptr->player[bus_c].ge));
-	drawBitmapSection(&(gptr->player[lrt_c].ge));
-	drawBitmap(&(gptr->ball));
-	for (int i = 0; i < gptr->maxRows; i++) {
-		for (int j = 0; j < gptr->maxColumns; j++) {
-			if (gptr->bricks[i][j].onScreen == true) {
-				drawBitmap(&(gptr->bricks[i][j]));
-			}//end-of-if
-		} //end-of-for
-	} //end-of-for
-	displayScore(gptr);
-	if(gptr->helpOn) displayHelp(gptr);
-	if(gptr->path.rec == true && gptr->path.separateDisplay == false) {
-		for (int i = 1; i < gptr->path.used; i++ ) {
-			al_draw_line(gptr->path.point[i-1].x, gptr->path.point[i-1].y, gptr->path.point[i].x, gptr->path.point[i].y, al_map_rgb(255, 0,0), 1.0);
-		} //end-of-for
-		al_draw_line(gptr->path.point[gptr->path.used-1].x, gptr->path.point[gptr->path.used-1].y, gptr->ball.position.x, gptr->ball.position.y, al_map_rgb(255, 0,0), 1.0);
-	}
-	FEXIT();
-} // end-of-function drawObjects
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 17, 2019
- @mname   checkCollisionLeftRight
- @details
- true if there is a collision with top or bottom\n
- --------------------------------------------------------------------------
- */
-bool checkCollisionLeftRight(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	if (gptr->ball.position.x > (gptr->display.width - gptr->ball.width)) {
-		gptr->ball.position.x = gptr->display.width - gptr->ball.width;
-		if (gptr->ball.speed.x > 0)
-			gptr->ball.speed.x *= -1;
-		recordPoint(&(gptr->path), &(gptr->ball.position));
-		gptr->stats.totalBounce++;
-		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
-		FEXIT();
-		return true;
-	} else if (gptr->ball.position.x < 0) {
-		gptr->ball.position.x = 0;
-		if (gptr->ball.speed.x < 0)
-			gptr->ball.speed.x *= -1;
-		recordPoint(&(gptr->path), &(gptr->ball.position));
-		gptr->stats.totalBounce++;
-		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
-		FEXIT();
-		return true;
-	}
-
-	FEXIT();
-	return false;
-} // end-of-function checkCollisionLeftRight
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 17, 2019
- @mname   checkCollisionTopAndBottom
- @details
- Checks if the ball hits either player's side of the field and grants a roundwin\n
- --------------------------------------------------------------------------
- */
-bool checkCollisionTopAndBottom(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	if ((gptr->ball.position.y >= (gptr->display.height - gptr->ball.height))
-			&& (gptr->ball.speed.y > 0)) {
-		gptr->player[1].carsSmashed += gptr->penalty;
-		gptr->roundWinner = &(gptr->player[lrt_c]);
-		recordPoint(&(gptr->path), &(gptr->ball.position));
-		gptr->stats.totalBounce++;
-		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
-		FEXIT();
-		return true;
-
-	} else if ((gptr->ball.position.y <= 0) && (gptr->ball.speed.y < 0)) {
-		TRACE();
-		gptr->player[bus_c].carsSmashed += gptr->penalty;
-		gptr->roundWinner = &(gptr->player[bus_c]);
-		recordPoint(&(gptr->path), &(gptr->ball.position));
-		gptr->stats.totalBounce++;
-		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
-		FEXIT();
-		return true;
-	}
-	FEXIT();
-	return false;
-} // end-of-function checkCollisionTopAndBottom
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 23, 2019
- @mname   PlaySound
- @details
- \n
- --------------------------------------------------------------------------
- */
-void  playSound(ALLEGRO_SAMPLE *s) {
-	FENTRY();
-	TRACE();
-	if (s) {
-		al_play_sample(s, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-	}
-	FEXIT();
-} // end-of-function PlaySound
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Jun 2, 2019
- @mname   stopTimers
- @details
- Stops all game timers \n
- --------------------------------------------------------------------------
- */
-void  stopTimers(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	al_stop_timer(gptr->timer);
-	if (gptr->gameMode != human_c)
-		al_stop_timer(gptr->botTimer);
-	FEXIT();
-
-} // end-of-function stopTimers
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Jun 2, 2019
- @mname   startTimers
- @details
- \n
- --------------------------------------------------------------------------
- */
-void  startTimers(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	al_start_timer(gptr->timer);
-	if (gptr->gameMode != human_c)
-		al_start_timer(gptr->botTimer);
-	FEXIT();
-} // end-of-functions startTimers
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   printRoundWinner
- @details
- When the round ends, we need to stop the timers from firing unwanted events
- We do that at the beginning of the function
- Prints a message and play a sound
- Then we wait for user input to restart the game\n
- --------------------------------------------------------------------------
- */
-bool printRoundWinner(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	stopTimers(gptr);
-	setInitialObjectPositions(gptr);
-	drawObjects(gptr);
-
-	if (drawTextAndWaitRoundWin(gptr) == false) {
-		FEXIT();
-		return false;
-	} else {
-		startTimers(gptr);
-		playSound(gptr->startsample);
-	}
-	FEXIT();
-	return true;
-} // end-of-function printRoundWinner
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 28, 2019
- @mname   signOfNumber
- @details
- \n
- --------------------------------------------------------------------------
- */
-int signOfNumber(int value) {
-
-	if (value >= 0) {
-		return 1;
-	} //end-of-if(value > 0)
-	return -1;
-} // end-of-function signOfNumber
-
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
@@ -2175,7 +2305,6 @@ bool updateBallPosition(GameData *gptr) {
 		// use a temporary ball to do the checks
 		GameBasicBlock tmpBall = gptr->ball;
 
-		//printf("%d\n", maxxspeed.y);
 		for (int i = 0; i < maxOfxy; i++ ) {
 
 			float txf = tmpBall.position.x + i*xplus;
@@ -2270,6 +2399,319 @@ bool updateBallPosition(GameData *gptr) {
 	FEXIT();
 	return false;
 } // end-of-function updateBallPosition
+
+
+
+//=========== Game Controls =======================
+
+/**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Dec. 2, 2019
+   @mname   recordPoint
+   @details
+	  \n
+  --------------------------------------------------------------------------
+ */
+bool
+recordPoint(DataRecorder* r, Point* p) {
+	// recorder not on
+	if(r->rec == false) return false;
+	// recorder full
+	if(r->used >= MAXRECORDING-1) return false;
+	r->point[r->used++] = *p;
+
+	return true;
+} // end-of-method recordPoint
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   isKeyPressEvent
+ @details
+ This function checks for keyboard input
+ This function reacts to both keydown events and keyup events
+ When a key is pushed down a boolean is set to keep the keep down as it is pressed\n
+ --------------------------------------------------------------------------
+ */
+bool isKeyPressEvent(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+
+	if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+		switch (gptr->ev.keyboard.keycode) {
+		case ALLEGRO_KEY_LEFT:
+			if (gptr->gameMode != fullbot_c)
+				gptr->player[bus_c].keyPress[0] = true;
+			else
+				gptr->player[bus_c].keyPress[0] = false;
+			gptr->player[bus_c].keyPress[1] = false;
+			break;
+		case ALLEGRO_KEY_RIGHT:
+			if (gptr->gameMode != fullbot_c)
+				gptr->player[bus_c].keyPress[1] = true;
+			else
+				gptr->player[bus_c].keyPress[1] = false;
+			gptr->player[bus_c].keyPress[0] = false;
+			break;
+		case ALLEGRO_KEY_Q:
+			if (gptr->gameMode == human_c)
+				gptr->player[lrt_c].keyPress[0] = true;
+			else
+				gptr->player[lrt_c].keyPress[0] = false;
+			gptr->player[lrt_c].keyPress[1] = false;
+			break;
+		case ALLEGRO_KEY_E:
+			if (gptr->gameMode == human_c)
+				gptr->player[lrt_c].keyPress[1] = true;
+			else
+				gptr->player[lrt_c].keyPress[1] = false;
+			gptr->player[lrt_c].keyPress[0] = false;
+			break;
+		case ALLEGRO_KEY_P:
+			if(gptr->gamePaused == false ) {
+				gptr->gamePaused = true;
+				stopTimers(gptr);
+			}
+			else {
+				gptr->gamePaused = false;
+				al_flush_event_queue(gptr->eventqueue);
+				startTimers(gptr);
+			}
+			break;
+		case ALLEGRO_KEY_H:
+			gptr->helpOn = !gptr->helpOn;
+			break;
+		case ALLEGRO_KEY_C:
+			gptr->cAlgoSelector = !gptr->cAlgoSelector;
+			break;
+		case ALLEGRO_KEY_G:
+			gptr->path.separateDisplay = !gptr->path.separateDisplay;
+			if(gptr->path.rec == true) {
+				if(gptr->path.separateDisplay) {
+					createTrajectoryDisplay(gptr);
+				}
+				else {
+					al_destroy_display(gptr->trajectoryDisplay.display);
+					gptr->trajectoryDisplay.display = NULL;
+				}
+			}
+			break;
+		case ALLEGRO_KEY_T:
+			if(gptr->path.rec == false) {
+				if(gptr->path.separateDisplay) {
+					createTrajectoryDisplay(gptr);
+				}
+				gptr->path.rec = true;
+			}
+			else {
+				al_destroy_display(gptr->trajectoryDisplay.display);
+				gptr->trajectoryDisplay.display = NULL;
+				gptr->path.rec = false;
+				gptr->path.used = 0;
+			}
+			break;
+		case ALLEGRO_KEY_F:
+			increaseBallSpeed(gptr);
+			break;
+		case ALLEGRO_KEY_S:
+			slowBall(gptr);
+			break;
+		case ALLEGRO_KEY_ESCAPE:
+			//exit game
+			FEXIT();
+			return false;
+		}
+	} else if (gptr->ev.type == ALLEGRO_EVENT_KEY_UP) {
+		switch (gptr->ev.keyboard.keycode) {
+		case ALLEGRO_KEY_LEFT:
+			if (gptr->gameMode != fullbot_c) {
+				gptr->player[bus_c].keyPress[0] = false;
+				gptr->player[bus_c].ge.speed.x = 0;
+			}
+			break;
+		case ALLEGRO_KEY_RIGHT:
+			if (gptr->gameMode != fullbot_c) {
+				gptr->player[bus_c].keyPress[1] = false;
+				gptr->player[bus_c].ge.speed.x = 0;
+			}
+			break;
+		case ALLEGRO_KEY_Q:
+			if (gptr->gameMode == human_c) {
+				gptr->player[lrt_c].keyPress[0] = false;
+				gptr->player[lrt_c].ge.speed.x = 0;
+			}
+			break;
+		case ALLEGRO_KEY_E:
+			if (gptr->gameMode == human_c) {
+				gptr->player[lrt_c].keyPress[1] = false;
+				gptr->player[lrt_c].ge.speed.x = 0;
+			}
+			break;
+		case ALLEGRO_KEY_W:
+			writeCarLayoutToFile(gptr);
+			break;
+		case ALLEGRO_KEY_ESCAPE:
+			//exit game
+			FEXIT();
+			return false;
+		}
+	}
+	FEXIT();
+	return true;
+} // end-of-function isKeyPressEvent
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Dec 3, 2019
+ @mname   pressAnyKeyToBeginGame
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+bool pressAnyKeyToBeginGame(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	al_flush_event_queue(gptr->eventqueue);
+
+	while (true) {
+		TRACE();
+		//wait for an event
+		al_wait_for_event(gptr->eventqueue, &(gptr->ev));
+		//check if the event is a key press
+		//can be something else as the event queue
+		//has other sources
+		if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+			FEXIT();
+			//exits either way
+			switch (gptr->ev.keyboard.keycode) {
+			case ALLEGRO_KEY_ESCAPE:
+				//exit game
+				return false;
+			default:
+				return true;
+			}
+		}
+		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+			if(gptr->ev.any.source == al_get_display_event_source(gptr->trajectoryDisplay.display)) {
+				DEBUG("three");
+				al_destroy_display(gptr->trajectoryDisplay.display);
+				gptr->trajectoryDisplay.display = NULL;
+			} else {
+				DEBUG("three");
+				FEXIT();
+				return false;
+			}
+		}
+	}FEXIT();
+	return true;
+} // end-of-function pressAnyKeyToBeginGame
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 23, 2019
+ @mname   PlaySound
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+void  playSound(ALLEGRO_SAMPLE *s) {
+	FENTRY();
+	TRACE();
+	if (s) {
+		al_play_sample(s, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+	}
+	FEXIT();
+} // end-of-function PlaySound
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Jun 2, 2019
+ @mname   stopTimers
+ @details
+ Stops all game timers \n
+ --------------------------------------------------------------------------
+ */
+void  stopTimers(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	al_stop_timer(gptr->timer);
+	if (gptr->gameMode != human_c)
+		al_stop_timer(gptr->botTimer);
+	FEXIT();
+
+} // end-of-function stopTimers
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Jun 2, 2019
+ @mname   startTimers
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+void  startTimers(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	al_start_timer(gptr->timer);
+	if (gptr->gameMode != human_c)
+		al_start_timer(gptr->botTimer);
+	FEXIT();
+} // end-of-functions startTimers
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 27, 2019
+ @mname   movePlayers
+ @details
+ This function calculates the new positions of the paddles after the keys are pressed\n
+ --------------------------------------------------------------------------
+ */
+void  movePlayers(GameData *gptr) {
+
+	FENTRY();
+	TRACE();
+	if (gptr->player[bus_c].keyPress[0] == true) {
+		gptr->player[bus_c].ge.position.x -= gptr->player[bus_c].paddleSpeed;
+		gptr->player[bus_c].ge.speed.x = (-1)*gptr->player[bus_c].paddleSpeed;
+		if (gptr->player[bus_c].ge.position.x < 0)
+			gptr->player[bus_c].ge.position.x = 0;
+	}
+	if (gptr->player[bus_c].keyPress[1] == true) {
+		gptr->player[bus_c].ge.position.x += gptr->player[bus_c].paddleSpeed;
+		gptr->player[bus_c].ge.speed.x = gptr->player[bus_c].paddleSpeed;
+		if (gptr->player[bus_c].ge.position.x >= (gptr->display.width - gptr->player[bus_c].ge.width))
+			gptr->player[bus_c].ge.position.x = (gptr->display.width - gptr->player[bus_c].ge.width);
+	} //end-of-if(p->player[0].keyPress[1] ==true)
+
+	if (gptr->player[lrt_c].keyPress[0] == true) {
+		gptr->player[lrt_c].ge.position.x -= gptr->player[lrt_c].paddleSpeed;
+		gptr->player[lrt_c].ge.speed.x = (-1)* gptr->player[lrt_c].paddleSpeed;
+		if (gptr->player[lrt_c].ge.position.x < 0)
+			gptr->player[lrt_c].ge.position.x = 0;
+	} //end-of-if(p->player[1].keyPress[0] == true)
+
+	if (gptr->player[lrt_c].keyPress[1] == true) {
+		gptr->player[lrt_c].ge.position.x += gptr->player[lrt_c].paddleSpeed;
+		gptr->player[lrt_c].ge.speed.x = gptr->player[lrt_c].paddleSpeed;
+		if (gptr->player[lrt_c].ge.position.x >= (gptr->display.width - gptr->player[lrt_c].ge.width))
+			gptr->player[lrt_c].ge.position.x = (gptr->display.width - gptr->player[lrt_c].ge.width);
+	} //end-of-if(p->player[1].keyPress[1] == true)
+
+	FEXIT();
+} // end-of-function movePlayers
+
 
 /**
  ---------------------------------------------------------------------------
@@ -2563,433 +3005,6 @@ void  exitGame(GameData *gptr) {
 	FEXIT();
 } // end-of-function exitGame
 
-//======== PUBLIC FUNCTIONS ===========
-//The functions below are called from the main function
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 17, 2019
- @mname   initializeGameData
- @details
- This function gets the game config parameters as read from the config file
- In the same format as the parameters passes to the main file
- argv is an array of character pointers and argc is the is number of entries in the array
- Processing is done in the same style as the main command line arguments\n
- --------------------------------------------------------------------------
- */
-bool initializeGameData(GameData *p, int argc, char **argv) {
-
-	FENTRY();
-	TRACE();
-
-	srand(time(0));
-
-	strcpy(p->player[bus_c].name, "Bus");
-	strcpy(p->player[lrt_c].name, "LRT");
-	strcpy(p->fontFileName, defaultFont);
-	strcpy(p->player[bus_c].audioFileName, busSound);
-	strcpy(p->player[lrt_c].audioFileName, lrtSound);
-	strcpy(p->busBitmapName, busPngName);
-	strcpy(p->lrtBitmapName, lrtPngName);
-	strcpy(p->ballBitmapName, ballPngName);
-	strcpy(p->gasBitmapName, gasPngName);
-	strcpy(p->ecarBitmapName, electricPngName);
-
-	// today
-	p->year = 2019;
-
-	p->validLayout = false;
-	p->penalty = POINTSFORLOSTBALL;
-	p->inLayout[0] = 0;
-	p->outLayout[0] = 0;
-
-	p->maxRows = MAXBRICKROWS;
-	p->maxColumns = MAXBRICKCOLUMNS;
-
-	p->gameNumber = 1;
-	p->roundNumber = 1;
-	p->backgroundColor = &(p->bcolorarray[yellow_c]);
-
-	p->scorePointsPerSmash = 1;
-	p->cAlgoSelector = false;
-	p->player[bus_c].paddleSpeed = initPaddleSpeed_c;
-	p->player[lrt_c].paddleSpeed = initPaddleSpeed_c;
-
-	p->trajectoryDisplay.display = NULL;
-	p->path.rec = false;
-	p->path.used = 0;
-	p->path.separateDisplay = false;
-
-	p->botLevel[bus_c] = pro_c;
-	p->botLevel[lrt_c] = pro_c;
-
-	p->helpOn = false;
-	p->stats.totalBounce = 0;
-	p->stats.firstEmpty = 0;
-	p->stats.bounceUntilSmash[p->stats.firstEmpty] = 0;
-
-	p->gamePaused = false;
-
-	//loop that processes the command line arguments.
-	//argc is the size of the argument's array and argv is the array itself
-	for (int param = 0; param < argc; param++) {
-		if (strcmp(argv[param], "gamemode") == 0) {
-			//arcade mode
-			//LRT (ie player2) is computer controlled
-			if (++param < argc ){
-				if (strcmp(argv[param], "arcade") == 0)
-					p->gameMode = arcade_c;
-				else if (strcmp(argv[param], "auto") == 0)
-					p->gameMode = fullbot_c;
-				else
-					p->gameMode = human_c;
-			}
-		} else if (strcmp(argv[param], "screenwidth") == 0) {
-			//display width
-			if (++param < argc)
-				p->display.width = atoi(argv[param]);
-		} else if (strcmp(argv[param], "screenheight") == 0) {
-			//display height
-			if (++param < argc)
-				p->display.height = atoi(argv[param]);
-		}else if (strcmp(argv[param], "calgo") == 0) {
-			//algorithm selector
-			int v = 0;
-			if (++param < argc)
-				v = atoi(argv[param]);
-			if(v <= 1)
-				p->cAlgoSelector = false;
-			else
-				p->cAlgoSelector = true;
-		}else if (strcmp(argv[param], "year") == 0) {
-			//the year of play
-			// pre 2000 there are no electric cars
-			if (++param < argc)
-				p->year = atoi(argv[param]);
-		} else if (strcmp(argv[param], "maxrows") == 0) {
-			//the number of rows of cars, max is MAXBRICKROWS
-			if (++param < argc) {
-				p->maxRows = atoi(argv[param]);
-				if(p->maxRows > MAXBRICKROWS)
-					p->maxRows = MAXBRICKROWS;
-			}
-		}else if (strcmp(argv[param], "maxcolumns") == 0) {
-			//the number of rows of cars, max is MAXBRICKCOLUMNS
-			if (++param < argc) {
-				p->maxColumns = atoi(argv[param]);
-				if(p->maxColumns > MAXBRICKCOLUMNS)
-					p->maxColumns = MAXBRICKCOLUMNS;
-			}
-		}  else if (strcmp(argv[param], "fontsize") == 0) {
-			//font size
-			if (++param < argc)
-				p->fontsize = atoi(argv[param]);
-		} else if (strcmp(argv[param], "maxballspeed") == 0) {
-			// maximum number of pixels the ball will move between frames
-			if (++param < argc) {
-				int maxballspeed = atoi(argv[param]);
-				if(maxballspeed <= 0)
-					maxballspeed = minballspeed_c;
-				if (maxballspeed >= maxballspeed_c)
-					maxballspeed = maxballspeed_c;
-				p->maxspeed.x = maxballspeed;
-				p->maxspeed.y = maxballspeed;
-				p->maxballspeed = maxballspeed;
-			}
-		} else if (strcmp(argv[param], "maxrounds") == 0) {
-			//maxscore
-			if (++param < argc)
-				p->maxRounds = atoi(argv[param]);
-		} else if (strcmp(argv[param], "fontfile") == 0) {
-			//font file name
-			if (++param < argc)
-				strcpy(p->fontFileName, argv[param]);
-		} else if (strcmp(argv[param], "winSound") == 0) {
-			//font file name
-			if (++param < argc)
-				strcpy(p->winSoundFile, argv[param]);
-		} else if (strcmp(argv[param], "busbmp") == 0) {
-			//player 1 bitmap file name
-			if (++param < argc)
-				strcpy(p->busBitmapName, argv[param]);
-		} else if (strcmp(argv[param], "lrtbmp") == 0) {
-			//player 2 bitmap file name
-			if (++param < argc)
-				strcpy(p->lrtBitmapName, argv[param]);
-		} else if (strcmp(argv[param], "ballbmp") == 0) {
-			//ball bitmap file name
-			if (++param < argc)
-				strcpy(p->ballBitmapName, argv[param]);
-		} else if (strcmp(argv[param], "gascarbmp") == 0) {
-			//gas car bitmap file name
-			if (++param < argc)
-				strcpy(p->gasBitmapName, argv[param]);
-		} else if (strcmp(argv[param], "ecarbmp") == 0) {
-			//ecar bitmap file name
-			if (++param < argc)
-				strcpy(p->ecarBitmapName, argv[param]);
-		} else if (strcmp(argv[param], "bussound") == 0) {
-			//player 1 sound file name
-			if (++param < argc)
-				strcpy(p->player[bus_c].audioFileName, argv[param]);
-		} else if (strcmp(argv[param], "lrtsound") == 0) {
-			//player 2 sound file name
-			if (++param < argc)
-				strcpy(p->player[lrt_c].audioFileName, argv[param]);
-		} else if (strcmp(argv[param], "pattern") == 0) {
-			// car layout
-			if (++param < argc) {
-				p->validLayout = readFile(p, argv[param]);
-				if( p->validLayout) {
-					strcpy(p->inLayout, argv[param]);
-				}
-			}
-		} else if (strcmp(argv[param], "busspeed") == 0) {
-			//bus paddle speed
-			if (++param < argc) {
-				p->player[bus_c].paddleSpeed = atoi(argv[param]);
-			}
-		} else if (strcmp(argv[param], "lrtspeed") == 0) {
-			//lrt paddle speed
-			if (++param < argc) {
-				p->player[lrt_c].paddleSpeed = atoi(argv[param]);
-			}
-		}else if (strcmp(argv[param], "buslevel") == 0) {
-			//player 2 paddle speed
-			if (++param < argc) {
-				p->botLevel[bus_c] = atoi(argv[param]) - 1;
-				if(p->botLevel[bus_c] < 0 )
-					p->botLevel[bus_c] = 0;
-				if(p->botLevel[bus_c] > 3 )
-					p->botLevel[bus_c] = 3;
-			}
-		}else if (strcmp(argv[param], "lrtlevel") == 0) {
-			//player 2 paddle speed
-			if (++param < argc) {
-				p->botLevel[lrt_c] = atoi(argv[param]) -1;
-			}
-			if(p->botLevel[lrt_c] < 0 )
-				p->botLevel[lrt_c] = 0;
-			if(p->botLevel[lrt_c] > 3 )
-				p->botLevel[lrt_c] = 3;
-		} else if (strcmp(argv[param], "buslength") == 0) {
-			//level (controls the paddle size)
-			if (++param < argc) {
-				p->player[bus_c].paddleSize = atoi(argv[param]);
-				if (p->player[bus_c].paddleSize > maxPaddleSize_c)
-					p->player[bus_c].paddleSize = maxPaddleSize_c;
-				if (p->player[bus_c].paddleSize < 1)
-					p->player[bus_c].paddleSize = 1;
-			}
-		} else if (strcmp(argv[param], "lrtlength") == 0) {
-			//level (controls the paddle size)
-			if (++param < argc) {
-				p->player[lrt_c].paddleSize = atoi(argv[param]);
-				if (p->player[lrt_c].paddleSize > maxPaddleSize_c)
-					p->player[lrt_c].paddleSize = maxPaddleSize_c;
-				if (p->player[lrt_c].paddleSize < 1)
-					p->player[lrt_c].paddleSize = 1;
-			}
-		} else if (strcmp(argv[param], "fps") == 0) {
-			//display fps
-			if (++param < argc) {
-				p->fps = atof(argv[param]);
-				if (p->fps < MINFPS)
-					p->fps = MINFPS;
-				if (p->fps > MAXFPS)
-					p->fps = MAXFPS;
-			}
-		} else if (strcmp(argv[param], "penalty") == 0) {
-			//display penalty
-			if (++param < argc) {
-				p->penalty = atoi(argv[param]);
-			}
-		} else if (strcmp(argv[param], "trajectorywindow") == 0) {
-			//ball bitmap file name
-			if (++param < argc)
-				if(argv[param][0] == 'y' ) {
-					p->path.separateDisplay = true;
-				}
-		}else if (strcmp(argv[param], "record") == 0) {
-			//ball bitmap file name
-			if (++param < argc)
-				if(argv[param][0] == 'y' ) {
-					p->path.rec = true;
-				}
-		}else if (strcmp(argv[param], "colourscheme") == 0) {
-			//player 2 bitmap file name
-			if (++param < argc) {
-				switch (argv[param][0]) {
-				case 'y':
-					p->backgroundColor = &(p->bcolorarray[yellow_c]);
-					break;
-				case 'b':
-					p->backgroundColor = &(p->bcolorarray[blue_c]);
-					break;
-				case 'w':
-					p->backgroundColor = &(p->bcolorarray[white_c]);
-					break;
-				case 'g':
-					p->backgroundColor = &(p->bcolorarray[green_c]);
-					break;
-				case 'q':
-					p->backgroundColor = &(p->bcolorarray[grey_c]);
-					break;
-				default:
-					break;
-				} //end-switch(argv[param][0])
-				p->initcolor = p->backgroundColor;
-			}
-		}
-	} //end-of-for
-
-	busBotArray[0].paddlespeed = p->player[bus_c].paddleSpeed / 2;
-	busBotArray[1].paddlespeed = p->player[bus_c].paddleSpeed;
-	busBotArray[2].paddlespeed = (3 * p->player[bus_c].paddleSpeed) / 2;
-	busBotArray[3].paddlespeed = p->player[bus_c].paddleSpeed * 2;
-
-	lrtBotArray[0].paddlespeed = p->player[lrt_c].paddleSpeed / 2;
-	lrtBotArray[1].paddlespeed = p->player[lrt_c].paddleSpeed;
-	lrtBotArray[2].paddlespeed = (3 * p->player[lrt_c].paddleSpeed) / 2;
-	lrtBotArray[3].paddlespeed = p->player[lrt_c].paddleSpeed * 2;
-
-	p->botControlPtr[bus_c] = &(busBotArray[p->botLevel[bus_c]]);
-	p->botControlPtr[lrt_c] = &(lrtBotArray[p->botLevel[lrt_c]]);
-
-	initializaCarLayout(p);
-	FEXIT();
-	return true;
-} // end-of-function initializeGameData
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   initializeGraphics
- @details
- returns 1 if init ok, 0 otherwise
- This function does the following:
- 1. Initializes all allegro resources
- 2. Loads all game resources (fonts, bitmaps, sounds)
- --------------------------------------------------------------------------
- */
-bool initializeGraphics(GameData *p) {
-	FENTRY();
-	TRACE();
-	//seed random number generator with time
-	srand (time(NULL));
-	//initiallises allegro libraries
-	if(al_init() == 0) {
-		ERROR("Cannot init allegro");
-		FEXIT();
-		return false;
-	} //end-of-if(al_init() == 0)
-	TRACE();
-	al_init_primitives_addon();
-	al_init_image_addon();
-	al_install_keyboard();
-	al_install_mouse();
-	al_init_font_addon(); // initialize the font addon
-	al_init_ttf_addon(); // initialize the ttf (True Type Font) addon
-	al_install_audio();
-	al_init_acodec_addon();
-	//al_reserve_samples(2);
-
-
-	//tries to load font file
-	if (loadFont(p, smallFont_c) == false) {
-		FEXIT();
-		return false;
-	} //end-of-if(LoadFont(p, smallFont_c) == false)
-
-
-	if (loadFont(p, regularFont_c) == false) {
-		FEXIT();
-		return false;
-	} //end-of-if(LoadFont(p, regularFont_c) == false)
-
-
-	if (loadFont(p, largeFont_c) == false) {
-		FEXIT();
-		return false;
-	} //end-of-if(LoadFont(p, largeFont_c) == false)
-
-
-	if ((p->display.display = al_create_display(p->display.width,
-			p->display.height)) == NULL) {
-		ERROR("Cannot init display");
-		FEXIT();
-		return false;
-	}
-
-	//TRACE();
-	p->bcolorarray[yellow_c] = al_map_rgb(255, 255, 0);
-	p->bcolorarray[blue_c] = al_map_rgb(200, 200, 255);
-	p->bcolorarray[grey_c] = al_map_rgb(180, 180, 180);
-	p->bcolorarray[white_c] = al_map_rgb(255, 255, 255);
-	p->bcolorarray[green_c] = al_map_rgb(0, 180, 0);
-
-	p->fontColor = al_map_rgb(0, 100, 0);
-	p->timer = al_create_timer(1.0 / p->fps);
-	p->eventqueue = al_create_event_queue();
-	if (al_is_event_queue_empty(p->eventqueue) == false) {
-		ERROR("Event queue not empty after creation");
-	}
-
-	al_register_event_source(p->eventqueue, al_get_keyboard_event_source());
-	al_register_event_source(p->eventqueue,
-			al_get_display_event_source(p->display.display));
-	al_register_event_source(p->eventqueue,
-			al_get_timer_event_source(p->timer));
-	if (p->gameMode == arcade_c || p->gameMode == fullbot_c) {
-		INFO("Arcade/Full Auto Modes Detected\n");
-		p->botTimer = al_create_timer(1.0 / (float) p->player[lrt_c].paddleSpeed);
-		al_register_event_source(p->eventqueue,
-				al_get_timer_event_source(p->botTimer));
-	} else
-		p->botTimer = NULL;
-
-	if (loadPlayerImage(&(p->player[bus_c]), p->busBitmapName) == false) {
-		FEXIT();
-		return false;
-	}
-	if (loadPlayerImage(&(p->player[lrt_c]), p->lrtBitmapName) == false) {
-		FEXIT();
-		return false;
-	}
-	if (loadBitmap(&(p->ball), p->ballBitmapName) == false) {
-		FEXIT();
-		return false;
-	}
-
-	if ((p->gasBitmap = al_load_bitmap(p->gasBitmapName)) == NULL) {
-		ERROR2("cannot load", p->gasBitmapName);
-		FEXIT();
-		return false;
-	}
-
-	if ((p->ecarBitmap = al_load_bitmap(p->ecarBitmapName)) == NULL) {
-		ERROR2("cannot load", p->ecarBitmapName);
-		FEXIT();
-		return false;
-	}
-
-	setCarInfo(p);
-
-	loadAudio(&(p->player[bus_c]));
-	loadAudio(&(p->player[lrt_c]));
-	loadWinnerSound(p);
-
-	p->maxspeed.x = maxballspeed_c;
-	p->maxspeed.y = maxballspeed_c;
-
-	setInitialObjectPositions(p);
-
-	setBackgroundColor(*(p->backgroundColor));
-	FEXIT();
-	return true;
-} // end-of-function InitGame
 
 /**
  ---------------------------------------------------------------------------

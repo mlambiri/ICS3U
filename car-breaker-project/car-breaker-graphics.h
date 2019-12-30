@@ -280,46 +280,56 @@ typedef struct GameData {
 #define INITDISPLAY {SCREEN_W, SCREEN_H, NULL}
 
 //======= FUNCTION DECLARATIONS =====
-bool checkCollisionLeftRight(GameData *gptr);
-bool checkCollisionTopAndBottom(GameData *gptr);
-bool checkBallCollisionWithPlayers(GameData *gptr);
-bool displayScore(GameData *gptr);
-bool drawTextAndWaitBegin(GameData *gptr);
-bool drawTextAndWaitRoundWin(GameData *gptr);
-bool gameMainLoop(GameData *gptr);
+// === Initialization ====
 bool loadAudio(GamePlayer *gptr);
 bool loadWinnerSound(GameData *gptr);
 bool loadBitmap(GameBasicBlock *g, char* fname);
-bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
 bool loadFont(GameData *gptr, int size);
 bool loadPlayerImage(GamePlayer *p, char* fname);
-bool pressAnyKeyToBeginGame(GameData *gptr);
-bool printRoundWinner(GameData *gptr);
-bool isKeyPressEvent(GameData *gptr);
-bool updateBallPosition(GameData *gptr);
+bool initializeGameData(GameData *p, int argc, char **argv);
+
+// === Graphics ======
+bool displayScore(GameData *gptr);
+bool drawTextAndWaitBegin(GameData *gptr);
+bool drawTextAndWaitRoundWin(GameData *gptr);
 int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size);
-int signOfNumber(int value);
-void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int);
-void  lrtBotControl(GameData *gptr, uint botNumber);
-void  drawBitmap(GameBasicBlock *g);
+void writeTrajectoryToWindow(GameData* g);
+bool printRoundWinner(GameData *gptr);
+bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
+void  initializeCarLayout(GameData*gptr);
+
+// === Collisions ======
+bool checkCollisionLeftRight(GameData *gptr);
+bool checkCollisionTopAndBottom(GameData *gptr);
+bool checkBallCollisionWithPlayers(GameData *gptr);
 void  drawBitmapSection(GameBasicBlock *g);
 void  drawObjects(GameData *gptr);
-void  exitGame(GameData *gptr);
-void  initializaCarLayout(GameData*gptr);
-void  movePlayers(GameData *gptr);
-void  playSound(ALLEGRO_SAMPLE *s);
 void  setBackgroundColor(ALLEGRO_COLOR color);
 void  setInitialObjectPositions(GameData *gptr);
+void  drawBitmap(GameBasicBlock *g);
+bool initializeGraphics(GameData *p);
+void ballSpeedLimiter(GameData* gptr);
+bool updateBallPosition(GameData *gptr);
+int signOfNumber(int value);
+void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int);
+
+// === Game Control ====
+void runGame(GameData *p);
+bool gameMainLoop(GameData *gptr);
+bool isKeyPressEvent(GameData *gptr);
+bool pressAnyKeyToBeginGame(GameData *gptr);
+void  lrtBotControl(GameData *gptr, uint botNumber);
+void  busBotControl(GameData *gptr, uint botNumber);
+void  exitGame(GameData *gptr);
+void  movePlayers(GameData *gptr);
+void  playSound(ALLEGRO_SAMPLE *s);
 void  startTimers(GameData *gptr);
 void  stopTimers(GameData *gptr);
 void  setCarInfo(GameData* p);
 bool recordResult(char *p, BounceStatistics* stats);
-void ballSpeedLimiter(GameData* gptr);
+bool recordPoint(DataRecorder* r, Point* p);
+bool readFile(GameData* g, char* fileName);
 
-//=====================
-bool initializeGraphics(GameData *p);
-void runGame(GameData *p);
-bool initializeGameData(GameData *p, int argc, char **argv);
 //============================
 
 
