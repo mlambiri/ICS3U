@@ -232,7 +232,6 @@ typedef struct GameData {
 	ALLEGRO_EVENT ev;
 	ALLEGRO_EVENT_QUEUE *eventqueue;
 	ALLEGRO_TIMER *timer;
-	ALLEGRO_TIMER *botTimer;
 	ALLEGRO_FONT *font[MAXFONTS];
 	ALLEGRO_COLOR bcolorarray[maxColors_c];
 	ALLEGRO_COLOR* backgroundColor;
@@ -277,6 +276,7 @@ typedef struct GameData {
 	BotControlInfo *botControl[2];
 	bool helpOn;
 	BounceStatistics stats;
+	bool gameStart;
 	bool gamePaused;
 
 } GameData;
