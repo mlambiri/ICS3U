@@ -350,9 +350,8 @@ void startTimers(GameData *gptr);
 void stopTimers(GameData *gptr);
 
 // === Game Loop ====
-bool gameMainLoop(GameData *gptr);
-void exitGame(GameData *gptr);
-void runGame(GameData *p);
+void graphicsCleanup(GameData *gptr);
+void gameLoop(GameData *p);
 
 //============================
 

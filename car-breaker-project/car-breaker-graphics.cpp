@@ -1006,6 +1006,8 @@ bool drawTextAndWaitBegin(GameData *gptr) {
 	FENTRY();
 	TRACE();
 
+	setBackgroundColor(*(gptr->backgroundColor));
+
 	int next = drawTextOnScreen(gptr, (char*) "Welcome to Car Smasher", gptr->display.width / 2,
 			gptr->display.height / 4, largeFont_c);
 	al_flush_event_queue(gptr->eventqueue);
@@ -2838,118 +2840,13 @@ void  botControl(GameData *gptr, uint botNumber) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   gameMainLoop
- @details
- Two dimensional games process events and screen updates in a continuous loop
- usually this loop is called a game loop
- The loop processes events from p->eventqueue.
- Events come from the two game timers (one is for screen refresh,
- the other is for Bot AI) as well as keyboard and mouse events.
- The loop waits for an event to be fired and then processes the event
- If the event is of the type refresh display, all objects are written to a display buffer
- Then that buffer is shown on the screen. \n
- --------------------------------------------------------------------------
- */
-bool gameMainLoop(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	startTimers(gptr);
-
-	bool roundwin = false;
-	int skipCounter = 0;
-
-	playSound(gptr->startsample);
-	//We are waiting for an event from on one of the sources that are linked to the event queue
-	//The frame-timer, keyboard, mouse, and bot timer if in arcade mode
-	//This function blocks until an event is recieved
-	//Therefore if the timers would not be started, this function would return only on a keyboard or mouse event
-	while (true) {
-		al_wait_for_event(gptr->eventqueue, &(gptr->ev));
-
-		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-			if(gptr->ev.any.source == al_get_display_event_source(gptr->trajectoryDisplay.display)) {
-				DEBUG("four");
-				al_destroy_display(gptr->trajectoryDisplay.display);
-				gptr->trajectoryDisplay.display = NULL;
-			} else {
-				DEBUG("four");
-				FEXIT();
-				return false;
-			}
-		}
-		//If the round is won we need to stop the game for 1 second
-		//We do this by counting timer events without processing them which in effect
-		//skips frames
-		if (roundwin == true) {
-			TRACE();
-			if (gptr->ev.type == ALLEGRO_EVENT_TIMER
-					&& gptr->ev.timer.source == gptr->timer) {
-				//skip maxSkip frames
-				//At the end of each round we want to keep the last frame of the play that shows where the ball exitied the screen
-				//for a little longer, so the user can see who won the round
-				//We do this by counting frame timer events
-				if (skipCounter++ >= (int) gptr->fps) {
-					skipCounter = 0;
-					roundwin = false;
-					if (printRoundWinner(gptr) == false) {
-						//user has pressed ESC to end the game
-						FEXIT();
-						return false;
-					}
-				}
-
-			} else
-				continue;
-		} else {
-			TRACE();
-			//we need to run the bot logic
-			if (gptr->gameMode != human_c && gptr->ev.type == ALLEGRO_EVENT_TIMER
-					&& gptr->ev.timer.source == gptr->botTimer) {
-				//if we are in arcade mode and the timer event belongs to the Bot timer then
-				// we have to run the bot control logic
-				botControl(gptr, lrt_c);
-				if(gptr->gameMode == fullbot_c)
-					botControl(gptr, bus_c);
-			} else {
-				//check if escape key has been pressed
-				if (isKeyPressEvent(gptr) == false) {
-					//user has ended game
-					FEXIT();
-					return false;
-				}
-			}
-			//check if we need to update the frame
-			if (gptr->ev.type == ALLEGRO_EVENT_TIMER
-					&& gptr->ev.timer.source == gptr->timer) {
-				//If this is a screen update timer event then we have to redraw the screen
-				//we have to update the ball position and then draw all objects (players and ball)
-				//Calculates next position of the paddles based on the key inputs read above
-				movePlayers(gptr);
-				roundwin = updateBallPosition(gptr);
-				drawObjects(gptr);
-				writeTrajectoryToWindow(gptr);
-				//This function shows the content of the display buffer on the screen.
-				flipAllDisplays(gptr);
-			}
-		}
-	}
-
-	FEXIT();
-	return true;
-} // end-of-function gameMainLoop
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   exitGame
+ @mname   graphicsCleanup
  @details
  This function is called when the game terminates and it destroys all allegro resources
  \n
  --------------------------------------------------------------------------
  */
-void  exitGame(GameData *gptr) {
+void  graphicsCleanup(GameData *gptr) {
 	FENTRY();
 	TRACE();
 	al_rest(0.0);
@@ -2967,28 +2864,110 @@ void  exitGame(GameData *gptr) {
 	al_destroy_bitmap(gptr->player[lrt_c].ge.bmap);
 	al_destroy_bitmap(gptr->ball.bmap);
 	FEXIT();
-} // end-of-function exitGame
+} // end-of-function graphicsCleanup
 
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 25, 2019
- @mname   runGame
+ @mname   gameLoop
  @details
  This is the function called from the main function
  1. Displays the initial screen
  2. Calls the game loop
+ Two dimensional games process events and screen updates in a continuous loop
+ usually this loop is called a game loop
+ The loop processes events from p->eventqueue.
+ Events come from the two game timers (one is for screen refresh,
+ the other is for Bot AI) as well as keyboard and mouse events.
+ The loop waits for an event to be fired and then processes the event
+ If the event is of the type refresh display, all objects are written to a display buffer
+ Then that buffer is shown on the screen. \n
  --------------------------------------------------------------------------
  */
-void runGame(GameData *p) {
+void gameLoop(GameData *p) {
 	FENTRY();
 	TRACE();
-	setBackgroundColor(*(p->backgroundColor));
+
 	if (drawTextAndWaitBegin(p) == true) {
-		gameMainLoop(p);
+		startTimers(p);
+		bool roundwin = false;
+		int skipCounter = 0;
+		bool quit = false;
+
+		playSound(p->startsample);
+		//We are waiting for an event from on one of the sources that are linked to the event queue
+		//The frame-timer, keyboard, mouse, and bot timer if in arcade mode
+		//This function blocks until an event is received
+		//Therefore if the timers would not be started,
+		//this function would return only on a keyboard or mouse event
+		while (!quit) {
+			al_wait_for_event(p->eventqueue, &(p->ev));
+
+			if (p->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+				if(p->ev.any.source == al_get_display_event_source(p->trajectoryDisplay.display)) {
+					al_destroy_display(p->trajectoryDisplay.display);
+					p->trajectoryDisplay.display = NULL;
+				} else {
+					quit = true;
+				}
+			}
+			//If the round is won we need to stop the game for 1 second
+			//We do this by counting timer events without processing them which in effect
+			//skips frames
+			if (roundwin == true) {
+				TRACE();
+				if (p->ev.type == ALLEGRO_EVENT_TIMER
+						&& p->ev.timer.source == p->timer) {
+					//skip maxSkip frames
+					//At the end of each round we want to keep the last frame of the play that shows where the ball exitied the screen
+					//for a little longer, so the user can see who won the round
+					//We do this by counting frame timer events
+					if (skipCounter++ >= (int) p->fps) {
+						skipCounter = 0;
+						roundwin = false;
+						if (printRoundWinner(p) == false) {
+							//user has pressed ESC to end the game
+							quit = true;
+						}
+					}
+
+				} else
+					continue;
+			} else {
+				//we need to run the bot logic
+				if (p->gameMode != human_c && p->ev.type == ALLEGRO_EVENT_TIMER
+						&& p->ev.timer.source == p->botTimer) {
+					//if we are in arcade mode and the timer event belongs to the Bot timer then
+					// we have to run the bot control logic
+					botControl(p, lrt_c);
+					if(p->gameMode == fullbot_c)
+						botControl(p, bus_c);
+				} else {
+					//check if escape key has been pressed
+					if (isKeyPressEvent(p) == false) {
+						//user has ended game
+						quit = true;
+					}
+				}
+				//check if we need to update the frame
+				if (p->ev.type == ALLEGRO_EVENT_TIMER
+						&& p->ev.timer.source == p->timer) {
+					//If this is a screen update timer event then we have to redraw the screen
+					//we have to update the ball position and then draw all objects (players and ball)
+					//Calculates next position of the paddles based on the key inputs read above
+					movePlayers(p);
+					roundwin = updateBallPosition(p);
+					drawObjects(p);
+					writeTrajectoryToWindow(p);
+					//This function shows the content of the display buffer on the screen.
+					flipAllDisplays(p);
+				}
+			}
+		}
 	}
 
-	exitGame(p);
+	graphicsCleanup(p);
 	FEXIT();
 } // end-of-function runGame
