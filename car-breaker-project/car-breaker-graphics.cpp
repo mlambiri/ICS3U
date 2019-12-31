@@ -47,10 +47,10 @@ GameData carBreaker = {
 //starting with the smallest index
 // lrt moves faster when the ball is further
 BotControlInfo lrtBotArray[pro_c + 1] = {
-		{ { 2, 3, 4, 8 }, { 0.8, 0.6, 0.4, 0.2 }},
-		{ { 2, 3, 4, 8 }, { 1.25, 1, 0.75, 0.5 }},
-		{ { 2, 3, 4, 8 }, { 2, 1.5, 1.25, 1  }},
-		{ { 2, 3, 4, 8 }, { 3, 2, 1.5, 1.3 } } };
+		{ { 2, 4, 8, 16 }, { 0.8, 0.6, 0.4, 0.2 }},
+		{ { 2, 4, 8, 16 }, { 1.25, 1, 0.75, 0.5 }},
+		{ { 2, 4, 8, 16 }, { 2, 1.5, 1.25, 1  }},
+		{ { 2, 4, 8, 16 }, { 3, 2, 1.5, 1.3 } } };
 
 //It is an array that stores several sets of height divisors and player speed multiplier
 //The divisors should be in increasing order as they are checked
@@ -552,7 +552,7 @@ bool loadFont(GameData *gptr, int size) {
 } // end-of-function loadFont
 
 
-//==== Graphics ======
+//==== Game Graphics ======
 /*
  * @author   elambiri
  * @date     Dec. 30, 2019
@@ -2831,6 +2831,8 @@ void  botControl(GameData *gptr, uint botNumber) {
 	FEXIT();
 } // end-of-function botControl
 
+
+// === Game Loop ====
 
 /**
  ---------------------------------------------------------------------------

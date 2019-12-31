@@ -159,7 +159,7 @@ typedef struct GameDisplay {
 	ALLEGRO_DISPLAY *display;
 } GameDisplay;
 
-#define MAXRECORDING 2000
+#define MAXRECORDING 3000
 
 typedef struct DataRecorder {
 	Point  point[MAXRECORDING];
@@ -183,12 +183,18 @@ typedef struct BounceStatistics {
  *  by one of the heightDivisor values
  *  A larger divisor denotes a zone closes to the player
  *
+ *  The divisors should be in increasing order
+ *  as they are checked starting with the smallest
+ *  array index
+ *
  *  The speed multiplier will enhance or decrease the
  *  mobility of the player
  *
  *  Setting the multiplier to zero for a zone will make
  *  the player immobile when the ball is in that zone
  *
+ *  If the multipliers are larger the player moves more
+ *  when the ball is in that zone
  *
  */
 typedef struct BotControlInfo {
@@ -282,69 +288,71 @@ typedef struct GameData {
 
 //======= FUNCTION DECLARATIONS =====
 // === Initialization ====
+bool initializeGameData(GameData *p, int argc, char **argv);
 bool loadAudio(GamePlayer *gptr);
-bool loadWinnerSound(GameData *gptr);
 bool loadBitmap(GameBasicBlock *g, char* fname);
 bool loadFont(GameData *gptr, int size);
 bool loadPlayerImage(GamePlayer *p, char* fname);
-bool initializeGameData(GameData *p, int argc, char **argv);
+bool loadWinnerSound(GameData *gptr);
 bool readCarLayoutFromFile(GameData* g, char* fileName);
 
-// === Graphics ======
-void createTrajectoryDisplay(GameData* g);
-bool displayScore(GameData *gptr);
+// === Game Graphics ======
 bool displayHelp(GameData *gptr);
+bool displayScore(GameData *gptr);
 bool drawTextAndWaitBegin(GameData *gptr);
 bool drawTextAndWaitRoundWin(GameData *gptr);
-int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size);
-void writeTrajectoryToWindow(GameData* g);
+bool initializeGraphics(GameData *p);
 bool printRoundWinner(GameData *gptr);
 bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
-void flipAllDisplays(GameData* g);
-void setCarInfo(GameData* p);
-void drawBitmapSection(GameBasicBlock *g);
-void drawObjects(GameData *gptr);
-void setBackgroundColor(ALLEGRO_COLOR color);
-void setInitialObjectPositions(GameData *gptr);
+int   drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size);
+void createTrajectoryDisplay(GameData* g);
 void drawBitmap(GameBasicBlock *g);
 void drawBitmapSection(GameBasicBlock *g);
-bool initializeGraphics(GameData *p);
+void drawBitmapSection(GameBasicBlock *g);
+void drawObjects(GameData *gptr);
+void flipAllDisplays(GameData* g);
 void initializeCarLayout(GameData*gptr);
+void setBackgroundColor(ALLEGRO_COLOR color);
+void setCarInfo(GameData* p);
+void setInitialObjectPositions(GameData *gptr);
+void writeTrajectoryToWindow(GameData* g);
 
 
 //===== Ball Movement and Collisions ('Physics') ===========
+bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSIDE& side);
+bool checkBallCollisionWithPlayers(GameData *gptr);
 bool checkCollisionLeftRight(GameData *gptr);
 bool checkCollisionTopAndBottom(GameData *gptr);
-bool checkBallCollisionWithPlayers(GameData *gptr);
-void ballSpeedLimiter(GameData* gptr);
-bool updateBallPosition(GameData *gptr);
-int signOfNumber(int value);
-void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int);
-void increaseBallSpeed(GameData* g);
-void decreaseBallSpeed(GameData* g);
-bool isPointInObject(GameBasicBlock* b, int x, int y);
-bool isPointInAnyCar(GameData* g,  int x, int y, int&row, int&column);
-bool isBallInRegion(GameBasicBlock* ball, GameBasicBlock* obj);
-bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSIDE& side);
-bool whenCollisionOccurs(GameData* gptr, int i, int j) ;
 bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i, int j);
+bool isBallInRegion(GameBasicBlock* ball, GameBasicBlock* obj);
+bool isPointInAnyCar(GameData* g,  int x, int y, int&row, int&column);
+bool isPointInObject(GameBasicBlock* b, int x, int y);
+bool updateBallPosition(GameData *gptr);
+bool whenCollisionOccurs(GameData* gptr, int i, int j) ;
+int   signOfNumber(int value);
+void ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr, int);
+void ballSpeedLimiter(GameData* gptr);
+void decreaseBallSpeed(GameData* g);
+void increaseBallSpeed(GameData* g);
 
-// === Game Control ====
-void runGame(GameData *p);
-bool gameMainLoop(GameData *gptr);
+// ==== Game Control ========
 bool isKeyPressEvent(GameData *gptr);
 bool pressAnyKeyToBeginGame(GameData *gptr);
+bool recordPoint(DataRecorder* r, Point* p);
+bool recordResult(char *p, BounceStatistics* stats);
+bool writeCarLayoutToFile(GameData* g);
 void botControl(GameData *gptr, uint botNumber);
-void exitGame(GameData *gptr);
 void movePlayers(GameData *gptr);
 void playSound(ALLEGRO_SAMPLE *s);
+void setCarInfo(GameData* p);
+void setPointsPerSmash(GameData*gptr) ;
 void startTimers(GameData *gptr);
 void stopTimers(GameData *gptr);
-void setCarInfo(GameData* p);
-bool recordResult(char *p, BounceStatistics* stats);
-bool recordPoint(DataRecorder* r, Point* p);
-bool writeCarLayoutToFile(GameData* g);
-void setPointsPerSmash(GameData*gptr) ;
+
+// === Game Loop ====
+bool gameMainLoop(GameData *gptr);
+void exitGame(GameData *gptr);
+void runGame(GameData *p);
 
 //============================
 
