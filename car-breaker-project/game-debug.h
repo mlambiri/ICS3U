@@ -36,10 +36,9 @@ char* printCallDepth();
 #define WARN(s) if(debugon && debuglevel <= warn_c) printf("W[%s %s:%4d] %s\n", printDebugTime(), __FILE__, __LINE__,s)
 #define ERROR(s) printf("E[%s %s:%4d] %s\n", printDebugTime(), __FILE__, __LINE__,s)
 #define ERROR2(s1, s2) printf("E[%s %s:%4d] %s %s\n", printDebugTime(), __FILE__, __LINE__,s1, s2)
-#define FENTRY() functionEnter()
-#define FEXIT()   functionExit()
-
 #define TRACE() if(traceon) printf("T<%s: %s:%4d> %s%s;\n", printDebugTime(), __FILE__, __LINE__, printCallDepth(), __PRETTY_FUNCTION__)
+#define FENTRY() functionEnter(); TRACE()
+#define FEXIT()   functionExit()
 #else
 #define DEBUG(s)
 #define DEBUG2(s,d)

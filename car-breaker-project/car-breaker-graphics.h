@@ -290,7 +290,7 @@ typedef struct GameData {
 
 //======= FUNCTION DECLARATIONS =====
 // === Initialization ====
-bool initializeGameData(GameData *p, int argc, char **argv);
+void configureGame(GameData *p, int argc, char **argv);
 bool loadAudio(GamePlayer *gptr);
 bool loadBitmap(GameBasicBlock *g, char* fname);
 bool loadFont(GameData *gptr, int size);
@@ -299,25 +299,24 @@ bool loadWinnerSound(GameData *gptr);
 bool readCarLayoutFromFile(GameData* g, char* fileName);
 
 // === Game Graphics ======
-bool displayHelp(GameData *gptr);
-bool displayScore(GameData *gptr);
 bool drawBeginGameScreen(GameData *gptr);
-bool roundWinOverlay(GameData *gptr);
-bool initializeGraphics(GameData *p);
+bool drawHelpToScreen(GameData *gptr);
+bool drawScoreToScreen(GameData *gptr);
+bool initializeAllegro(GameData *p);
 bool printRoundWinner(GameData *gptr);
+bool roundWinOverlay(GameData *gptr);
 bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
-int   drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size);
+int   drawTextToScreen(GameData *gptr, char *text, int x, int y, int size);
+void allegroCleanup(GameData *gptr);
+void centerBallAndPlayerPositions(GameData *gptr);
 void createTrajectoryDisplay(GameData* g);
-void drawBitmap(GameBasicBlock *g);
-void drawBitmapSection(GameBasicBlock *g);
-void drawBitmapSection(GameBasicBlock *g);
-void drawObjects(GameData *gptr);
+void drawMainGameScreen(GameData *gptr);
+void drawPlayerBitmap(GameBasicBlock *g);
 void flipAllDisplays(GameData* g);
 void initializeCarLayout(GameData*gptr);
 void setCarInfo(GameData* p);
-void setInitialObjectPositions(GameData *gptr);
+void setCarPositionsOnScreen(GameData* gptr);
 void writeTrajectoryToWindow(GameData* g);
-void graphicsCleanup(GameData *gptr);
 
 
 //===== Ball Movement and Collisions ('Physics') ===========
@@ -347,8 +346,8 @@ void userControl(GameData *gptr);
 void playSound(ALLEGRO_SAMPLE *s);
 void setCarInfo(GameData* p);
 void setPointsPerSmash(GameData*gptr) ;
-void startTimers(GameData *gptr);
-void stopTimers(GameData *gptr);
+void generateNewCarLayout(GameData* gptr);
+void startRound(GameData* gptr);
 
 // === Game Loop ====
 void gameLoop(GameData *p, bool startTimer);

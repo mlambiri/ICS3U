@@ -120,12 +120,12 @@ main(int argc, char **argv) {
 
 	//After the parameters are read from the file they are passed to the game
 	//configuration functions to change game variable values
-	if(initializeGameData(&carBreaker, num, p) == false) return 0;
+	configureGame(&carBreaker, num, p);
 
 	//We are initializing the game data structures
-	if(initializeGraphics(&carBreaker) == false ) {
+	if(initializeAllegro(&carBreaker) == false ) {
 		//error initializing the game;
-		ERROR("cannot initialize game engine");
+		ERROR("cannot initialize graphics engine");
 		return 22;
 	}
 
