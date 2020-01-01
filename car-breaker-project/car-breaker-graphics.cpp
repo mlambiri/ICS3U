@@ -85,7 +85,7 @@ BotControlInfo busBotArray[pro_c + 1] = {
  Processing is done in the same style as the main command line arguments\n
  --------------------------------------------------------------------------
  */
-void configureGame(GameData *p, int argc, char **argv) {
+void configureGameData(GameData *p, int argc, char **argv) {
 	FENTRY();
 
 	//seed random number generator with time
@@ -432,7 +432,9 @@ bool loadAudio(GamePlayer *gptr) {
 		ERROR2("Audio clip sample not loaded: ", gptr->audioFileName);
 		FEXIT();
 		return false;
-	}FEXIT();
+	}
+
+	FEXIT();
 	return true;
 } // end-of-function loadAudio
 
@@ -980,6 +982,7 @@ void drawScoreText(GameData *gptr) {
 		next = drawTextToScreen(gptr, textBuffer, gptr->display.width -100,
 				next, smallFont_c);
 	}
+	FEXIT();
 }//end-of-drawScoreText
 
 /**
@@ -1983,15 +1986,20 @@ bool updateBallPosition(GameData *gptr) {
 	}
 	else { // 'calgo = 2'
 		ballSpeedLimiter(gptr);
+#if 0
 		uint maxOfxy = max(abs(gptr->ball.speed.x), abs(gptr->ball.speed.y));
 		float xplus = (float) gptr->ball.speed.x / maxOfxy;
 		float yplus = (float)  gptr->ball.speed.y / maxOfxy;
+#else
+		uint maxOfxy = 2;
+		float xplus = (float) gptr->ball.speed.x ;
+		float yplus = (float)  gptr->ball.speed.y;
+#endif
 		bool collision = false;
-
 		// use a temporary ball to do the checks
 		GameBasicBlock tmpBall = gptr->ball;
 
-		for (int i = 0; i < maxOfxy; i++ ) {
+		for (int i = 1; i < maxOfxy; i++ ) {
 
 			float txf = tmpBall.position.x + i*xplus;
 			float tyf = tmpBall.position.y + i*yplus;
@@ -2019,7 +2027,7 @@ bool updateBallPosition(GameData *gptr) {
 				if(row > gptr->maxRows) row = gptr->maxRows;
 			}
 
-			const int d_c = 3;
+			const int d_c = 2;
 			int minRow = (row-d_c)<0?0:row-d_c;
 			int maxRow = (row+d_c) >gptr->maxRows?gptr->maxRows:row+d_c;
 			int minColumn = (column-d_c)<0?0:column-d_c;
@@ -2298,7 +2306,10 @@ bool readCarLayoutFile(GameData* g, char* fileName) {
 
 	while(fgets(buffer, MAXBUFFER, fptr)) {
 		for (int j = 0; j < g->maxColumns; j++ ) {
-			if(buffer[j] == 0) return false;
+			if(buffer[j] == 0) {
+				FEXIT();
+				return false;
+			}
 			switch(buffer[j]) {
 			case 'x':
 			case 'X':
@@ -2317,7 +2328,10 @@ bool readCarLayoutFile(GameData* g, char* fileName) {
 		if(i>= g->maxRows) break;
 	}
 
-	if(i < g->maxRows) return false;
+	if(i < g->maxRows) {
+		FEXIT();
+		return false;
+	}
 
 	fclose(fptr);
 	FEXIT();

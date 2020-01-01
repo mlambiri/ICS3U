@@ -35,10 +35,9 @@ static char* params[numberParams_c];
   --------------------------------------------------------------------------
  */
 char**
-GetParameters(int* n, char* configFileName) {
+readConfigFile(int* n, char* configFileName) {
 
 	FENTRY();
-	TRACE();
 	FILE* fptr = NULL;
 	if (configFileName == NULL) {
 		fptr = fopen(configName, "r");

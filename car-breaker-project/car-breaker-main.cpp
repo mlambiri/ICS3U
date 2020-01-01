@@ -54,7 +54,7 @@ Usage(void) {
 
 } // end-of-function Usage
 
-char** GetParameters(int* , char*);
+char** readConfigFile(int* , char*);
 
 /**
   ---------------------------------------------------------------------------
@@ -116,11 +116,15 @@ main(int argc, char **argv) {
 	TRACE();
 
 	//Process the configuration file and extract all the game configuration
-	char** p = GetParameters(&num, configFileName);
+	char** p = readConfigFile(&num, configFileName);
+
+	for (int i = 0; i < num; i++ ) {
+		DEBUG(p[i]);
+	} //end-of-for
 
 	//After the parameters are read from the file they are passed to the game
 	//configuration functions to change game variable values
-	configureGame(&carBreaker, num, p);
+	configureGameData(&carBreaker, num, p);
 
 	//We are initializing the game data structures
 	if(initializeAllegro(&carBreaker) == false ) {

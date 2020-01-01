@@ -290,7 +290,7 @@ typedef struct GameData {
 
 //======= FUNCTION DECLARATIONS =====
 // === Initialization ====
-void configureGame(GameData *p, int argc, char **argv);
+void configureGameData(GameData *p, int argc, char **argv);
 
 // === Game Graphics and Sounds ======
 bool initializeAllegro(GameData *p);
