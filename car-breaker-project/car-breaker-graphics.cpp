@@ -138,6 +138,7 @@ bool initializeGameData(GameData *p, int argc, char **argv) {
 
 	p->gamePaused = false;
 	p->gameStart = false;
+	p->roundWin = false;
 
 	//loop that processes the command line arguments.
 	//argc is the size of the argument's array and argv is the array itself
@@ -996,13 +997,13 @@ int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   drawTextAndWaitBegin
+ @mname   drawBeginGameScreen
  @details
  Returns false if escape key is pressed
  This function displays the first screen that the user views in the game\n
  --------------------------------------------------------------------------
  */
-bool drawTextAndWaitBegin(GameData *gptr) {
+bool drawBeginGameScreen(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
@@ -1029,121 +1030,42 @@ bool drawTextAndWaitBegin(GameData *gptr) {
 	char buffer[100];
 	sprintf(buffer, "Most points after %d rounds wins!", gptr->maxRounds);
 	next = drawTextOnScreen(gptr, buffer, gptr->display.width / 2, next, regularFont_c);
-	next = drawTextOnScreen(gptr, (char*) "Press a key to begin", gptr->display.width / 2,
+	next = drawTextOnScreen(gptr, (char*) "Press SPACE to begin", gptr->display.width / 2,
 			next, regularFont_c);
 
-	flipAllDisplays(gptr);
-
-
-	if (pressAnyKeyToBeginGame(gptr) == false) {
-		FEXIT();
-		return false;
-	}
-	writeCarLayoutToFile(gptr);
-	if(gptr->path.rec == true && gptr->path.separateDisplay) {
-		createTrajectoryDisplay(gptr);
-	}
 	FEXIT();
 	return true;
-} // end-of-function drawTextAndWaitBegin
+} // end-of-function drawBeginGameScreen
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   drawTextAndWaitRoundWin
+ @mname   roundWinOverlay
  @details
- Returns false if escape key is pressed
- This function displays a screen when a round or game is won
- The text for the two conditions will be different
- We declare the temporary variable next to position text messages one on top of another
- We do this by adding a value to the y coordinate of the message\n
+ 	 return false false for round win and true for game win
  --------------------------------------------------------------------------
  */
-bool drawTextAndWaitRoundWin(GameData *gptr) {
+bool roundWinOverlay(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
 	char textBuffer[MAXBUFFER];
-	if ((gptr->roundNumber == gptr->maxRounds) || (gptr->remainingCars == 0)){
-		gptr->roundNumber = 1;
-		GamePlayer* ptr;
-		if(gptr->player[bus_c].carsSmashed > gptr->player[lrt_c].carsSmashed) {
-			ptr = &gptr->player[bus_c];
-		}
-		else if(gptr->player[bus_c].carsSmashed < gptr->player[lrt_c].carsSmashed) {
-			ptr = &gptr->player[lrt_c];
-		}
-		else {
-			ptr= NULL;
-		}
-		if(ptr == NULL) {
-			sprintf(textBuffer, "It's a Draw!!!!");
-		}
-		else {
-			sprintf(textBuffer, "%s Wins The Game!!", ptr->name);
-		}
-		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
-				gptr->carArea.position.y - 3*gptr->fontsize, largeFont_c);
-		sprintf(textBuffer, "Score: %s %d %s %d", gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
-				gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
-		next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2, next,
-				regularFont_c);
 
-		drawTextOnScreen(gptr, (char*) "Press a key to begin or ESC to exit",
-				gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
-
-		playSound(gptr->winsample);
-		const char* mode;
-		if(gptr->gameMode == fullbot_c) {
-			mode = "Full Auto";
-		}
-		else if (gptr->gameMode == arcade_c) {
-			mode = "Arcade";
-		} else {
-			mode = "Human";
-		}
-		sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]", mode, gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
-				gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
-
-		recordResult(textBuffer, &(gptr->stats));
-		gptr->backgroundColor = gptr->initcolor;
-		initializeCarLayout(gptr);
-		setCarInfo(gptr);
-		writeCarLayoutToFile(gptr);
-		gptr->player[bus_c].carsSmashed = 0;
-		gptr->player[lrt_c].carsSmashed = 0;
-		//gptr->path.rec = false;
-		gptr->path.used = 0;
-		gptr->stats.totalBounce = 0;
-		gptr->stats.firstEmpty = 0;
-		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty] = 0;
-		recordPoint(&(gptr->path), &(gptr->ball.position));
-
-	} else {
-		sprintf(textBuffer, "Score: %s %d %s %d",
-				gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed, gptr->player[bus_c].name,
-				gptr->player[bus_c].carsSmashed);
-		int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
-				gptr->carArea.position.y - gptr->fontsize, regularFont_c);
-		char buffer[100];
-		sprintf(buffer, "Press a key to begin Round %d of %d or ESC to exit", ++gptr->roundNumber, gptr->maxRounds);
-		drawTextOnScreen(gptr, buffer, gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
-		//DEBUG(" =======\n");
-	}
-
-	flipAllDisplays(gptr);
-
-	if (pressAnyKeyToBeginGame(gptr) == false) {
-		FEXIT();
-		return false;
-	}
+	sprintf(textBuffer, "Score: %s %d %s %d",
+			gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed, gptr->player[bus_c].name,
+			gptr->player[bus_c].carsSmashed);
+	int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
+			gptr->carArea.position.y - gptr->fontsize, regularFont_c);
+	char buffer[100];
+	sprintf(buffer, "Press SPACE to begin Round %d of %d or ESC to exit", gptr->roundNumber, gptr->maxRounds);
+	drawTextOnScreen(gptr, buffer, gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
+	//DEBUG(" =======\n");
 
 	for (int i = 0; i < 2; i++) {
 		gptr->player[bus_c].keyPress[i] = false;
 		gptr->player[lrt_c].keyPress[i] = false;
 	} //end-of-for
-	al_flush_event_queue(gptr->eventqueue);
 
 	FEXIT();
 	return true;
@@ -1153,32 +1075,64 @@ bool drawTextAndWaitRoundWin(GameData *gptr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   printRoundWinner
+ @mname   gameWinOverlay
  @details
- When the round ends, we need to stop the timers from firing unwanted events
- We do that at the beginning of the function
- Prints a message and play a sound
- Then we wait for user input to restart the game\n
+ 	 return false false for round win and true for game win
  --------------------------------------------------------------------------
  */
-bool printRoundWinner(GameData *gptr) {
+bool gameWinOverlay(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	stopTimers(gptr);
-	setInitialObjectPositions(gptr);
-	drawObjects(gptr);
+	char textBuffer[MAXBUFFER];
 
-	if (drawTextAndWaitRoundWin(gptr) == false) {
-		FEXIT();
-		return false;
-	} else {
-		startTimers(gptr);
-		playSound(gptr->startsample);
+	GamePlayer* ptr;
+	if(gptr->player[bus_c].carsSmashed > gptr->player[lrt_c].carsSmashed) {
+		ptr = &gptr->player[bus_c];
 	}
+	else if(gptr->player[bus_c].carsSmashed < gptr->player[lrt_c].carsSmashed) {
+		ptr = &gptr->player[lrt_c];
+	}
+	else {
+		ptr= NULL;
+	}
+	if(ptr == NULL) {
+		sprintf(textBuffer, "It's a Draw!!!!");
+	}
+	else {
+		sprintf(textBuffer, "%s Wins The Game!!", ptr->name);
+	}
+	int next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2,
+			gptr->carArea.position.y - 3*gptr->fontsize, largeFont_c);
+	sprintf(textBuffer, "Score: %s %d %s %d", gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
+			gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
+	next = drawTextOnScreen(gptr, textBuffer, gptr->display.width / 2, next,
+			regularFont_c);
+
+	drawTextOnScreen(gptr, (char*) "Press SPACE to begin or ESC to exit",
+			gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
+
+	playSound(gptr->winsample);
+	const char* mode;
+	if(gptr->gameMode == fullbot_c) {
+		mode = "Full Auto";
+	}
+	else if (gptr->gameMode == arcade_c) {
+		mode = "Arcade";
+	} else {
+		mode = "Human";
+	}
+	sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]", mode, gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
+			gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
+
+	for (int i = 0; i < 2; i++) {
+		gptr->player[bus_c].keyPress[i] = false;
+		gptr->player[lrt_c].keyPress[i] = false;
+	} //end-of-for
+
 	FEXIT();
 	return true;
-} // end-of-function printRoundWinner
+} // end-of-function drawTextAndWaitRoundWin
 
 
 /**
@@ -1556,7 +1510,7 @@ bool checkCollisionTopAndBottom(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	if ((gptr->ball.position.y >= (gptr->display.height - gptr->ball.height))
+	if (((gptr->ball.position.y + gptr->ball.height )>= gptr->display.height )
 			&& (gptr->ball.speed.y > 0)) {
 		gptr->player[1].carsSmashed += gptr->penalty;
 		gptr->roundWinner = &(gptr->player[lrt_c]);
@@ -2064,6 +2018,10 @@ bool checkBallCollisionWithPlayers(GameData *gptr) {
 	COLLISIONSIDE side;
 	// check collision with bus
 	if(areObjectsColliding(&(gptr->ball), &(gptr->player[bus_c].ge), side)) {
+		if(side == left_c || side == right_c) {
+			FEXIT();
+			return false;
+		}
 		gptr->ball.position.y = gptr->player[bus_c].ge.position.y - gptr->ball.height;
 		ballBounceOnPlayer(&(gptr->ball), &(gptr->player[bus_c]), gptr->maxballspeed);
 		gptr->turn = &gptr->player[bus_c];
@@ -2075,6 +2033,10 @@ bool checkBallCollisionWithPlayers(GameData *gptr) {
 	}
 	//check collision with lrt
 	else if(areObjectsColliding(&(gptr->ball), &(gptr->player[lrt_c].ge), side)) {
+		if(side == left_c || side == right_c) {
+			FEXIT();
+			return false;
+		}
 		gptr->ball.position.y = gptr->player[lrt_c].ge.position.y + gptr->player[lrt_c].ge.height;
 		ballBounceOnPlayer(&(gptr->ball), &(gptr->player[lrt_c]), gptr->maxballspeed);
 		gptr->turn = &gptr->player[lrt_c];
@@ -2445,17 +2407,29 @@ recordPoint(DataRecorder* r, Point* p) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   isKeyPressEvent
+ @mname   checkKeyboardAndMouse
  @details
  This function checks for keyboard input
  This function reacts to both keydown events and keyup events
  When a key is pushed down a boolean is set to keep the keep down as it is pressed\n
  --------------------------------------------------------------------------
  */
-bool isKeyPressEvent(GameData *gptr) {
+bool checkKeyboardAndMouse(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
+
+	if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+		if(gptr->ev.any.source == al_get_display_event_source(gptr->trajectoryDisplay.display)) {
+			al_destroy_display(gptr->trajectoryDisplay.display);
+			gptr->trajectoryDisplay.display = NULL;
+			FEXIT();
+			return true;
+		} else {
+			FEXIT();
+			return false;
+		}
+	}
 
 	if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
 		switch (gptr->ev.keyboard.keycode) {
@@ -2540,6 +2514,37 @@ bool isKeyPressEvent(GameData *gptr) {
 			//exit game
 			FEXIT();
 			return false;
+		case ALLEGRO_KEY_SPACE:
+			if(gptr->gameStart == false) {
+				writeCarLayoutToFile(gptr);
+				if(gptr->path.rec == true && gptr->path.separateDisplay) {
+					createTrajectoryDisplay(gptr);
+				}
+				gptr->gameStart = true;
+			}
+			else if(gptr->roundWin == true) {
+				gptr->roundWin = false;
+				if(gptr->gameWin == true ) {
+					gptr->roundNumber = 1;
+					//recordResult(textBuffer, &(gptr->stats));
+					gptr->backgroundColor = gptr->initcolor;
+					initializeCarLayout(gptr);
+					setCarInfo(gptr);
+					writeCarLayoutToFile(gptr);
+					gptr->player[bus_c].carsSmashed = 0;
+					gptr->player[lrt_c].carsSmashed = 0;
+					//gptr->path.rec = false;
+					gptr->path.used = 0;
+					gptr->stats.totalBounce = 0;
+					gptr->stats.firstEmpty = 0;
+					gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty] = 0;
+					recordPoint(&(gptr->path), &(gptr->ball.position));
+					gptr->gameWin = false;
+				}
+				al_flush_event_queue(gptr->eventqueue);
+				playSound(gptr->startsample);
+			}
+			break;
 		}
 	} else if (gptr->ev.type == ALLEGRO_EVENT_KEY_UP) {
 		switch (gptr->ev.keyboard.keycode) {
@@ -2578,55 +2583,7 @@ bool isKeyPressEvent(GameData *gptr) {
 	}
 	FEXIT();
 	return true;
-} // end-of-function isKeyPressEvent
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Dec 3, 2019
- @mname   pressAnyKeyToBeginGame
- @details
- \n
- --------------------------------------------------------------------------
- */
-bool pressAnyKeyToBeginGame(GameData *gptr) {
-
-	FENTRY();
-	TRACE();
-	al_flush_event_queue(gptr->eventqueue);
-
-	while (true) {
-		TRACE();
-		//wait for an event
-		al_wait_for_event(gptr->eventqueue, &(gptr->ev));
-		//check if the event is a key press
-		//can be something else as the event queue
-		//has other sources
-		if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-			FEXIT();
-			//exits either way
-			switch (gptr->ev.keyboard.keycode) {
-			case ALLEGRO_KEY_ESCAPE:
-				//exit game
-				return false;
-			default:
-				return true;
-			}
-		}
-		if (gptr->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-			if(gptr->ev.any.source == al_get_display_event_source(gptr->trajectoryDisplay.display)) {
-				DEBUG("three");
-				al_destroy_display(gptr->trajectoryDisplay.display);
-				gptr->trajectoryDisplay.display = NULL;
-			} else {
-				DEBUG("three");
-				FEXIT();
-				return false;
-			}
-		}
-	}FEXIT();
-	return true;
-} // end-of-function pressAnyKeyToBeginGame
+} // end-of-function checkKeyboardAndMouse
 
 
 /**
@@ -2686,44 +2643,30 @@ void  startTimers(GameData *gptr) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 27, 2019
- @mname   movePlayers
+ @mname   userControl
  @details
  This function calculates the new positions of the paddles after the keys are pressed\n
  --------------------------------------------------------------------------
  */
-void  movePlayers(GameData *gptr) {
+void  userControl(GameData *gptr, PLAYERS player ) {
 
 	FENTRY();
 	TRACE();
-	if (gptr->player[bus_c].keyPress[0] == true) {
-		gptr->player[bus_c].ge.position.x -= gptr->player[bus_c].paddleSpeed;
-		gptr->player[bus_c].ge.speed.x = (-1)*gptr->player[bus_c].paddleSpeed;
-		if (gptr->player[bus_c].ge.position.x < 0)
-			gptr->player[bus_c].ge.position.x = 0;
+	if (gptr->player[player].keyPress[0] == true) {
+		gptr->player[player].ge.position.x -= gptr->player[player].paddleSpeed;
+		gptr->player[player].ge.speed.x = (-1)*gptr->player[player].paddleSpeed;
+		if (gptr->player[player].ge.position.x < 0)
+			gptr->player[player].ge.position.x = 0;
 	}
-	if (gptr->player[bus_c].keyPress[1] == true) {
-		gptr->player[bus_c].ge.position.x += gptr->player[bus_c].paddleSpeed;
-		gptr->player[bus_c].ge.speed.x = gptr->player[bus_c].paddleSpeed;
-		if (gptr->player[bus_c].ge.position.x >= (gptr->display.width - gptr->player[bus_c].ge.width))
-			gptr->player[bus_c].ge.position.x = (gptr->display.width - gptr->player[bus_c].ge.width);
-	} //end-of-if(p->player[0].keyPress[1] ==true)
-
-	if (gptr->player[lrt_c].keyPress[0] == true) {
-		gptr->player[lrt_c].ge.position.x -= gptr->player[lrt_c].paddleSpeed;
-		gptr->player[lrt_c].ge.speed.x = (-1)* gptr->player[lrt_c].paddleSpeed;
-		if (gptr->player[lrt_c].ge.position.x < 0)
-			gptr->player[lrt_c].ge.position.x = 0;
-	} //end-of-if(p->player[1].keyPress[0] == true)
-
-	if (gptr->player[lrt_c].keyPress[1] == true) {
-		gptr->player[lrt_c].ge.position.x += gptr->player[lrt_c].paddleSpeed;
-		gptr->player[lrt_c].ge.speed.x = gptr->player[lrt_c].paddleSpeed;
-		if (gptr->player[lrt_c].ge.position.x >= (gptr->display.width - gptr->player[lrt_c].ge.width))
-			gptr->player[lrt_c].ge.position.x = (gptr->display.width - gptr->player[lrt_c].ge.width);
-	} //end-of-if(p->player[1].keyPress[1] == true)
+	if (gptr->player[player].keyPress[1] == true) {
+		gptr->player[player].ge.position.x += gptr->player[player].paddleSpeed;
+		gptr->player[player].ge.speed.x = gptr->player[player].paddleSpeed;
+		if (gptr->player[player].ge.position.x >= (gptr->display.width - gptr->player[player].ge.width))
+			gptr->player[player].ge.position.x = (gptr->display.width - gptr->player[player].ge.width);
+	}
 
 	FEXIT();
-} // end-of-function movePlayers
+} // end-of-function userControl
 
 
 /**
@@ -2746,8 +2689,6 @@ void  botControl(GameData *gptr, uint botNumber) {
 	//bot 1 is at the top
 	//bot 0 is at the bottom
 
-	const int doNotMoveLimit_c = 2;
-
 	if ((botNumber == lrt_c) && gptr->ball.speed.y > 0) {
 		FEXIT();
 		return;
@@ -2769,7 +2710,7 @@ void  botControl(GameData *gptr, uint botNumber) {
 		if (gptr->ball.position.y <= gptr->display.height / gptr->botControl[botNumber]->heightDivisor[3])
 			mult = gptr->botControl[botNumber]->speedMultiplier[3];
 
-		if(gptr->ball.position.y > gptr->display.height/doNotMoveLimit_c)
+		if(gptr->ball.position.y > gptr->display.height/gptr->botControl[botNumber]->heightDivisor[0])
 			mult = 0;
 	}
 	else {
@@ -2782,7 +2723,7 @@ void  botControl(GameData *gptr, uint botNumber) {
 		if ((gptr->display.height - gptr->ball.position.y) <= gptr->display.height / gptr->botControl[botNumber]->heightDivisor[3])
 			mult = gptr->botControl[botNumber]->speedMultiplier[3];
 
-		if(gptr->ball.position.y< gptr->display.height/doNotMoveLimit_c)
+		if(gptr->ball.position.y< gptr->display.height/gptr->botControl[botNumber]->heightDivisor[0])
 			mult = 0;
 	}
 
@@ -2875,85 +2816,90 @@ void  graphicsCleanup(GameData *gptr) {
  Then that buffer is shown on the screen. \n
  --------------------------------------------------------------------------
  */
-void gameLoop(GameData *p) {
+void gameLoop(GameData *p, bool startTimer) {
 	FENTRY();
 	TRACE();
 
-	startTimers(p);
-	bool roundwin = false;
-	int skipCounter = 0;
+	if(startTimer) {
+		startTimers(p);
+	}
+	long skipCounter = 0;
 	bool quit = false;
 
 	playSound(p->startsample);
+
 	//We are waiting for an event from on one of the sources that are linked to the event queue
 	//The frame-timer, keyboard, mouse, and bot timer if in arcade mode
 	//This function blocks until an event is received
 	//Therefore if the timers would not be started,
 	//this function would return only on a keyboard or mouse event
 	while (!quit) {
-		if(p->gameStart == false) {
-			quit = !drawTextAndWaitBegin(p);
-			p->gameStart = true;
-		}
 
 		al_wait_for_event(p->eventqueue, &(p->ev));
-
-		if (p->ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-			if(p->ev.any.source == al_get_display_event_source(p->trajectoryDisplay.display)) {
-				al_destroy_display(p->trajectoryDisplay.display);
-				p->trajectoryDisplay.display = NULL;
-			} else {
-				quit = true;
-			}
-		}
-		//If the round is won we need to stop the game for 1 second
-		//We do this by counting timer events without processing them which in effect
-		//skips frames
-		if (roundwin == true) {
-			if (p->ev.type == ALLEGRO_EVENT_TIMER
-					&& p->ev.timer.source == p->timer) {
-				//skip maxSkip frames
-				//At the end of each round we want to keep the last frame of the play that shows where the ball exitied the screen
-				//for a little longer, so the user can see who won the round
-				//We do this by counting frame timer events
-				if (skipCounter++ >= (int) p->fps) {
-					skipCounter = 0;
-					roundwin = false;
-					if (printRoundWinner(p) == false) {
-						//user has pressed ESC to end the game
-						quit = true;
-					}
-				}
-			}
-		}
 		//check if escape key has been pressed
-		if (isKeyPressEvent(p) == false) {
-			//user has ended game
-			quit = true;
-		}
-		//check if we need to update the frame
-		if (p->ev.type == ALLEGRO_EVENT_TIMER
-				&& p->ev.timer.source == p->timer) {
-			//we need to run the bot logic
-			if (p->gameMode == fullbot_c) {
-				//if we are in arcade mode and the timer event belongs to the Bot timer then
-				// we have to run the bot control logic
-				botControl(p, lrt_c);
-				botControl(p, bus_c);
-			}else if(p->gameMode == arcade_c) {
-				botControl(p, lrt_c);
-			}
-			//If this is a screen update timer event then we have to redraw the screen
-			//we have to update the ball position and then draw all objects (players and ball)
-			//Calculates next position of the paddles based on the key inputs read above
-			movePlayers(p);
-			roundwin = updateBallPosition(p);
-			drawObjects(p);
-			writeTrajectoryToWindow(p);
-			//This function shows the content of the display buffer on the screen.
+		quit = !checkKeyboardAndMouse(p);
+
+		if(p->gameStart == false) {
+			drawBeginGameScreen(p);
 			flipAllDisplays(p);
 		}
-	}
+		else {
+			//If the round is won we need to stop the game for 1 second
+			//We do this by counting timer events without processing them which in effect
+			//skips frames
+			if ((p->ev.type == ALLEGRO_EVENT_TIMER
+					&& p->ev.timer.source == p->timer) || (startTimer == false)){
+				if (p->roundWin == true) {
+					//skip maxSkip frames
+					//At the end of each round we want to keep the last frame of the play that shows where the ball exitied the screen
+					//for a little longer, so the user can see who won the round
+					//We do this by counting frame timer events
+					if (skipCounter++ >= (int) p->fps) {
+						if ((p->roundNumber > p->maxRounds) || (p->remainingCars == 0)){
+							p->gameWin = true;
+							setInitialObjectPositions(p);
+							drawObjects(p);
+							gameWinOverlay(p);
+						}
+						else {
+							setInitialObjectPositions(p);
+							drawObjects(p);
+							roundWinOverlay(p);
+						}
+						writeTrajectoryToWindow(p);
+					}else {
+						al_flush_event_queue(p->eventqueue);
+						drawObjects(p);
+						writeTrajectoryToWindow(p);
+					}
+				}
+				else {
+					skipCounter = 0;
+					//we need to run the bot logic
+					if (p->gameMode == fullbot_c) {
+						// We have to run the bot control logic
+						botControl(p, lrt_c);
+						botControl(p, bus_c);
+					}else if(p->gameMode == arcade_c) {
+						botControl(p, lrt_c);
+						userControl(p, bus_c);
+					} else {
+						userControl(p, bus_c);
+						userControl(p, lrt_c);
+					}
+					//If this is a screen update timer event then we have to redraw the screen
+					//we have to update the ball position and then draw all objects (players and ball)
+					//Calculates next position of the paddles based on the key inputs read above
+
+					p->roundWin = updateBallPosition(p);
+					if(p->roundWin) p->roundNumber++;
+					drawObjects(p);
+					writeTrajectoryToWindow(p);
+				}
+				flipAllDisplays(p);
+			}
+		}
+	}//end-of-while(!quit)
 
 	graphicsCleanup(p);
 	FEXIT();

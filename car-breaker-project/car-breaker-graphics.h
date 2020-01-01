@@ -278,6 +278,8 @@ typedef struct GameData {
 	BounceStatistics stats;
 	bool gameStart;
 	bool gamePaused;
+	bool roundWin;
+	bool gameWin;
 
 } GameData;
 
@@ -299,8 +301,8 @@ bool readCarLayoutFromFile(GameData* g, char* fileName);
 // === Game Graphics ======
 bool displayHelp(GameData *gptr);
 bool displayScore(GameData *gptr);
-bool drawTextAndWaitBegin(GameData *gptr);
-bool drawTextAndWaitRoundWin(GameData *gptr);
+bool drawBeginGameScreen(GameData *gptr);
+bool roundWinOverlay(GameData *gptr);
 bool initializeGraphics(GameData *p);
 bool printRoundWinner(GameData *gptr);
 bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
@@ -336,13 +338,12 @@ void decreaseBallSpeed(GameData* g);
 void increaseBallSpeed(GameData* g);
 
 // ==== Game Control ========
-bool isKeyPressEvent(GameData *gptr);
-bool pressAnyKeyToBeginGame(GameData *gptr);
+bool checkKeyboardAndMouse(GameData *gptr);
 bool recordPoint(DataRecorder* r, Point* p);
 bool recordResult(char *p, BounceStatistics* stats);
 bool writeCarLayoutToFile(GameData* g);
 void botControl(GameData *gptr, uint botNumber);
-void movePlayers(GameData *gptr);
+void userControl(GameData *gptr);
 void playSound(ALLEGRO_SAMPLE *s);
 void setCarInfo(GameData* p);
 void setPointsPerSmash(GameData*gptr) ;
@@ -351,7 +352,7 @@ void stopTimers(GameData *gptr);
 
 // === Game Loop ====
 void graphicsCleanup(GameData *gptr);
-void gameLoop(GameData *p);
+void gameLoop(GameData *p, bool startTimer);
 
 //============================
 

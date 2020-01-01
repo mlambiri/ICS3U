@@ -49,7 +49,7 @@ penalty = 5
 
 #collision algorithm number to use 
 # 1 or 2 
-calgo = 2
+calgo = 1
 
 
 # possible values yellow, blue, white, green, q
@@ -71,7 +71,7 @@ buslevel = 4
 lrtlevel = 4
 
 #frames per second min 5 max 120
-fps = 60
+fps = 45
 
 #trajectory is displayed in a separate window
 #by default it is done in the main window

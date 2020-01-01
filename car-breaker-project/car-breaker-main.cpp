@@ -75,6 +75,7 @@ main(int argc, char **argv) {
 
 	char* configFileName = NULL;
 	int num = 0;
+	bool startTimer = true;
 	//WE process the program command line parameters first
 	for (int  param = 1; param < argc; param++ ) {
 		if (strcmp(argv[param], "-c") == 0) {
@@ -84,6 +85,8 @@ main(int argc, char **argv) {
 		} else if (strcmp(argv[param], "-h") == 0) {
 			Usage();
 			return 1;
+		}else if (strcmp(argv[param], "-n") == 0) {
+			startTimer = false;
 		}
 		//Some command line paramters are available only in the debug executable
 #ifdef CARDEBUG
@@ -127,7 +130,7 @@ main(int argc, char **argv) {
 	}
 
 	//All that is left is to run the game
-	gameLoop(&carBreaker);
+	gameLoop(&carBreaker, startTimer);
 
 	return 0;
 } // end-of-function main
