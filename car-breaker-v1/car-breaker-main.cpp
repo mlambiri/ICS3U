@@ -127,7 +127,7 @@ main(int argc, char **argv) {
 	}
 
 	//All that is left is to run the game
-	runGame(&carBreaker);
+	gameLoop(&carBreaker);
 
 	return 0;
 } // end-of-function main

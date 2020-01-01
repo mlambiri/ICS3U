@@ -235,8 +235,8 @@ bool checkCollisionLeftRight(GameData *gptr);
 bool checkCollisionTopAndBottom(GameData *gptr);
 bool checkBallCollisionWithPlayers(GameData *gptr);
 bool displayScore(GameData *gptr);
-bool drawTextAndWaitBegin(GameData *gptr);
-bool drawTextAndWaitRoundWin(GameData *gptr);
+bool drawBeginGameScreen(GameData *gptr);
+bool roundWinOverlay(GameData *gptr);
 bool gameMainLoop(GameData *gptr);
 bool loadAudio(GamePlayer *gptr);
 bool loadWinnerSound(GameData *gptr);
@@ -247,7 +247,7 @@ bool loadPlayerImage(GamePlayer *p, char* fname);
 bool pauseGame(GameData *gptr);
 bool pressAnyKeyToBeginGame(GameData *gptr);
 bool printRoundWinner(GameData *gptr);
-bool isKeyPressEvent(GameData *gptr);
+bool checkKeyboardAndMouse(GameData *gptr);
 bool updateBallPosition(GameData *gptr);
 int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size);
 int signOfNumber(int value);
@@ -256,9 +256,9 @@ void  lrtBotControl(GameData *gptr, uint botNumber);
 void  drawBitmap(GameBasicBlock *g);
 void  drawBitmapSection(GameBasicBlock *g);
 void  drawObjects(GameData *gptr);
-void  exitGame(GameData *gptr);
-void  initializaCarLayout(GameData*gptr);
-void  movePlayers(GameData *gptr);
+void  graphicsCleanup(GameData *gptr);
+void  initializeCarLayout(GameData*gptr);
+void  userControl(GameData *gptr);
 void  playSound(ALLEGRO_SAMPLE *s);
 void  setBackgroundColor(ALLEGRO_COLOR color);
 void  setInitialObjectPositions(GameData *gptr);
@@ -269,7 +269,7 @@ bool recordResult(char *p);
 
 //=====================
 bool initializeGraphics(GameData *p);
-void runGame(GameData *p);
+void gameLoop(GameData *p);
 bool initializeGameData(GameData *p, int argc, char **argv);
 //============================
 

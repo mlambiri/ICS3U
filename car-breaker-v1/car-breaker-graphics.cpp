@@ -823,7 +823,7 @@ bool pauseGame(GameData *gptr) {
  When a key is pushed down a boolean is set to keep the keep down as it is pressed\n
  --------------------------------------------------------------------------
  */
-bool isKeyPressEvent(GameData *gptr) {
+bool checkKeyboardAndMouse(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
@@ -940,7 +940,7 @@ bool pressAnyKeyToBeginGame(GameData *gptr) {
  This function calculates the new positions of the paddles after the keys are pressed\n
  --------------------------------------------------------------------------
  */
-void  movePlayers(GameData *gptr) {
+void  userControl(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
@@ -1015,7 +1015,7 @@ int drawTextOnScreen(GameData *gptr, char *text, int x, int y, int size) {
  This function displays the first screen that the user views in the game\n
  --------------------------------------------------------------------------
  */
-bool drawTextAndWaitBegin(GameData *gptr) {
+bool drawBeginGameScreen(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
@@ -1061,7 +1061,7 @@ bool drawTextAndWaitBegin(GameData *gptr) {
  We do this by adding a value to the y coordinate of the message\n
  --------------------------------------------------------------------------
  */
-bool drawTextAndWaitRoundWin(GameData *gptr) {
+bool roundWinOverlay(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
@@ -1388,7 +1388,7 @@ bool printRoundWinner(GameData *gptr) {
 	drawObjects(gptr);
 
 	//Wait until they choose to start another game or exit the game
-	if (drawTextAndWaitRoundWin(gptr) == false) {
+	if (roundWinOverlay(gptr) == false) {
 		FEXIT();
 		return false;
 	} else {
@@ -1692,7 +1692,7 @@ bool gameMainLoop(GameData *gptr) {
 				continue;
 		} else {
 			//check if escape key has been pressed
-			if (isKeyPressEvent(gptr) == false) {
+			if (checkKeyboardAndMouse(gptr) == false) {
 				//user has ended game
 				FEXIT();
 				return false;
@@ -1703,7 +1703,7 @@ bool gameMainLoop(GameData *gptr) {
 				//If this is a screen update timer event then we have to redraw the screen
 				//we have to update the ball position and then draw all objects (players and ball)
 				//Calculates next position of the paddles based on the key inputs read above
-				movePlayers(gptr);
+				userControl(gptr);
 				roundwin = updateBallPosition(gptr);
 				drawObjects(gptr);
 				//This function shows the content of the display buffer on the screen.
@@ -1726,7 +1726,7 @@ bool gameMainLoop(GameData *gptr) {
  \n
  --------------------------------------------------------------------------
  */
-void  exitGame(GameData *gptr) {
+void  graphicsCleanup(GameData *gptr) {
 	FENTRY();
 	TRACE();
 	al_rest(0.0);
@@ -2114,14 +2114,14 @@ bool initializeGraphics(GameData *p) {
  2. Calls the game loop
  --------------------------------------------------------------------------
  */
-void runGame(GameData *p) {
+void gameLoop(GameData *p) {
 	FENTRY();
 	TRACE();
 	setBackgroundColor(*(p->backgroundColor));
-	if (drawTextAndWaitBegin(p) == true) {
+	if (drawBeginGameScreen(p) == true) {
 		gameMainLoop(p);
 	}
 
-	exitGame(p);
+	graphicsCleanup(p);
 	FEXIT();
 } // end-of-function GameRun
