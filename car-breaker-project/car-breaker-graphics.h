@@ -314,7 +314,6 @@ void drawBitmapSection(GameBasicBlock *g);
 void drawObjects(GameData *gptr);
 void flipAllDisplays(GameData* g);
 void initializeCarLayout(GameData*gptr);
-void setBackgroundColor(ALLEGRO_COLOR color);
 void setCarInfo(GameData* p);
 void setInitialObjectPositions(GameData *gptr);
 void writeTrajectoryToWindow(GameData* g);

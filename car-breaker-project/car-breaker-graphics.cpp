@@ -828,24 +828,6 @@ void  setCarInfo(GameData* p) {
 	return;
 }
 
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 22, 2019
- @mname   setBackgroundColor
- @details
-   this function sets the background color for the display\n
- --------------------------------------------------------------------------
- */
-void  setBackgroundColor(ALLEGRO_COLOR color) {
-	FENTRY();
-	TRACE();
-	al_clear_to_color(color);
-	FEXIT();
-} // end-of-function setBackgroundColor
-
-
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
@@ -1008,8 +990,6 @@ bool drawBeginGameScreen(GameData *gptr) {
 	FENTRY();
 	TRACE();
 
-	setBackgroundColor(*(gptr->backgroundColor));
-
 	int next = drawTextOnScreen(gptr, (char*) "Welcome to Car Smasher", gptr->display.width / 2,
 			gptr->display.height / 4, largeFont_c);
 	al_flush_event_queue(gptr->eventqueue);
@@ -1113,17 +1093,6 @@ bool gameWinOverlay(GameData *gptr) {
 			gptr->display.width / 2, gptr->carArea.position.y+gptr->carArea.height, regularFont_c);
 
 	playSound(gptr->winsample);
-	const char* mode;
-	if(gptr->gameMode == fullbot_c) {
-		mode = "Full Auto";
-	}
-	else if (gptr->gameMode == arcade_c) {
-		mode = "Arcade";
-	} else {
-		mode = "Human";
-	}
-	sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]", mode, gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
-			gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
 
 	for (int i = 0; i < 2; i++) {
 		gptr->player[bus_c].keyPress[i] = false;
@@ -1272,7 +1241,7 @@ void  drawObjects(GameData *gptr) {
 
 	FENTRY();
 	TRACE();
-	setBackgroundColor(*(gptr->backgroundColor));
+
 	drawBitmapSection(&(gptr->player[bus_c].ge));
 	drawBitmapSection(&(gptr->player[lrt_c].ge));
 	drawBitmap(&(gptr->ball));
@@ -1412,10 +1381,38 @@ bool initializeGraphics(GameData *p) {
 
 	setInitialObjectPositions(p);
 
-	setBackgroundColor(*(p->backgroundColor));
 	FEXIT();
 	return true;
 } // end-of-function InitGame
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 22, 2019
+ @mname   graphicsCleanup
+ @details
+ This function is called when the game terminates and it destroys all allegro resources
+ \n
+ --------------------------------------------------------------------------
+ */
+void  graphicsCleanup(GameData *gptr) {
+	FENTRY();
+	TRACE();
+	al_rest(0.0);
+	al_destroy_display(gptr->display.display);
+	al_destroy_timer(gptr->timer);
+	al_destroy_event_queue(gptr->eventqueue);
+	for (int i = 0; i < MAXFONTS; i++) {
+		if (gptr->font[i]) {
+			al_destroy_font(gptr->font[i]);
+		} //end-of-if(p->font[i])
+	} //end-of-for
+
+	al_destroy_bitmap(gptr->player[bus_c].ge.bmap);
+	al_destroy_bitmap(gptr->player[lrt_c].ge.bmap);
+	al_destroy_bitmap(gptr->ball.bmap);
+	FEXIT();
+} // end-of-function graphicsCleanup
 
 
 //===== Ball Movement and Collisions  ('Physics') ===========
@@ -2404,6 +2401,34 @@ recordPoint(DataRecorder* r, Point* p) {
 } // end-of-method recordPoint
 
 /**
+  ---------------------------------------------------------------------------
+   @author  mlambiri
+   @date    Jan. 1, 2020
+   @mname   generateNewLayout
+   @details
+	  \n
+  --------------------------------------------------------------------------
+ */
+void
+generateNewLayout(GameData* gptr) {
+
+	gptr->backgroundColor = gptr->initcolor;
+	initializeCarLayout(gptr);
+	setCarInfo(gptr);
+	writeCarLayoutToFile(gptr);
+	gptr->player[bus_c].carsSmashed = 0;
+	gptr->player[lrt_c].carsSmashed = 0;
+	//gptr->path.rec = false;
+	gptr->path.used = 0;
+	gptr->stats.totalBounce = 0;
+	gptr->stats.firstEmpty = 0;
+	gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty] = 0;
+	recordPoint(&(gptr->path), &(gptr->ball.position));
+} // end-of-method generateNewLayout
+
+
+
+/**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
@@ -2510,6 +2535,9 @@ bool checkKeyboardAndMouse(GameData *gptr) {
 		case ALLEGRO_KEY_S:
 			decreaseBallSpeed(gptr);
 			break;
+		case ALLEGRO_KEY_N:
+			generateNewLayout(gptr);
+			break;
 		case ALLEGRO_KEY_ESCAPE:
 			//exit game
 			FEXIT();
@@ -2526,19 +2554,20 @@ bool checkKeyboardAndMouse(GameData *gptr) {
 				gptr->roundWin = false;
 				if(gptr->gameWin == true ) {
 					gptr->roundNumber = 1;
-					//recordResult(textBuffer, &(gptr->stats));
-					gptr->backgroundColor = gptr->initcolor;
-					initializeCarLayout(gptr);
-					setCarInfo(gptr);
-					writeCarLayoutToFile(gptr);
-					gptr->player[bus_c].carsSmashed = 0;
-					gptr->player[lrt_c].carsSmashed = 0;
-					//gptr->path.rec = false;
-					gptr->path.used = 0;
-					gptr->stats.totalBounce = 0;
-					gptr->stats.firstEmpty = 0;
-					gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty] = 0;
-					recordPoint(&(gptr->path), &(gptr->ball.position));
+					const char* mode;
+					char textBuffer[MAXBUFFER];
+					if(gptr->gameMode == fullbot_c) {
+						mode = "Full Auto";
+					}
+					else if (gptr->gameMode == arcade_c) {
+						mode = "Arcade";
+					} else {
+						mode = "Human";
+					}
+					sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]", mode, gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
+							gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
+					recordResult(textBuffer, &(gptr->stats));
+					generateNewLayout(gptr);
 					gptr->gameWin = false;
 				}
 				al_flush_event_queue(gptr->eventqueue);
@@ -2770,36 +2799,6 @@ void  botControl(GameData *gptr, uint botNumber) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
- @mname   graphicsCleanup
- @details
- This function is called when the game terminates and it destroys all allegro resources
- \n
- --------------------------------------------------------------------------
- */
-void  graphicsCleanup(GameData *gptr) {
-	FENTRY();
-	TRACE();
-	al_rest(0.0);
-	al_destroy_display(gptr->display.display);
-	al_destroy_timer(gptr->timer);
-	al_destroy_event_queue(gptr->eventqueue);
-	for (int i = 0; i < MAXFONTS; i++) {
-		if (gptr->font[i]) {
-			al_destroy_font(gptr->font[i]);
-		} //end-of-if(p->font[i])
-	} //end-of-for
-
-	al_destroy_bitmap(gptr->player[bus_c].ge.bmap);
-	al_destroy_bitmap(gptr->player[lrt_c].ge.bmap);
-	al_destroy_bitmap(gptr->ball.bmap);
-	FEXIT();
-} // end-of-function graphicsCleanup
-
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
  @date    Nov 25, 2019
  @mname   gameLoop
  @details
@@ -2840,6 +2839,7 @@ void gameLoop(GameData *p, bool startTimer) {
 		quit = !checkKeyboardAndMouse(p);
 
 		if(p->gameStart == false) {
+			al_clear_to_color(*(p->backgroundColor));
 			drawBeginGameScreen(p);
 			flipAllDisplays(p);
 		}
@@ -2858,17 +2858,20 @@ void gameLoop(GameData *p, bool startTimer) {
 						if ((p->roundNumber > p->maxRounds) || (p->remainingCars == 0)){
 							p->gameWin = true;
 							setInitialObjectPositions(p);
-							drawObjects(p);
+							al_clear_to_color(*(p->backgroundColor));
 							gameWinOverlay(p);
+							drawObjects(p);
 						}
 						else {
 							setInitialObjectPositions(p);
-							drawObjects(p);
+							al_clear_to_color(*(p->backgroundColor));
 							roundWinOverlay(p);
+							drawObjects(p);
 						}
 						writeTrajectoryToWindow(p);
 					}else {
 						al_flush_event_queue(p->eventqueue);
+						al_clear_to_color(*(p->backgroundColor));
 						drawObjects(p);
 						writeTrajectoryToWindow(p);
 					}
@@ -2893,6 +2896,7 @@ void gameLoop(GameData *p, bool startTimer) {
 
 					p->roundWin = updateBallPosition(p);
 					if(p->roundWin) p->roundNumber++;
+					al_clear_to_color(*(p->backgroundColor));
 					drawObjects(p);
 					writeTrajectoryToWindow(p);
 				}
