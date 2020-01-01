@@ -31,8 +31,8 @@ typedef unsigned int uint;
 #define MAXFONTS 3
 #define MAXBITMAPS 2
 
-#define MAXBRICKROWS 10
-#define MAXBRICKCOLUMNS 30
+#define MAXCARROWS 10
+#define MAXCARCOLUMNS 30
 
 #define SCREEN_W  1600
 #define SCREEN_H  1200
@@ -169,7 +169,7 @@ typedef struct DataRecorder {
 } DataRecorder;
 
 typedef struct BounceStatistics {
-	uint bounceUntilSmash[MAXBRICKCOLUMNS*MAXBRICKROWS];
+	uint bounceUntilSmash[MAXCARCOLUMNS*MAXCARROWS];
 	uint totalBounce;
 	uint firstEmpty;
 } BounceStatistics;
@@ -239,7 +239,7 @@ typedef struct GameData {
 	ALLEGRO_SAMPLE *startsample;
 	ALLEGRO_SAMPLE *winsample;
 
-	GameBasicBlock bricks[MAXBRICKROWS][MAXBRICKCOLUMNS];
+	GameBasicBlock cars[MAXCARROWS][MAXCARCOLUMNS];
 	uint gameNumber;
 	GamePlayer* turn;
 	uint roundNumber;
@@ -258,7 +258,7 @@ typedef struct GameData {
 
 	int year;
 
-	char layout[MAXBRICKROWS][MAXBRICKCOLUMNS];
+	char layout[MAXCARROWS][MAXCARCOLUMNS];
 	bool validLayout;
 	int penalty;
 
@@ -291,40 +291,37 @@ typedef struct GameData {
 //======= FUNCTION DECLARATIONS =====
 // === Initialization ====
 void configureGame(GameData *p, int argc, char **argv);
+
+// === Game Graphics and Sounds ======
+bool initializeAllegro(GameData *p);
 bool loadAudio(GamePlayer *gptr);
 bool loadBitmap(GameBasicBlock *g, char* fname);
 bool loadFont(GameData *gptr, int size);
 bool loadPlayerImage(GamePlayer *p, char* fname);
 bool loadWinnerSound(GameData *gptr);
-bool readCarLayoutFromFile(GameData* g, char* fileName);
-
-// === Game Graphics ======
-bool drawBeginGameScreen(GameData *gptr);
-bool drawHelpToScreen(GameData *gptr);
-bool drawScoreToScreen(GameData *gptr);
-bool initializeAllegro(GameData *p);
-bool printRoundWinner(GameData *gptr);
-bool roundWinOverlay(GameData *gptr);
-bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
 int   drawTextToScreen(GameData *gptr, char *text, int x, int y, int size);
 void allegroCleanup(GameData *gptr);
 void centerBallAndPlayerPositions(GameData *gptr);
 void createTrajectoryDisplay(GameData* g);
+void drawBeginGameScreen(GameData *gptr);
+void drawHelpText(GameData *gptr);
 void drawMainGameScreen(GameData *gptr);
 void drawPlayerBitmap(GameBasicBlock *g);
+void drawRoundWinText(GameData *gptr);
+void drawScoreText(GameData *gptr);
 void flipAllDisplays(GameData* g);
-void initializeCarLayout(GameData*gptr);
-void setCarInfo(GameData* p);
-void setCarPositionsOnScreen(GameData* gptr);
+void setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP*);
+void setCarGraphics(GameData* p);
+void setCarGraphics(GameData* p);
 void writeTrajectoryToWindow(GameData* g);
-
+void playSound(ALLEGRO_SAMPLE *s);
 
 //===== Ball Movement and Collisions ('Physics') ===========
 bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSIDE& side);
 bool checkBallCollisionWithPlayers(GameData *gptr);
 bool checkCollisionLeftRight(GameData *gptr);
 bool checkCollisionTopAndBottom(GameData *gptr);
-bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i, int j);
+bool isBallCarCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i, int j);
 bool isBallInRegion(GameBasicBlock* ball, GameBasicBlock* obj);
 bool isPointInAnyCar(GameData* g,  int x, int y, int&row, int&column);
 bool isPointInObject(GameBasicBlock* b, int x, int y);
@@ -339,15 +336,15 @@ void increaseBallSpeed(GameData* g);
 // ==== Game Control ========
 bool checkKeyboardAndMouse(GameData *gptr);
 bool recordPoint(DataRecorder* r, Point* p);
-bool recordResult(char *p, BounceStatistics* stats);
 bool writeCarLayoutToFile(GameData* g);
+bool writeGameResultToFile(char *p, BounceStatistics* stats);
 void botControl(GameData *gptr, uint botNumber);
-void userControl(GameData *gptr);
-void playSound(ALLEGRO_SAMPLE *s);
-void setCarInfo(GameData* p);
-void setPointsPerSmash(GameData*gptr) ;
 void generateNewCarLayout(GameData* gptr);
+void setPointsPerSmash(GameData*gptr) ;
 void startRound(GameData* gptr);
+void userControl(GameData *gptr);
+bool readCarLayoutFile(GameData* g, char* fileName);
+void createCarLayout(GameData*gptr);
 
 // === Game Loop ====
 void gameLoop(GameData *p, bool startTimer);

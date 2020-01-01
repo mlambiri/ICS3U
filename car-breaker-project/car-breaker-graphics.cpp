@@ -86,7 +86,6 @@ BotControlInfo busBotArray[pro_c + 1] = {
  --------------------------------------------------------------------------
  */
 void configureGame(GameData *p, int argc, char **argv) {
-
 	FENTRY();
 
 	//seed random number generator with time
@@ -111,8 +110,8 @@ void configureGame(GameData *p, int argc, char **argv) {
 	p->inLayout[0] = 0;
 	p->outLayout[0] = 0;
 
-	p->maxRows = MAXBRICKROWS;
-	p->maxColumns = MAXBRICKCOLUMNS;
+	p->maxRows = MAXCARROWS;
+	p->maxColumns = MAXCARCOLUMNS;
 
 	p->gameNumber = 1;
 	p->roundNumber = 1;
@@ -180,15 +179,15 @@ void configureGame(GameData *p, int argc, char **argv) {
 			//the number of rows of cars, max is MAXBRICKROWS
 			if (++param < argc) {
 				p->maxRows = atoi(argv[param]);
-				if(p->maxRows > MAXBRICKROWS)
-					p->maxRows = MAXBRICKROWS;
+				if(p->maxRows > MAXCARROWS)
+					p->maxRows = MAXCARROWS;
 			}
 		}else if (strcmp(argv[param], "maxcolumns") == 0) {
 			//the number of rows of cars, max is MAXBRICKCOLUMNS
 			if (++param < argc) {
 				p->maxColumns = atoi(argv[param]);
-				if(p->maxColumns > MAXBRICKCOLUMNS)
-					p->maxColumns = MAXBRICKCOLUMNS;
+				if(p->maxColumns > MAXCARCOLUMNS)
+					p->maxColumns = MAXCARCOLUMNS;
 			}
 		}  else if (strcmp(argv[param], "fontsize") == 0) {
 			//font size
@@ -249,7 +248,7 @@ void configureGame(GameData *p, int argc, char **argv) {
 		} else if (strcmp(argv[param], "pattern") == 0) {
 			// car layout
 			if (++param < argc) {
-				p->validLayout = readCarLayoutFromFile(p, argv[param]);
+				p->validLayout = readCarLayoutFile(p, argv[param]);
 				if( p->validLayout) {
 					strcpy(p->inLayout, argv[param]);
 				}
@@ -360,68 +359,13 @@ void configureGame(GameData *p, int argc, char **argv) {
 } // end-of-function configureGame
 
 
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 25, 2019
- @mname   readCarLayoutFromFile
- @details
-    reads the brick layout from a file\n
- --------------------------------------------------------------------------
+
+//==== Game Graphics ======
+/*
+ * @author   mlambiri
+ * @date     Dec. 30, 2019
+ *  This section contains functions that draw items on screen
  */
-bool readCarLayoutFromFile(GameData* g, char* fileName) {
-
-	FENTRY();
-
-	char text[MAXBUFFER];
-
-	FILE* fptr = NULL;
-	if (fileName == NULL) {
-		DEBUG("Null layout file name");
-		FEXIT();
-		return false;
-	} else {
-		fptr = fopen(fileName, "r");
-		if (fptr == NULL) {
-			DEBUG("Layout file not found");
-			FEXIT();
-			return false;
-		} //end-of-if(fptr == NULL)
-	}
-
-	DEBUG("Layout file found. Loading data ....");
-	char* buffer = text;
-	int i = 0;
-
-	while(fgets(buffer, MAXBUFFER, fptr)) {
-		for (int j = 0; j < g->maxColumns; j++ ) {
-			if(buffer[j] == 0) return false;
-			switch(buffer[j]) {
-			case 'x':
-			case 'X':
-			case 'g':
-			case 'G':
-			case 'e':
-			case 'E':
-				g->layout[i][j] = buffer[j];
-				break;
-			default:
-				FEXIT();
-				return false;
-			}
-		} //end-of-for
-		i++;
-		if(i>= g->maxRows) break;
-	}
-
-	if(i < g->maxRows) return false;
-
-	fclose(fptr);
-	FEXIT();
-	return true;
-} //end-readCarLayoutFromFile
-
-
 
 /**
  ---------------------------------------------------------------------------
@@ -492,6 +436,23 @@ bool loadAudio(GamePlayer *gptr) {
 	return true;
 } // end-of-function loadAudio
 
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 23, 2019
+ @mname   PlaySound
+ @details
+ \n
+ --------------------------------------------------------------------------
+ */
+void  playSound(ALLEGRO_SAMPLE *s) {
+	if (s) {
+		al_play_sample(s, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+	}
+} // end-of-function PlaySound
+
+
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
@@ -550,127 +511,6 @@ bool loadFont(GameData *gptr, int size) {
 	return true;
 } // end-of-function loadFont
 
-
-//==== Game Graphics ======
-/*
- * @author   mlambiri
- * @date     Dec. 30, 2019
- *  This section contains functions that draw items on screen
- */
-
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 18, 2019
- @mname    initializeCarLayout
- @details
-   initializes the car layout\n
- --------------------------------------------------------------------------
- */
-void  initializeCarLayout(GameData*gptr) {
-	FENTRY();
-
-	gptr->remainingCars = 0;
-
-	if(gptr->validLayout == true) {
-		// use it once
-		gptr->validLayout = false;
-		for(int i = 0; i < gptr->maxRows; i++) {
-			for (int j = 0; j < gptr->maxColumns; j++) {
-				switch(gptr->layout[i][j]) {
-				case 'x':
-				case 'X':
-					gptr->bricks[i][j].onScreen = false;
-					gptr->bricks[i][j].indestructible = false;
-					break;
-				case 'e':
-				case 'E':
-					gptr->bricks[i][j].onScreen = true;
-					gptr->bricks[i][j].indestructible = true;
-					break;
-				case 'g':
-				case 'G':
-					gptr->bricks[i][j].onScreen = true;
-					gptr->bricks[i][j].indestructible = false;
-					gptr->remainingCars++;
-					break;
-				default:
-					break;
-				}
-			}
-		}
-	}
-	else {
-
-		int year = (gptr->year > 2080)?2080:gptr->year;
-		uint rNumber = (year > 2020)? (2100- year )/10:10;
-		uint maxCars = gptr->maxRows * gptr->maxColumns;
-
-		if(year > 2020) {
-			maxCars -= (2080-year)*maxCars/160;
-		}
-
-
-		// number of smashable cars in top and bottom row must be similar
-		// othewise there is in an advantage to one player
-		int topCount = 0;
-
-		int totalCount = 0;
-
-		for(int i = 0; i < gptr->maxRows; i++) {
-			for (int j = 0; j < gptr->maxColumns; j++) {
-				gptr->bricks[i][j].onScreen = (rand() % rNumber)?true:false;
-				if(gptr->bricks[i][j].onScreen == true ) {
-					// ecars are 'indestructible'
-					// as times goes by more are ecars
-					// but also less cars on road
-					totalCount++;
-					if(gptr->year >= 2000) {
-						if(i == gptr->maxRows - 1) {
-							if(topCount-- > 0) {
-								gptr->remainingCars++;
-								continue;
-							}
-						}
-						gptr->bricks[i][j].indestructible = (totalCount % rNumber)?false:true;
-					}
-					if(gptr->bricks[i][j].indestructible  == false) {
-						gptr->remainingCars++;
-						if(i == 0) {
-							topCount++;
-						}
-					}
-				}
-			} //end-of-for
-		} //end-of-for
-
-		for(int i = 1; i < gptr->maxRows-1; i++) {
-			for (int j = 1; j < gptr->maxColumns-1; j++) {
-				if(gptr->bricks[i][j].indestructible  == false) {
-					// do not allow gas cars to be surrounded by ecars
-					// in that case the cars cannot be smashed
-					// check if the gas car is surrounded and if it is, make it an ecar
-					if((gptr->bricks[i-1][j].indestructible == true)
-							&& (gptr->bricks[i][j-1].indestructible == true)
-							&& (gptr->bricks[i][j+1].indestructible == true)
-							&& (gptr->bricks[i+1][j].indestructible == true)
-					){
-						gptr->bricks[i][j].indestructible = true;
-						if(gptr->bricks[i][j].onScreen == true)
-							gptr->remainingCars--;
-						else
-							gptr->bricks[i][j].onScreen = true;
-					}
-				}
-			} //end-of-for
-		} //end-of-for
-	}
-	gptr->gameNumber++;
-
-	FEXIT();
-} //end-init-car-layoyut
-
 /**
   ---------------------------------------------------------------------------
    @author  mlambiri
@@ -680,8 +520,7 @@ void  initializeCarLayout(GameData*gptr) {
 	  \n
   --------------------------------------------------------------------------
  */
-void
-createTrajectoryDisplay(GameData* g) {
+void createTrajectoryDisplay(GameData* g) {
 	FENTRY();
 
 	if(g->trajectoryDisplay.display != NULL) {
@@ -716,8 +555,7 @@ createTrajectoryDisplay(GameData* g) {
 	  \n
   --------------------------------------------------------------------------
  */
-void
-writeTrajectoryToWindow(GameData* g) {
+void writeTrajectoryToWindow(GameData* g) {
 	FENTRY();
 
 
@@ -751,8 +589,7 @@ writeTrajectoryToWindow(GameData* g) {
 	  \n
   --------------------------------------------------------------------------
  */
-void
-flipAllDisplays(GameData* g) {
+void flipAllDisplays(GameData* g) {
 	FENTRY();
 
 	if(g->trajectoryDisplay.display) {
@@ -773,12 +610,13 @@ flipAllDisplays(GameData* g) {
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 24, 2019
- @mname   setCarInfo
+ @mname   setCarGraphics
  @details
-   \n
+    This function will set the appropriate bitmaps for each car type
+    this allows to set ecars with different bitmaps than gas cars\n
  --------------------------------------------------------------------------
  */
-void  setCarInfo(GameData* p) {
+void  setCarGraphics(GameData* p) {
 	FENTRY();
 
 
@@ -790,46 +628,68 @@ void  setCarInfo(GameData* p) {
 
 	for (int i = 0; i < p->maxRows; i++) {
 		for (int j = 0; j < p->maxColumns; j++) {
-			if(p->bricks[i][j].indestructible == false) {
-				if (setBitmap(&(p->bricks[i][j]), p->gasBitmap) == false) {
-					ERROR("Cannot find the gas cars bitmapfile. Check the names!");
-					FEXIT();
-					return;
-				}
+			if(p->cars[i][j].indestructible == false) {
+				setBitmap(&(p->cars[i][j]), p->gasBitmap);
 			}
 			else {
-				if (setBitmap(&(p->bricks[i][j]), p->ecarBitmap) == false) {
-					ERROR("Cannot find the ecars cars bitmapfile. Check the names!");
-					FEXIT();
-					return;
-				}
+				setBitmap(&(p->cars[i][j]), p->ecarBitmap);
 			}
-			p->bricks[i][j].speed.x = 0;
-			p->bricks[i][j].speed.y = 0;
+			p->cars[i][j].speed.x = 0;
+			p->cars[i][j].speed.y = 0;
 		} //end-of-for
 	} //end-of-for
 
 	for (int j = 0; j < p->maxColumns; j++) {
-		p->carArea.width += p->bricks[0][j].width;
+		p->carArea.width += p->cars[0][j].width;
 	}
 	for (int i = 0; i < p->maxRows; i++) {
-		p->carArea.height += p->bricks[i][0].height;
+		p->carArea.height += p->cars[i][0].height;
 	}
 
 
+	/*
+	 * @author   mlambiri
+	 * @date     Jan. 1, 2020
+	 *  this section checks if the car area is wider than the display
+	 *  in that case we need to mark all cars of display as 'not on screen'
+	 *
+	 *  if we do not do that there can be gas cars that that not on screen
+	 *  in this case the game might not terminate as the players will
+	 *  always have gas cars to destroy
+	 */
+
 	if(p->carArea.width > p->display.width) {
-		int c1 = p->display.width / p->bricks[0][0].width;
+		int c1 = p->display.width / p->cars[0][0].width;
 		for (int i = c1; i < p->maxColumns; i++ ) {
 			for (int j = 0; j < p->maxRows; j++ ) {
-				if((p->bricks[j][i].onScreen == true) && (p->bricks[j][i].indestructible == false)) {
+				if((p->cars[j][i].onScreen == true) && (p->cars[j][i].indestructible == false)) {
 					p->remainingCars--;
 				}
-				p->bricks[j][i].onScreen = false;
+				p->cars[j][i].onScreen = false;
 			} //end-of-for
 		} //end-of-for
 		p->carArea.width  = p->display.width;
 		p->maxColumns = c1;
 	}
+
+
+	int ypos = (p->display.height - p->cars[0][0].height*p->maxRows)/2;
+	for (int i = 0; i < p->maxRows; i++) {
+		int xpos = (p->display.width - p->cars[0][0].width*p->maxColumns)/2;
+		if(xpos < 0) {
+			xpos = 0;
+		}
+		for (int j = 0; j < p->maxColumns; j++) {
+			p->cars[i][j].position.y = ypos;
+			p->cars[i][j].position.x = xpos;
+			xpos += p->cars[i][j].width;
+		} //end-of-for
+		ypos += p->cars[i][0].height;
+	} //end-of-for
+
+	p->carArea.position.x = p->cars[0][0].position.x;
+	p->carArea.position.y = p->cars[0][0].position.y;
+
 	FEXIT();
 	return;
 }
@@ -840,17 +700,15 @@ void  setCarInfo(GameData* p) {
  @date    Nov 22, 2019
  @mname   setBitmap
  @details
- return true if ok false otherwise\n
  --------------------------------------------------------------------------
  */
-bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
+void setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
 	FENTRY();
 
 	g->bmap = b;
 	g->width = al_get_bitmap_width(g->bmap);
 	g->height = al_get_bitmap_height(g->bmap);
 	FEXIT();
-	return true;
 } // end-of-function setBitmap
 
 
@@ -866,8 +724,7 @@ bool setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
  After a round win the round winner gets the serve.\n
  --------------------------------------------------------------------------
  */
-void
-centerBallAndPlayerPositions(GameData *gptr) {
+void centerBallAndPlayerPositions(GameData *gptr) {
 	FENTRY();
 
 	gptr->ball.speed.y = minballspeed_c + rand() % 3;
@@ -932,42 +789,6 @@ centerBallAndPlayerPositions(GameData *gptr) {
 
 
 /**
-  ---------------------------------------------------------------------------
-   @author  mlambiri
-   @date    Jan. 1, 2020
-   @mname   setCarPositionsOnScreen
-   @details
-	  \n
-  --------------------------------------------------------------------------
- */
-void
-setCarPositionsOnScreen(GameData* gptr) {
-	FENTRY();
-
-	int ypos = (gptr->display.height - gptr->bricks[0][0].height*gptr->maxRows)/2;
-	for (int i = 0; i < gptr->maxRows; i++) {
-		int xpos = (gptr->display.width - gptr->bricks[0][0].width*gptr->maxColumns)/2;
-		if(xpos < 0) {
-			xpos = 0;
-		}
-		for (int j = 0; j < gptr->maxColumns; j++) {
-			gptr->bricks[i][j].position.y = ypos;
-			gptr->bricks[i][j].position.x = xpos;
-			xpos += gptr->bricks[i][j].width;
-		} //end-of-for
-		ypos += gptr->bricks[i][0].height;
-	} //end-of-for
-
-	gptr->carArea.position.x = gptr->bricks[0][0].position.x;
-	gptr->carArea.position.y = gptr->bricks[0][0].position.y;
-
-	FEXIT();
-
-} // end-of-method setCarPositionsOnScreen
-
-
-
-/**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
@@ -1007,8 +828,7 @@ int drawTextToScreen(GameData *gptr, char *text, int x, int y, int size) {
  This function displays the first screen that the user views in the game\n
  --------------------------------------------------------------------------
  */
-bool drawBeginGameScreen(GameData *gptr) {
-
+void drawBeginGameScreen(GameData *gptr) {
 	FENTRY();
 
 
@@ -1036,19 +856,17 @@ bool drawBeginGameScreen(GameData *gptr) {
 			next, regularFont_c);
 
 	FEXIT();
-	return true;
 } // end-of-function drawBeginGameScreen
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   roundWinOverlay
+ @mname   drawRoundWinText
  @details
- 	 return false false for round win and true for game win
  --------------------------------------------------------------------------
  */
-bool roundWinOverlay(GameData *gptr) {
+void drawRoundWinText(GameData *gptr) {
 	FENTRY();
 
 	char textBuffer[MAXBUFFER];
@@ -1069,19 +887,18 @@ bool roundWinOverlay(GameData *gptr) {
 	} //end-of-for
 
 	FEXIT();
-	return true;
-} // end-of-function drawTextAndWaitRoundWin
+} // end-of-function drawRoundWinText
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 22, 2019
- @mname   gameWinOverlay
+ @mname   drawGameWinText
  @details
  	 return false false for round win and true for game win
  --------------------------------------------------------------------------
  */
-bool gameWinOverlay(GameData *gptr) {
+void drawGameWinText(GameData *gptr) {
 
 	FENTRY();
 
@@ -1121,21 +938,19 @@ bool gameWinOverlay(GameData *gptr) {
 	} //end-of-for
 
 	FEXIT();
-	return true;
-} // end-of-function drawTextAndWaitRoundWin
+} // end-of-function drawGameWinText
 
 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
  @date    Nov 18, 2019
- @mname   drawScoreToScreen
+ @mname   drawScoreText
  @details
  \n
  --------------------------------------------------------------------------
  */
-bool drawScoreToScreen(GameData *gptr) {
-
+void drawScoreText(GameData *gptr) {
 	FENTRY();
 
 	char textBuffer[MAXBUFFER];
@@ -1165,7 +980,7 @@ bool drawScoreToScreen(GameData *gptr) {
 		next = drawTextToScreen(gptr, textBuffer, gptr->display.width -100,
 				next, smallFont_c);
 	}
-}//end-of-drawScoreToScreen
+}//end-of-drawScoreText
 
 /**
  ---------------------------------------------------------------------------
@@ -1176,7 +991,7 @@ bool drawScoreToScreen(GameData *gptr) {
  \n
  --------------------------------------------------------------------------
  */
-bool drawHelpToScreen(GameData *gptr) {
+void drawHelpText(GameData *gptr) {
 	FENTRY();
 
 	char textBuffer[MAXBUFFER];
@@ -1243,13 +1058,13 @@ void  drawMainGameScreen(GameData *gptr) {
 	al_draw_bitmap(gptr->ball.bmap, gptr->ball.position.x, gptr->ball.position.y, 0);
 	for (int i = 0; i < gptr->maxRows; i++) {
 		for (int j = 0; j < gptr->maxColumns; j++) {
-			if (gptr->bricks[i][j].onScreen == true) {
-				al_draw_bitmap(gptr->bricks[i][j].bmap, gptr->bricks[i][j].position.x, gptr->bricks[i][j].position.y, 0);
+			if (gptr->cars[i][j].onScreen == true) {
+				al_draw_bitmap(gptr->cars[i][j].bmap, gptr->cars[i][j].position.x, gptr->cars[i][j].position.y, 0);
 			}//end-of-if
 		} //end-of-for
 	} //end-of-for
-	drawScoreToScreen(gptr);
-	if(gptr->helpOn) drawHelpToScreen(gptr);
+	drawScoreText(gptr);
+	if(gptr->helpOn) drawHelpText(gptr);
 	if(gptr->path.rec == true && gptr->path.separateDisplay == false) {
 		for (int i = 1; i < gptr->path.used; i++ ) {
 			al_draw_line(gptr->path.point[i-1].x, gptr->path.point[i-1].y, gptr->path.point[i].x, gptr->path.point[i].y, al_map_rgb(255, 0,0), 1.0);
@@ -1456,6 +1271,7 @@ void decreaseBallSpeed(GameData* g) {
 bool checkCollisionLeftRight(GameData *gptr) {
 	FENTRY();
 
+	bool collision = false;
 	if (gptr->ball.position.x > (gptr->display.width - gptr->ball.width)) {
 		gptr->ball.position.x = gptr->display.width - gptr->ball.width;
 		if (gptr->ball.speed.x > 0)
@@ -1463,8 +1279,7 @@ bool checkCollisionLeftRight(GameData *gptr) {
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
 		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
-		FEXIT();
-		return true;
+		collision = true;
 	} else if (gptr->ball.position.x < 0) {
 		gptr->ball.position.x = 0;
 		if (gptr->ball.speed.x < 0)
@@ -1472,12 +1287,11 @@ bool checkCollisionLeftRight(GameData *gptr) {
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
 		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
-		FEXIT();
-		return true;
+		collision = true;
 	}
 
 	FEXIT();
-	return false;
+	return collision;
 } // end-of-function checkCollisionLeftRight
 
 /**
@@ -1492,6 +1306,7 @@ bool checkCollisionLeftRight(GameData *gptr) {
 bool checkCollisionTopAndBottom(GameData *gptr) {
 	FENTRY();
 
+	bool collision = false;
 	if (((gptr->ball.position.y + gptr->ball.height )>= gptr->display.height )
 			&& (gptr->ball.speed.y > 0)) {
 		gptr->player[1].carsSmashed += gptr->penalty;
@@ -1499,8 +1314,7 @@ bool checkCollisionTopAndBottom(GameData *gptr) {
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
 		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
-		FEXIT();
-		return true;
+		collision =  true;
 
 	} else if ((gptr->ball.position.y <= 0) && (gptr->ball.speed.y < 0)) {
 		TRACE();
@@ -1509,11 +1323,10 @@ bool checkCollisionTopAndBottom(GameData *gptr) {
 		recordPoint(&(gptr->path), &(gptr->ball.position));
 		gptr->stats.totalBounce++;
 		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
-		FEXIT();
-		return true;
+		collision =  true;
 	}
 	FEXIT();
-	return false;
+	return collision;
 } // end-of-function checkCollisionTopAndBottom
 
 
@@ -1546,17 +1359,16 @@ int signOfNumber(int value) {
 bool isPointInObject(GameBasicBlock* b, int x, int y){
 	FENTRY();
 
+	bool isin = false;
 	if((x>=b->position.x)
 			&& (x <= (b->position.x+b->width))
 			&&(y>=b->position.y)
 			&& (y<=(b->position.y+b->height))) {
-		FEXIT();
-		return true;
+		isin = true;
 	}
-	else {
-		FEXIT();
-		return false;
-	}
+
+	FEXIT();
+	return isin;
 }
 
 
@@ -1586,8 +1398,8 @@ bool isPointInAnyCar(GameData* g,  int x, int y, int&row, int&column){
 		return false;
 	}
 
-	column = (x - g->bricks[0][0].position.x) / g->bricks[0][0].width;
-	row = (y - g->bricks[0][0].position.y) / g->bricks[0][0].height;
+	column = (x - g->cars[0][0].position.x) / g->cars[0][0].width;
+	row = (y - g->cars[0][0].position.y) / g->cars[0][0].height;
 
 	if(row >= g->maxRows) {
 		FEXIT();
@@ -1599,12 +1411,12 @@ bool isPointInAnyCar(GameData* g,  int x, int y, int&row, int&column){
 		return false;
 	}
 
-	if( isPointInObject(&(g->bricks[row][column]), x, y) == false) {
+	if( isPointInObject(&(g->cars[row][column]), x, y) == false) {
 		FEXIT();
 		return false;
 	}
 
-	if(g->bricks[row][column].onScreen == false) {
+	if(g->cars[row][column].onScreen == false) {
 		// this is an empty space on screen
 		FEXIT();
 		return false;
@@ -1743,14 +1555,14 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
 bool whenCollisionOccurs(GameData* gptr, int i, int j) {
 	FENTRY();
 
-	if (gptr->bricks[i][j].onScreen == false) {
+	if (gptr->cars[i][j].onScreen == false) {
 		FEXIT();
 		return false;
 	}
 
 	COLLISIONSIDE side;
 
-	if(areObjectsColliding(&(gptr->ball), &(gptr->bricks[i][j]), side)) {
+	if(areObjectsColliding(&(gptr->ball), &(gptr->cars[i][j]), side)) {
 
 		if(gptr->ball.speed.y == 0) {
 			gptr->ball.speed.y = rand() %5 -2;
@@ -1763,23 +1575,23 @@ bool whenCollisionOccurs(GameData* gptr, int i, int j) {
 		case top_c:
 			gptr->ball.speed.y *= -1;
 			gptr->ball.speed.x += rand() % 2;
-			gptr->ball.position.y = gptr->bricks[i][j].position.y - gptr->ball.height;
+			gptr->ball.position.y = gptr->cars[i][j].position.y - gptr->ball.height;
 			DEBUG("top");
 			break;
 		case bottom_c:
 			gptr->ball.speed.y *= -1;
 			gptr->ball.speed.x += rand() % 2;
-			gptr->ball.position.y = gptr->bricks[i][j].position.y + gptr->bricks[i][j].height;
+			gptr->ball.position.y = gptr->cars[i][j].position.y + gptr->cars[i][j].height;
 			DEBUG("bottom");
 			break;
 		case left_c:
-			gptr->ball.position.x = gptr->bricks[i][j].position.x - gptr->ball.width;
+			gptr->ball.position.x = gptr->cars[i][j].position.x - gptr->ball.width;
 			gptr->ball.speed.x *= -1;
 			DEBUG("left");
 			break;
 		case right_c:
 			gptr->ball.speed.x *= -1;
-			gptr->ball.position.x = gptr->bricks[i][j].position.x + gptr->bricks[i][j].width;
+			gptr->ball.position.x = gptr->cars[i][j].position.x + gptr->cars[i][j].width;
 			DEBUG("right");
 			break;
 		default:
@@ -1793,8 +1605,8 @@ bool whenCollisionOccurs(GameData* gptr, int i, int j) {
 		gptr->stats.totalBounce++;
 		gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty]++;
 
-		if(gptr->bricks[i][j].indestructible == false) {
-			gptr->bricks[i][j].onScreen = false;
+		if(gptr->cars[i][j].indestructible == false) {
+			gptr->cars[i][j].onScreen = false;
 			gptr->remainingCars--;
 			gptr->stats.firstEmpty++;
 			gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty] = 0;
@@ -1827,28 +1639,28 @@ bool whenCollisionOccurs(GameData* gptr, int i, int j) {
    and false otherwise\n
  --------------------------------------------------------------------------
  */
-bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i, int j) {
+bool isBallCarCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i, int j) {
 	FENTRY();
 
-	if (gptr->bricks[i][j].onScreen == false) {
+	if (gptr->cars[i][j].onScreen == false) {
 		FEXIT();
 		return false;
 	}
 
 	COLLISIONSIDE side;
 
-	if(areObjectsColliding(tmpBall, &(gptr->bricks[i][j]), side)) {
+	if(areObjectsColliding(tmpBall, &(gptr->cars[i][j]), side)) {
 
 		switch(side){
 		case top_c:
 			if(i > 0) {
 				// check is there is another car on top
-				if(gptr->bricks[i-1][j].onScreen == true ) {
+				if(gptr->cars[i-1][j].onScreen == true ) {
 					FEXIT();
 					return false;
 				}
 			}
-			tmpBall->position.y = gptr->bricks[i][j].position.y - tmpBall->height;
+			tmpBall->position.y = gptr->cars[i][j].position.y - tmpBall->height;
 			if(tmpBall->speed.y < 0) {
 				FEXIT();
 				return false;
@@ -1858,12 +1670,12 @@ bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i
 		case bottom_c:
 			if(i < gptr->maxRows-1) {
 				// check is there is another car underneath
-				if(gptr->bricks[i+1][j].onScreen == true ) {
+				if(gptr->cars[i+1][j].onScreen == true ) {
 					FEXIT();
 					return false;
 				}
 			}
-			tmpBall->position.y = gptr->bricks[i][j].position.y + gptr->bricks[i][j].height;
+			tmpBall->position.y = gptr->cars[i][j].position.y + gptr->cars[i][j].height;
 			if(tmpBall->speed.y > 0) {
 				FEXIT();
 				return false;
@@ -1873,12 +1685,12 @@ bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i
 		case left_c:
 			if(j >0) {
 				// check is there is another car to the left
-				if(gptr->bricks[i][j-1].onScreen == true ) {
+				if(gptr->cars[i][j-1].onScreen == true ) {
 					FEXIT();
 					return false;
 				}
 			}
-			tmpBall->position.x = gptr->bricks[i][j].position.x - tmpBall->width;
+			tmpBall->position.x = gptr->cars[i][j].position.x - tmpBall->width;
 			if(tmpBall->speed.x < 0) {
 				FEXIT();
 				return false;
@@ -1888,12 +1700,12 @@ bool isBallBrickCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i
 		case right_c:
 			if(j < gptr->maxColumns-1) {
 				// check is there is another car underneath
-				if(gptr->bricks[i][j+1].onScreen == true ) {
+				if(gptr->cars[i][j+1].onScreen == true ) {
 					FEXIT();
 					return false;
 				}
 			}
-			tmpBall->position.x = gptr->bricks[i][j].position.x + gptr->bricks[i][j].width;
+			tmpBall->position.x = gptr->cars[i][j].position.x + gptr->cars[i][j].width;
 			if(tmpBall->speed.x > 0) {
 				FEXIT();
 				return false;
@@ -2193,17 +2005,17 @@ bool updateBallPosition(GameData *gptr) {
 			if(tmpBall.position.y < 0) tmpBall.position.y = 0;
 			if(tmpBall.position.y > gptr->display.height) tmpBall.position.y = gptr->display.height;
 
-			int xdistance = tmpBall.position.x - gptr->bricks[0][0].position.x;
-			int ydistance = tmpBall.position.y - gptr->bricks[0][0].position.y ;
+			int xdistance = tmpBall.position.x - gptr->cars[0][0].position.x;
+			int ydistance = tmpBall.position.y - gptr->cars[0][0].position.y ;
 			int row = 0;
 			int column = 0;
 
 			if( xdistance > 0) {
-				column = xdistance / gptr->bricks[0][0].width;
+				column = xdistance / gptr->cars[0][0].width;
 				if(column > gptr->maxColumns) column = gptr->maxColumns;
 			}
 			if( ydistance > 0) {
-				row = ydistance / gptr->bricks[0][0].height;
+				row = ydistance / gptr->cars[0][0].height;
 				if(row > gptr->maxRows) row = gptr->maxRows;
 			}
 
@@ -2216,7 +2028,7 @@ bool updateBallPosition(GameData *gptr) {
 
 			for (int i = minRow; i < maxRow; i++) {
 				for (int j = minColumn; j < maxColumn; j++) {
-					if(isBallBrickCollisionPossible(gptr, &tmpBall, i, j)) {
+					if(isBallCarCollisionPossible(gptr, &tmpBall, i, j)) {
 						possible = true;
 						row = i;
 						column = j;
@@ -2340,9 +2152,9 @@ bool writeCarLayoutToFile(GameData* g) {
 
 	for (int i = 0; i < g->maxRows; i++ ) {
 		for (int j = 0; j < g->maxColumns; j++ ) {
-			if( g->bricks[i][j].onScreen == false) {
+			if( g->cars[i][j].onScreen == false) {
 				fprintf(fptr, "x");
-			}else if(g->bricks[i][j].indestructible == false) {
+			}else if(g->cars[i][j].indestructible == false) {
 				fprintf(fptr, "g");
 			} else {
 				fprintf(fptr, "e");
@@ -2365,8 +2177,7 @@ bool writeCarLayoutToFile(GameData* g) {
 	  \n
   --------------------------------------------------------------------------
  */
-bool
-recordPoint(DataRecorder* r, Point* p) {
+bool recordPoint(DataRecorder* r, Point* p) {
 	// recorder not on
 	if(r->rec == false) return false;
 	// recorder full
@@ -2386,8 +2197,7 @@ recordPoint(DataRecorder* r, Point* p) {
 	  \n
   --------------------------------------------------------------------------
  */
-void
-startRound(GameData* gptr) {
+void startRound(GameData* gptr) {
 	FENTRY();
 	if(gptr->gameStart == false) {
 		writeCarLayoutToFile(gptr);
@@ -2412,7 +2222,7 @@ startRound(GameData* gptr) {
 			}
 			sprintf(textBuffer, "[Mode: %s] [Score: %s %d %s %d]", mode, gptr->player[lrt_c].name, gptr->player[lrt_c].carsSmashed,
 					gptr->player[bus_c].name, gptr->player[bus_c].carsSmashed);
-			recordResult(textBuffer, &(gptr->stats));
+			writeGameResultToFile(textBuffer, &(gptr->stats));
 			generateNewCarLayout(gptr);
 			gptr->gameWin = false;
 		}
@@ -2433,12 +2243,11 @@ startRound(GameData* gptr) {
 	  \n
   --------------------------------------------------------------------------
  */
-void
-generateNewCarLayout(GameData* gptr) {
+void generateNewCarLayout(GameData* gptr) {
 	FENTRY();
 	gptr->backgroundColor = gptr->initcolor;
-	initializeCarLayout(gptr);
-	setCarInfo(gptr);
+	createCarLayout(gptr);
+	setCarGraphics(gptr);
 	writeCarLayoutToFile(gptr);
 	gptr->player[bus_c].carsSmashed = 0;
 	gptr->player[lrt_c].carsSmashed = 0;
@@ -2449,10 +2258,187 @@ generateNewCarLayout(GameData* gptr) {
 	gptr->stats.bounceUntilSmash[gptr->stats.firstEmpty] = 0;
 	centerBallAndPlayerPositions(gptr);
 	recordPoint(&(gptr->path), &(gptr->ball.position));
-	setCarPositionsOnScreen(gptr);
 	FEXIT();
 } // end-of-method generateNewCarLayout
 
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 25, 2019
+ @mname   readCarLayoutFile
+ @details
+    reads the brick layout from a file and stores it as an
+    array of characters \n
+ --------------------------------------------------------------------------
+ */
+bool readCarLayoutFile(GameData* g, char* fileName) {
+
+	FENTRY();
+
+	char text[MAXBUFFER];
+
+	FILE* fptr = NULL;
+	if (fileName == NULL) {
+		DEBUG("Null layout file name");
+		FEXIT();
+		return false;
+	} else {
+		fptr = fopen(fileName, "r");
+		if (fptr == NULL) {
+			DEBUG("Layout file not found");
+			FEXIT();
+			return false;
+		} //end-of-if(fptr == NULL)
+	}
+
+	DEBUG("Layout file found. Loading data ....");
+	char* buffer = text;
+	int i = 0;
+
+	while(fgets(buffer, MAXBUFFER, fptr)) {
+		for (int j = 0; j < g->maxColumns; j++ ) {
+			if(buffer[j] == 0) return false;
+			switch(buffer[j]) {
+			case 'x':
+			case 'X':
+			case 'g':
+			case 'G':
+			case 'e':
+			case 'E':
+				g->layout[i][j] = buffer[j];
+				break;
+			default:
+				FEXIT();
+				return false;
+			}
+		} //end-of-for
+		i++;
+		if(i>= g->maxRows) break;
+	}
+
+	if(i < g->maxRows) return false;
+
+	fclose(fptr);
+	FEXIT();
+	return true;
+} //end-readCarLayoutFile
+
+
+
+
+/**
+ ---------------------------------------------------------------------------
+ @author  mlambiri
+ @date    Nov 18, 2019
+ @mname    createCarLayout
+ @details
+   transforms the text layout read from a file to the car setup
+   if no text setup is present generate a random layout\n
+ --------------------------------------------------------------------------
+ */
+void  createCarLayout(GameData*gptr) {
+	FENTRY();
+
+	gptr->remainingCars = 0;
+
+	if(gptr->validLayout == true) {
+		// use it once
+		gptr->validLayout = false;
+		for(int i = 0; i < gptr->maxRows; i++) {
+			for (int j = 0; j < gptr->maxColumns; j++) {
+				switch(gptr->layout[i][j]) {
+				case 'x':
+				case 'X':
+					gptr->cars[i][j].onScreen = false;
+					gptr->cars[i][j].indestructible = false;
+					break;
+				case 'e':
+				case 'E':
+					gptr->cars[i][j].onScreen = true;
+					gptr->cars[i][j].indestructible = true;
+					break;
+				case 'g':
+				case 'G':
+					gptr->cars[i][j].onScreen = true;
+					gptr->cars[i][j].indestructible = false;
+					gptr->remainingCars++;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
+	else {
+
+		int year = (gptr->year > 2080)?2080:gptr->year;
+		uint rNumber = (year > 2020)? (2100- year )/10:10;
+		uint maxCars = gptr->maxRows * gptr->maxColumns;
+
+		if(year > 2020) {
+			maxCars -= (2080-year)*maxCars/160;
+		}
+
+
+		// number of smashable cars in top and bottom row must be similar
+		// othewise there is in an advantage to one player
+		int topCount = 0;
+
+		int totalCount = 0;
+
+		for(int i = 0; i < gptr->maxRows; i++) {
+			for (int j = 0; j < gptr->maxColumns; j++) {
+				gptr->cars[i][j].onScreen = (rand() % rNumber)?true:false;
+				if(gptr->cars[i][j].onScreen == true ) {
+					// ecars are 'indestructible'
+					// as times goes by more are ecars
+					// but also less cars on road
+					totalCount++;
+					if(gptr->year >= 2000) {
+						if(i == gptr->maxRows - 1) {
+							if(topCount-- > 0) {
+								gptr->remainingCars++;
+								continue;
+							}
+						}
+						gptr->cars[i][j].indestructible = (totalCount % rNumber)?false:true;
+					}
+					if(gptr->cars[i][j].indestructible  == false) {
+						gptr->remainingCars++;
+						if(i == 0) {
+							topCount++;
+						}
+					}
+				}
+			} //end-of-for
+		} //end-of-for
+
+		for(int i = 1; i < gptr->maxRows-1; i++) {
+			for (int j = 1; j < gptr->maxColumns-1; j++) {
+				if(gptr->cars[i][j].indestructible  == false) {
+					// do not allow gas cars to be surrounded by ecars
+					// in that case the cars cannot be smashed
+					// check if the gas car is surrounded and if it is, make it an ecar
+					if((gptr->cars[i-1][j].indestructible == true)
+							&& (gptr->cars[i][j-1].indestructible == true)
+							&& (gptr->cars[i][j+1].indestructible == true)
+							&& (gptr->cars[i+1][j].indestructible == true)
+					){
+						gptr->cars[i][j].indestructible = true;
+						if(gptr->cars[i][j].onScreen == true)
+							gptr->remainingCars--;
+						else
+							gptr->cars[i][j].onScreen = true;
+					}
+				}
+			} //end-of-for
+		} //end-of-for
+	}
+	gptr->gameNumber++;
+
+	FEXIT();
+} //end-createCarLayout
 
 
 /**
@@ -2609,22 +2595,6 @@ bool checkKeyboardAndMouse(GameData *gptr) {
 	FEXIT();
 	return true;
 } // end-of-function checkKeyboardAndMouse
-
-
-/**
- ---------------------------------------------------------------------------
- @author  mlambiri
- @date    Nov 23, 2019
- @mname   PlaySound
- @details
- \n
- --------------------------------------------------------------------------
- */
-void  playSound(ALLEGRO_SAMPLE *s) {
-	if (s) {
-		al_play_sample(s, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-	}
-} // end-of-function PlaySound
 
 /**
  ---------------------------------------------------------------------------
@@ -2828,7 +2798,7 @@ void gameLoop(GameData *p, bool startTimer) {
 							//al_clear_to_color writes the graphics buffer in the provided color
 							//this is used to set the background color for the display
 							al_clear_to_color(*(p->backgroundColor));
-							gameWinOverlay(p);
+							drawGameWinText(p);
 							drawMainGameScreen(p);
 						}
 						else {
@@ -2836,7 +2806,7 @@ void gameLoop(GameData *p, bool startTimer) {
 							//al_clear_to_color writes the graphics buffer in the provided color
 							//this is used to set the background color for the display
 							al_clear_to_color(*(p->backgroundColor));
-							roundWinOverlay(p);
+							drawRoundWinText(p);
 							drawMainGameScreen(p);
 						}
 						writeTrajectoryToWindow(p);

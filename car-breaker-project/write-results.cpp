@@ -28,7 +28,7 @@ static const char resultsFileName[] = "car-breaker-results.txt";
 	  statistics to the results file
   --------------------------------------------------------------------------
  */
-bool recordResult(char* p, BounceStatistics* stats) {
+bool writeGameResultToFile(char* p, BounceStatistics* stats) {
 
 	FENTRY();
 	TRACE();
