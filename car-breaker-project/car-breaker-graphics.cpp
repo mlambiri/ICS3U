@@ -2908,9 +2908,11 @@ void gameLoop(GameData *p, bool startTimer) {
 					drawObjects(p);
 					writeTrajectoryToWindow(p);
 				}
+				//in case of timer event, the screen has new information
+				//this sends the information to screen (allegro has double buffering)
 				flipAllDisplays(p);
-			}
-		}
+			} //end-of[p->ev.type == ALLEGRO_EVENT_TIMER]
+		} //end-of [p->gameStart == false]
 	}//end-of-while(!quit)
 
 	graphicsCleanup(p);
