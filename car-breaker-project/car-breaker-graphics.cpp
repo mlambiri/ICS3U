@@ -2844,16 +2844,19 @@ void gameLoop(GameData *p, bool startTimer) {
 			flipAllDisplays(p);
 		}
 		else {
-			//If the round is won we need to stop the game for 1 second
-			//We do this by counting timer events without processing them which in effect
-			//skips frames
+			//we redraw the screen only on TIMER events
+			//however if we dont start the timers
+			//we will draw the screen on keyboard events
+			//this will allow to debug in manual mode
+			//as we can see the game playing frame by frame
 			if ((p->ev.type == ALLEGRO_EVENT_TIMER
 					&& p->ev.timer.source == p->timer) || (startTimer == false)){
+				//for round wins we want to display overlay messages
 				if (p->roundWin == true) {
-					//skip maxSkip frames
 					//At the end of each round we want to keep the last frame of the play that shows where the ball exitied the screen
 					//for a little longer, so the user can see who won the round
 					//We do this by counting frame timer events
+					//and redrawing the last frame when the 'win' occurred
 					if (skipCounter++ >= (int) p->fps) {
 						if ((p->roundNumber > p->maxRounds) || (p->remainingCars == 0)){
 							p->gameWin = true;
@@ -2877,6 +2880,11 @@ void gameLoop(GameData *p, bool startTimer) {
 					}
 				}
 				else {
+					// this is the regular play mode
+					//1. we update the player positions (either due to key inputs or bot decisions)
+					//2. we update ball position
+					//3. draw all objects
+					//4. draw the trajectory window
 					skipCounter = 0;
 					//we need to run the bot logic
 					if (p->gameMode == fullbot_c) {

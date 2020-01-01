@@ -317,6 +317,7 @@ void initializeCarLayout(GameData*gptr);
 void setCarInfo(GameData* p);
 void setInitialObjectPositions(GameData *gptr);
 void writeTrajectoryToWindow(GameData* g);
+void graphicsCleanup(GameData *gptr);
 
 
 //===== Ball Movement and Collisions ('Physics') ===========
@@ -350,7 +351,6 @@ void startTimers(GameData *gptr);
 void stopTimers(GameData *gptr);
 
 // === Game Loop ====
-void graphicsCleanup(GameData *gptr);
 void gameLoop(GameData *p, bool startTimer);
 
 //============================
