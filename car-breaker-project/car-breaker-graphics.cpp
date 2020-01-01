@@ -883,7 +883,7 @@ void  setInitialObjectPositions(GameData *gptr) {
 	FENTRY();
 	TRACE();
 	gptr->ball.speed.y = minballspeed_c + rand() % 3;
-	if (gptr->roundWinner) {
+	if (gptr->roundWin) {
 		gptr->turn = gptr->roundWinner;
 		if (gptr->roundWinner == &(gptr->player[bus_c])) {
 			gptr->ball.speed.y *= -1;
