@@ -1467,12 +1467,7 @@ bool isBallInRegion(GameBasicBlock* ball, GameBasicBlock* obj){
 bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSIDE& side){
 	FENTRY();
 
-	bool result = isPointInObject(obj,ball->position.x,ball->position.y);
-	result = result || isPointInObject(obj, ball->position.x+ball->width, ball->position.y);
-	result = result || isPointInObject(obj,ball->position.x, ball->position.y+ball->height);
-	result = result || isPointInObject(obj, ball->position.x+ball->width, ball->position.y+ball->height);
-
-	if(result == false) {
+	if(isBallInRegion(ball, obj) == false) {
 		FEXIT();
 		return false;
 	}
