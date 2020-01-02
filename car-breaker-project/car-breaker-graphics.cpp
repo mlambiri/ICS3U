@@ -118,7 +118,6 @@ void configureGameData(GameData *p, int argc, char **argv) {
 	p->backgroundColor = &(p->bcolorarray[yellow_c]);
 
 	p->scorePointsPerSmash = 1;
-	p->cAlgoSelector = false;
 	p->player[bus_c].paddleSpeed = initPaddleSpeed_c;
 	p->player[lrt_c].paddleSpeed = initPaddleSpeed_c;
 
@@ -161,15 +160,6 @@ void configureGameData(GameData *p, int argc, char **argv) {
 			//display height
 			if (++param < argc)
 				p->display.height = atoi(argv[param]);
-		}else if (strcmp(argv[param], "calgo") == 0) {
-			//algorithm selector
-			int v = 0;
-			if (++param < argc)
-				v = atoi(argv[param]);
-			if(v <= 1)
-				p->cAlgoSelector = false;
-			else
-				p->cAlgoSelector = true;
 		}else if (strcmp(argv[param], "year") == 0) {
 			//the year of play
 			// pre 2000 there are no electric cars
@@ -1007,11 +997,6 @@ void drawHelpText(GameData *gptr) {
 	int next = drawTextToScreen(gptr, textBuffer, xpos_c,
 			30, smallFont_c);
 
-	sprintf(textBuffer, "Collision Algo: %d (C)",
-			gptr->cAlgoSelector?2:1);
-	next = drawTextToScreen(gptr, textBuffer, xpos_c,
-			next, smallFont_c);
-
 	sprintf(textBuffer, "Game Mode: %d",
 			gptr->gameMode);
 	next = drawTextToScreen(gptr, textBuffer, xpos_c,
@@ -1026,6 +1011,7 @@ void drawHelpText(GameData *gptr) {
 			gptr->path.rec?"Y":"N");
 	next = drawTextToScreen(gptr, textBuffer, xpos_c,
 			next, smallFont_c);
+	FEXIT();
 }//end-of-drawHelpToScreen
 
 /**
@@ -1913,156 +1899,63 @@ bool updateBallPosition(GameData *gptr) {
 
 	bool ballUpdated = false;
 
-	// there are 2 algorithms coded
-	// i could not get rid of the tunnelling effect with either of them
-	// it happens in some cases in both but the conditions are
-	// different. the algo selection is done through the
-	// configuration file using the 'calgo' variable
-	// when 'calgo = 1' then cAlgoSelector is set to 'false'
-	// when 'calgo = 2' then cAlgoSelector is set to 'true'
-	if(gptr->cAlgoSelector == false) { // 'calgo = 1'
 
-		// use a temporary ball object
-		GameBasicBlock tmpBall = gptr->ball;
+	// use a temporary ball object
+	GameBasicBlock tmpBall = gptr->ball;
 
-		// update the temporary ball object and use that to check new location
-		tmpBall.position.x = gptr->ball.position.x + gptr->ball.speed.x;
-		tmpBall.position.y = gptr->ball.position.y + gptr->ball.speed.y;
+	// update the temporary ball object and use that to check new location
+	tmpBall.position.x = gptr->ball.position.x + gptr->ball.speed.x;
+	tmpBall.position.y = gptr->ball.position.y + gptr->ball.speed.y;
 
-		if(isBallInRegion(&tmpBall, &(gptr->carArea)) == true) {
-			// check collision with cars only if ball will be in the car area
-			// update the actual ball position and speed
-			ballSpeedLimiter(gptr);
-			gptr->ball.prevposition.x = gptr->ball.position.x;
-			gptr->ball.prevposition.y = gptr->ball.position.y;
-			gptr->ball.position.x += gptr->ball.speed.x;
-			gptr->ball.position.y += gptr->ball.speed.y;
-			ballUpdated = true;
-
-
-			// this collision detection checks all rows and columns
-			// it is simple and effective as it checks all cars one by one
-			// if the speed is 'negative' (ie the ball moves from the bottom towards top)
-			// then we can start checking from (maxRows, maxColumns)
-			// this will detect the collisions faster
-			bool done = false;
-			if(gptr->ball.speed.y <= 0) {
-				for (int i = gptr->maxRows-1; i >=0; i--) {
-					for (int j = 0; j < gptr->maxColumns; j++) {
-						if(whenCollisionOccurs(gptr, i, j)) {
-							done = true;
-							break;
-						}
-					} //end-of-for
-					if(done) break;
-				} //end-of-for
-			}
-			else if(gptr->ball.speed.y > 0) {
-				// if the speed is 'positive' (ie ball moves from top to bottom)
-				// we can to the check from (0,0) to (maxRow, maxColumn)
-				for (int i = 0; i < gptr->maxRows; i++) {
-					for (int j = 0; j < gptr->maxColumns; j++) {
-						if(whenCollisionOccurs(gptr, i, j)) {
-							done = true;
-							break;
-						}
-					} //end-of-for
-					if(done) break;
-				} //end-of-for
-
-				// if a collision with a car occured we can exit
-				// there is no need to check for collisions with the rest of the items
-				if(done) {
-					FEXIT();
-					return false;
-				}
-			}
-		}
-	}
-	else { // 'calgo = 2'
+	if(isBallInRegion(&tmpBall, &(gptr->carArea)) == true) {
+		// check collision with cars only if ball will be in the car area
+		// update the actual ball position and speed
 		ballSpeedLimiter(gptr);
-#if 0
-		uint maxOfxy = max(abs(gptr->ball.speed.x), abs(gptr->ball.speed.y));
-		float xplus = (float) gptr->ball.speed.x / maxOfxy;
-		float yplus = (float)  gptr->ball.speed.y / maxOfxy;
-#else
-		uint maxOfxy = 2;
-		float xplus = (float) gptr->ball.speed.x ;
-		float yplus = (float)  gptr->ball.speed.y;
-#endif
-		bool collision = false;
-		// use a temporary ball to do the checks
-		GameBasicBlock tmpBall = gptr->ball;
+		gptr->ball.prevposition.x = gptr->ball.position.x;
+		gptr->ball.prevposition.y = gptr->ball.position.y;
+		gptr->ball.position.x += gptr->ball.speed.x;
+		gptr->ball.position.y += gptr->ball.speed.y;
+		ballUpdated = true;
 
-		for (int i = 1; i < maxOfxy; i++ ) {
 
-			float txf = tmpBall.position.x + i*xplus;
-			float tyf = tmpBall.position.y + i*yplus;
-			tmpBall.prevposition.x = gptr->ball.position.x;
-			tmpBall.prevposition.y = gptr->ball.position.y;
-			tmpBall.position.x = (int) txf ;
-			tmpBall.position.y = (int) tyf;
-
-			if(tmpBall.position.x < 0) tmpBall.position.x = 0;
-			if(tmpBall.position.x > gptr->display.width) tmpBall.position.x = gptr->display.width;
-			if(tmpBall.position.y < 0) tmpBall.position.y = 0;
-			if(tmpBall.position.y > gptr->display.height) tmpBall.position.y = gptr->display.height;
-
-			int xdistance = tmpBall.position.x - gptr->cars[0][0].position.x;
-			int ydistance = tmpBall.position.y - gptr->cars[0][0].position.y ;
-			int row = 0;
-			int column = 0;
-
-			if( xdistance > 0) {
-				column = xdistance / gptr->cars[0][0].width;
-				if(column > gptr->maxColumns) column = gptr->maxColumns;
-			}
-			if( ydistance > 0) {
-				row = ydistance / gptr->cars[0][0].height;
-				if(row > gptr->maxRows) row = gptr->maxRows;
-			}
-
-			const int d_c = 2;
-			int minRow = (row-d_c)<0?0:row-d_c;
-			int maxRow = (row+d_c) >gptr->maxRows?gptr->maxRows:row+d_c;
-			int minColumn = (column-d_c)<0?0:column-d_c;
-			int maxColumn = (column+d_c) >gptr->maxColumns?gptr->maxColumns:column+d_c;
-			bool possible = false;
-
-			for (int i = minRow; i < maxRow; i++) {
-				for (int j = minColumn; j < maxColumn; j++) {
-					if(isBallCarCollisionPossible(gptr, &tmpBall, i, j)) {
-						possible = true;
-						row = i;
-						column = j;
+		// this collision detection checks all rows and columns
+		// it is simple and effective as it checks all cars one by one
+		// if the speed is 'negative' (ie the ball moves from the bottom towards top)
+		// then we can start checking from (maxRows, maxColumns)
+		// this will detect the collisions faster
+		bool done = false;
+		if(gptr->ball.speed.y <= 0) {
+			for (int i = gptr->maxRows-1; i >=0; i--) {
+				for (int j = 0; j < gptr->maxColumns; j++) {
+					if(whenCollisionOccurs(gptr, i, j)) {
+						done = true;
 						break;
 					}
 				} //end-of-for
-				if(possible) break;
+				if(done) break;
+			} //end-of-for
+		}
+		else if(gptr->ball.speed.y > 0) {
+			// if the speed is 'positive' (ie ball moves from top to bottom)
+			// we can to the check from (0,0) to (maxRow, maxColumn)
+			for (int i = 0; i < gptr->maxRows; i++) {
+				for (int j = 0; j < gptr->maxColumns; j++) {
+					if(whenCollisionOccurs(gptr, i, j)) {
+						done = true;
+						break;
+					}
+				} //end-of-for
+				if(done) break;
 			} //end-of-for
 
-			if(possible == true) {
-				gptr->ball.prevposition.x = gptr->ball.position.x;
-				gptr->ball.prevposition.y = gptr->ball.position.y;
-				gptr->ball.position.x = tmpBall.position.x;
-				gptr->ball.position.y = tmpBall.position.y;
-				ballUpdated = true;
-
-				if(whenCollisionOccurs(gptr, row, column)) {
-					collision = true;
-					break;
-				}
-				else {
-					ballSpeedLimiter(gptr);
-				}
+			// if a collision with a car occured we can exit
+			// there is no need to check for collisions with the rest of the items
+			if(done) {
+				FEXIT();
+				return false;
 			}
-		} //end-of-for
-
-		if(collision == true) {
-			FEXIT();
-			return false;
 		}
-	} // end-of-collision algorithms
+	}
 
 	if(ballUpdated == false) {
 		ballSpeedLimiter(gptr);
@@ -2477,6 +2370,7 @@ bool checkKeyboardAndMouse(GameData *gptr) {
 	}
 
 	if (gptr->ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+		DEBUG("*** KEY DOWN");
 		switch (gptr->ev.keyboard.keycode) {
 		case ALLEGRO_KEY_LEFT:
 			if (gptr->gameMode != fullbot_c)
@@ -2519,9 +2413,6 @@ bool checkKeyboardAndMouse(GameData *gptr) {
 			break;
 		case ALLEGRO_KEY_H:
 			gptr->helpOn = !gptr->helpOn;
-			break;
-		case ALLEGRO_KEY_C:
-			gptr->cAlgoSelector = !gptr->cAlgoSelector;
 			break;
 		case ALLEGRO_KEY_G:
 			gptr->path.separateDisplay = !gptr->path.separateDisplay;
@@ -2567,6 +2458,7 @@ bool checkKeyboardAndMouse(GameData *gptr) {
 			break;
 		}
 	} else if (gptr->ev.type == ALLEGRO_EVENT_KEY_UP) {
+		DEBUG("*** KEY UP");
 		switch (gptr->ev.keyboard.keycode) {
 		case ALLEGRO_KEY_LEFT:
 			if (gptr->gameMode != fullbot_c) {
@@ -2600,6 +2492,8 @@ bool checkKeyboardAndMouse(GameData *gptr) {
 			FEXIT();
 			return false;
 		}
+	}else if (gptr->ev.type == ALLEGRO_EVENT_KEY_CHAR) {
+		DEBUG(" *** KEY CHAR EVENT");
 	}
 	FEXIT();
 	return true;
