@@ -41,7 +41,7 @@ bussound = cardoor.wav
 lrtsound = cardoor.wav
 
 #input file name for car setup
-#pattern = layout5506.txt
+pattern = layout1075.txt
 
 
 # points penalty for losing the ball
@@ -66,7 +66,7 @@ buslevel = 4
 lrtlevel = 4
 
 #frames per second min 5 max 120
-fps = 45
+fps = 30
 
 #trajectory is displayed in a separate window
 #by default it is done in the main window

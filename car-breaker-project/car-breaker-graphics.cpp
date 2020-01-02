@@ -76,8 +76,8 @@ BotControlInfo busBotArray[pro_c + 1] = {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 17, 2019
- @mname   configureGame
+ @date    Dec 2, 2019
+ @mname   configureGameData
  @details
  This function gets the game config parameters as read from the config file
  In the same format as the parameters passes to the main file
@@ -360,10 +360,10 @@ void configureGameData(GameData *p, int argc, char **argv) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 28, 2019
+ @date    Dec 3, 2019
  @mname   loadPlayerBitmap
  @details
-   this function loads a bitmap for the player from a file\n
+  This function loads a bitmap for the player from a file\n
  --------------------------------------------------------------------------
  */
 bool loadPlayerImage(GamePlayer *p, char* fname) {
@@ -383,10 +383,10 @@ bool loadPlayerImage(GamePlayer *p, char* fname) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date    Dec 3, 2019
  @mname   loadBitmap
  @details
- return true if ok false otherwise\n
+ Loads bitmaps for the non-player objects
  --------------------------------------------------------------------------
  */
 bool loadBitmap(GameBasicBlock *g, char* fname) {
@@ -408,7 +408,7 @@ bool loadBitmap(GameBasicBlock *g, char* fname) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 27, 2019
+ @date    Dec 20, 2019
  @mname   loadAudio
  @details
  \n
@@ -432,7 +432,7 @@ bool loadAudio(GamePlayer *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 23, 2019
+ @date    Dec 23, 2019
  @mname   PlaySound
  @details
  \n
@@ -448,7 +448,7 @@ void  playSound(ALLEGRO_SAMPLE *s) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 28, 2019
+ @date    Dec 29, 2019
  @mname   loadWinnerSound
  @details
  \n
@@ -470,7 +470,7 @@ bool loadWinnerSound(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 27, 2019
+ @date    Dec 9, 2019
  @mname   loadFont
  @details
    this function will load fonts for the text used to print
@@ -506,7 +506,7 @@ bool loadFont(GameData *gptr, int size) {
 /**
   ---------------------------------------------------------------------------
    @author  mlambiri
-   @date    Dec. 1, 2019
+   @date    Dec. 27, 2019
    @mname   createTrajectoryDisplay
    @details
 	  \n
@@ -541,7 +541,7 @@ void createTrajectoryDisplay(GameData* g) {
 /**
   ---------------------------------------------------------------------------
    @author  mlambiri
-   @date    Dec. 4, 2019
+   @date    Dec. 28, 2019
    @mname   writeTrajectoryToWindow
    @details
 	  \n
@@ -575,7 +575,7 @@ void writeTrajectoryToWindow(GameData* g) {
 /**
   ---------------------------------------------------------------------------
    @author  mlambiri
-   @date    Dec. 4, 2019
+   @date    Dec. 28, 2019
    @mname   flipAllDisplays
    @details
 	  \n
@@ -601,7 +601,7 @@ void flipAllDisplays(GameData* g) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 24, 2019
+ @date    Dec 5, 2019
  @mname   setCarGraphics
  @details
     This function will set the appropriate bitmaps for each car type
@@ -689,7 +689,7 @@ void  setCarGraphics(GameData* p) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date    Dec 5, 2019
  @mname   setBitmap
  @details
  --------------------------------------------------------------------------
@@ -707,7 +707,7 @@ void setBitmap(GameBasicBlock *g, ALLEGRO_BITMAP* b) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date    Dec 30, 2019
  @mname   centerBallAndPlayerPositions
  @details
  This function sets the players in the middle of the Y axis and provides
@@ -783,7 +783,7 @@ void centerBallAndPlayerPositions(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date   Dec 11, 2019
  @mname   drawTextToScreen
  @details
  Displays text on screen using allegro
@@ -813,7 +813,7 @@ int drawTextToScreen(GameData *gptr, char *text, int x, int y, int size) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date    Dec 3, 2019
  @mname   drawBeginGameScreen
  @details
  Returns false if escape key is pressed
@@ -824,7 +824,7 @@ void drawBeginGameScreen(GameData *gptr) {
 	FENTRY();
 
 
-	int next = drawTextToScreen(gptr, (char*) "Welcome to Car Smasher", gptr->display.width / 2,
+	int next = drawTextToScreen(gptr, (char*) "Welcome to Car Breaker", gptr->display.width / 2,
 			gptr->display.height / 4, largeFont_c);
 	al_flush_event_queue(gptr->eventqueue);
 	drawTextToScreen(gptr, (char*) "(c) mlambiri 2019", gptr->display.width / 2, next,
@@ -853,7 +853,7 @@ void drawBeginGameScreen(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date    Dec 12, 2019
  @mname   drawRoundWinText
  @details
  --------------------------------------------------------------------------
@@ -884,7 +884,7 @@ void drawRoundWinText(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date    Dec 9, 2019
  @mname   drawGameWinText
  @details
  	 return false false for round win and true for game win
@@ -936,7 +936,7 @@ void drawGameWinText(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 18, 2019
+ @date    Dec 21, 2019
  @mname   drawScoreText
  @details
  \n
@@ -978,7 +978,7 @@ void drawScoreText(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 18, 2019
+ @date    Dec 29, 2019
  @mname drawHelpToScreen
  @details
  \n
@@ -1017,7 +1017,7 @@ void drawHelpText(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 28, 2019
+ @date    Dec 6, 2019
  @mname   drawPlayerBitmap
  @details
  Draws only a selected portion of a bitmap.
@@ -1032,7 +1032,7 @@ void  drawPlayerBitmap(GameBasicBlock *g) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date    Dec 8, 2019
  @mname   drawMainGameScreen
  @details
  This function draws the players, ball, score data, and help (if help is on)
@@ -1067,7 +1067,7 @@ void  drawMainGameScreen(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date    Dec 2, 2019
  @mname   initializeAllegro
  @details
  returns 1 if init ok, 0 otherwise
@@ -1179,7 +1179,7 @@ bool initializeAllegro(GameData *p) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date    Dec 3, 2019
  @mname   allegroCleanup
  @details
  This function is called when the game terminates and it destroys all allegro resources
@@ -1219,7 +1219,7 @@ void  allegroCleanup(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 30, 2019
+ @date    Dec 17, 2019
  @mname   increaseBallSpeed
  @details
    increase one component of the ball speed
@@ -1235,7 +1235,7 @@ void increaseBallSpeed(GameData* g) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 30, 2019
+ @date    Dec 17, 2019
  @mname   decreaseBallSpeed
  @details
     decrease the largest component of speed
@@ -1251,7 +1251,7 @@ void decreaseBallSpeed(GameData* g) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 17, 2019
+ @date    Dec 13, 2019
  @mname   checkCollisionLeftRight
  @details
  true if there is a collision with top or bottom\n
@@ -1286,7 +1286,7 @@ bool checkCollisionLeftRight(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 17, 2019
+ @date    Dec 13, 2019
  @mname   checkCollisionTopAndBottom
  @details
  Checks if the ball hits either player's side of the field and grants a roundwin\n
@@ -1322,7 +1322,7 @@ bool checkCollisionTopAndBottom(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 28, 2019
+ @date    Dec 9, 2019
  @mname   signOfNumber
  @details
  \n
@@ -1339,7 +1339,7 @@ int signOfNumber(int value) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 19, 2019
+ @date    Dec 13, 2019
  @mname   isPointInObject
  @details
   check if a point of the ball is in another object\n
@@ -1364,7 +1364,7 @@ bool isPointInObject(GameBasicBlock* b, int x, int y){
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 30, 2019
+ @date    Dec 13, 2019
  @mname   isPointInAnyCar
  @details
   return false if the point denoted by coordinates (x,y) is
@@ -1420,7 +1420,7 @@ bool isPointInAnyCar(GameData* g,  int x, int y, int&row, int&column){
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 19, 2019
+ @date    Dec 13, 2019
  @mname   isBallInRegion
  @details
    check if the ball is in a particular rectangle
@@ -1442,7 +1442,7 @@ bool isBallInRegion(GameBasicBlock* ball, GameBasicBlock* obj){
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 19, 2019
+ @date    Dec 14, 2019
  @mname   areObjectsColliding
  @details
   check if the ball is colliding with another objects
@@ -1529,7 +1529,7 @@ bool areObjectsColliding(GameBasicBlock* ball, GameBasicBlock* obj, COLLISIONSID
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 19, 2019
+ @date    Dec 15, 2019
  @mname   whenCollisionOccur
  @details
    this function returns true if the ball has collided with a brick
@@ -1616,7 +1616,7 @@ bool whenCollisionOccurs(GameData* gptr, int i, int j) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 19, 2019
+ @date    Dec 13, 2019
  @mname   isBallBrickCollisionPossible
  @details
    this function returns true if the ball has collided with a brick
@@ -1711,7 +1711,7 @@ bool isBallCarCollisionPossible(GameData* gptr, GameBasicBlock* tmpBall, int i, 
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 28, 2019
+ @date    Dec 15, 2019
  @mname   ballBounceOnPlayer
  @details
  This function changes the direction of the ball after a collision with the
@@ -1771,7 +1771,7 @@ void  ballBounceOnPlayer(GameBasicBlock *ball, GamePlayer *playerPtr,
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 17, 2019
+ @date    Dec 13, 2019
  @mname   checkBallCollisionWithPlayers
  @details
  true if there is a collision false otherwise
@@ -1822,7 +1822,7 @@ bool checkBallCollisionWithPlayers(GameData *gptr) {
 /**
   --------------------------------------------------------------------------
    @author  mlambiri
-   @date    Nov. 30, 2019
+   @date    Dec 12, 2019
    @name    max
    @param   uint, uint
    @return  uint
@@ -1838,7 +1838,7 @@ uint max(uint a, uint b) {
 /**
   --------------------------------------------------------------------------
    @author  mlambiri
-   @date    Nov. 30, 2019
+   @date    Dec 12, 2019
    @name    min
    @param   a, b
    @return  int
@@ -1878,7 +1878,7 @@ ballSpeedLimiter(GameData* gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date    Dec 12, 2019
  @mname   updateBallPosition
  @details
  return true if no more gas cars remain to be smashed
@@ -1998,7 +1998,7 @@ bool updateBallPosition(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 19, 2019
+ @date    Dec 16, 2019
  @mname   setPointsPerSmash
  @details
    set an amount of points for each car smashed
@@ -2025,7 +2025,7 @@ void  setPointsPerSmash(GameData*gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 25, 2019
+ @date    Dec 8, 2019
  @mname   writeCarLayoutToFile
  @details
    writes the car layout to a file\n
@@ -2087,7 +2087,7 @@ bool recordPoint(DataRecorder* r, Point* p) {
 /**
   ---------------------------------------------------------------------------
    @author  mlambiri
-   @date    Jan. 1, 2020
+   @date    Jan 1, 2020
    @mname   startRound
    @details
 	  \n
@@ -2133,7 +2133,7 @@ void startRound(GameData* gptr) {
 /**
   ---------------------------------------------------------------------------
    @author  mlambiri
-   @date    Jan. 1, 2020
+   @date    Dec 6th, 2019
    @mname   generateNewCarLayout
    @details
 	  \n
@@ -2161,7 +2161,7 @@ void generateNewCarLayout(GameData* gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 25, 2019
+ @date    Dec 7, 2019
  @mname   readCarLayoutFile
  @details
     reads the brick layout from a file and stores it as an
@@ -2232,7 +2232,7 @@ bool readCarLayoutFile(GameData* g, char* fileName) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 18, 2019
+ @date    Dec 6, 2019
  @mname    createCarLayout
  @details
    transforms the text layout read from a file to the car setup
@@ -2346,7 +2346,7 @@ void  createCarLayout(GameData*gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 22, 2019
+ @date    Dec 3, 2019
  @mname   checkKeyboardAndMouse
  @details
  This function checks for keyboard input
@@ -2502,7 +2502,7 @@ bool checkKeyboardAndMouse(GameData *gptr) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 27, 2019
+ @date    Dec 22, 2019
  @mname   userControl
  @details
  This function calculates the new positions of the paddles after the keys are pressed\n
@@ -2531,7 +2531,7 @@ void  userControl(GameData *gptr, PLAYERS player ) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 14, 2019
+ @date    Dec 18, 2019
  @mname   botControl
  @details
  This function controls the the bus and lrt bots.\n
@@ -2628,7 +2628,7 @@ void  botControl(GameData *gptr, uint botNumber) {
 /**
  ---------------------------------------------------------------------------
  @author  mlambiri
- @date    Nov 25, 2019
+ @date    Dec 5, 2019
  @mname   gameLoop
  @details
  This is the function called from the main function
@@ -2703,6 +2703,7 @@ void gameLoop(GameData *p, bool startTimer) {
 							al_clear_to_color(*(p->backgroundColor));
 							drawGameWinText(p);
 							drawMainGameScreen(p);
+							al_flush_event_queue(p->eventqueue);
 						}
 						else {
 							centerBallAndPlayerPositions(p);

@@ -1,7 +1,7 @@
 /*
  * car-breaker-graphics.h
  *
- *  Created on: Dec 1, 2019
+ *  Created on: Dec 2, 2019
  *      Author: mlambiri
  */
 
@@ -88,7 +88,7 @@ typedef struct Point {
 /**
   ---------------------------------------------------------------------------
    @author     mlambiri
-   @date       Nov 17, 2019
+   @date       Dec 2, 2019
    @name       GameBasicBlock
    @details
      The GameBasicBlock structure is used for the information and
@@ -123,7 +123,7 @@ typedef struct GameBasicBlock {
 /**
   ---------------------------------------------------------------------------
    @author     mlambiri
-   @date       Nov 17, 2019
+   @date       Dec 3, 2019
    @name       GamePlayer
    @details     contains all player information
         Player is a GameBasicBlock that has several extra variables
@@ -146,7 +146,7 @@ typedef struct GamePlayer {
 /**
   ---------------------------------------------------------------------------
    @author     mlambiri
-   @date       Nov 17, 2019
+   @date       Dec 2, 2019
    @name       GameDisplay
    @details     Contains Display information, height width, and pointer to
    the allegro display
@@ -178,7 +178,7 @@ typedef struct BounceStatistics {
 
 /*
  * @author   mlambiri
- * @date     Dec 1, 2019
+ * @date     Dec 2, 2019
  *  The display is split in zones obtained by dividing display.height
  *  by one of the heightDivisor values
  *  A larger divisor denotes a zone closes to the player
@@ -209,7 +209,7 @@ typedef struct BotControlInfo {
 /**
   ---------------------------------------------------------------------------
    @author     mlambiri
-   @date       Nov 13, 2019
+   @date       Dec 2, 2019
    @name       GameData
    @details
     This is the main data structure
